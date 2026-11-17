@@ -16,29 +16,17 @@
   <!-- Font Awesome 6 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 
-  <!-- QRious: Tạo mã QR sắc nét chuẩn Quiet Zone -->
+  <!-- QRious & Html5-QRCode -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
-
-  <!-- Html5-QRCode: Quét mã QR qua Camera & Ảnh -->
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
   <script>
     tailwind.config = {
       theme: {
         extend: {
-          fontFamily: {
-            sans: ['"Be Vietnam Pro"', 'sans-serif'],
-          },
+          fontFamily: { sans: ['"Be Vietnam Pro"', 'sans-serif'] },
           colors: {
-            doan: {
-              50: '#EFF6FF',
-              100: '#DBEAFE',
-              500: '#0284C7',
-              600: '#0056B3',
-              700: '#004494',
-              800: '#003370',
-              900: '#00224D',
-            }
+            doan: { 500: '#0284C7', 600: '#0056B3', 700: '#004494', 800: '#003370' }
           }
         }
       }
@@ -46,49 +34,25 @@
   </script>
 
   <style>
-    body {
-      font-family: 'Be Vietnam Pro', sans-serif;
-      background-color: #F8FAFC;
-      color: #0F172A;
-    }
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #F1F5F9; }
-    ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 9999px; }
-
-    .view-enter {
-      animation: slideUpFade 0.24s ease-out forwards;
-    }
+    body { font-family: 'Be Vietnam Pro', sans-serif; background-color: #F8FAFC; color: #0F172A; }
+    .view-enter { animation: slideUpFade 0.22s ease-out forwards; }
     @keyframes slideUpFade {
       from { opacity: 0; transform: translateY(8px); }
       to { opacity: 1; transform: translateY(0); }
     }
-
     @keyframes pulseBeacon {
       0%, 100% { transform: scale(1); opacity: 1; }
       50% { transform: scale(1.3); opacity: 0.45; }
     }
-    .beacon-dot {
-      animation: pulseBeacon 1.4s infinite;
-    }
-
-    #qr-camera-box video {
-      width: 100% !important;
-      height: auto !important;
-      border-radius: 14px;
-      object-fit: cover;
-    }
-    #qr-camera-box img {
-      display: none !important;
-    }
+    .beacon-dot { animation: pulseBeacon 1.4s infinite; }
+    #qr-camera-box video { width: 100% !important; height: auto !important; border-radius: 14px; object-fit: cover; }
+    #qr-camera-box img { display: none !important; }
   </style>
 </head>
 <body class="min-h-screen bg-[#F8FAFC] text-slate-800">
 
   <!-- ==================== 1. MÀN HÌNH ĐĂNG NHẬP ==================== -->
   <section id="auth-view" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-[#002B5B] via-[#0056B3] to-[#0284C7] relative overflow-hidden">
-    <div class="absolute -top-20 -left-20 w-72 h-72 rounded-full bg-white/10 blur-2xl pointer-events-none"></div>
-    <div class="absolute -bottom-24 -right-20 w-80 h-80 rounded-full bg-sky-300/15 blur-2xl pointer-events-none"></div>
-
     <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden relative z-10 view-enter">
       <div class="bg-gradient-to-r from-[#004494] to-[#0056B3] px-6 py-7 text-white text-center">
         <div class="w-16 h-16 mx-auto rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center font-extrabold text-2xl shadow-lg relative">
@@ -111,14 +75,7 @@
           <label class="block text-xs font-bold text-slate-700 mb-1.5">Tên đăng nhập hoặc MSSV *</label>
           <div class="relative">
             <i class="fa-solid fa-id-badge absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-            <input
-              type="text"
-              id="auth-user"
-              required
-              autocomplete="username"
-              placeholder="Nhập tên tài khoản hoặc MSSV..."
-              class="w-full pl-10 pr-4 py-3 rounded-2xl border border-slate-200 text-sm font-medium focus:outline-none focus:border-[#0056B3] focus:ring-2 focus:ring-blue-100"
-            />
+            <input type="text" id="auth-user" required autocomplete="username" placeholder="Nhập tên tài khoản hoặc MSSV..." class="w-full pl-10 pr-4 py-3 rounded-2xl border border-slate-200 text-sm font-medium focus:outline-none focus:border-[#0056B3] focus:ring-2 focus:ring-blue-100" />
           </div>
         </div>
 
@@ -126,14 +83,7 @@
           <label class="block text-xs font-bold text-slate-700 mb-1.5">Mật khẩu *</label>
           <div class="relative">
             <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-            <input
-              type="password"
-              id="auth-pass"
-              required
-              autocomplete="current-password"
-              placeholder="Nhập mật khẩu..."
-              class="w-full pl-10 pr-11 py-3 rounded-2xl border border-slate-200 text-sm font-medium focus:outline-none focus:border-[#0056B3] focus:ring-2 focus:ring-blue-100"
-            />
+            <input type="password" id="auth-pass" required autocomplete="current-password" placeholder="Nhập mật khẩu..." class="w-full pl-10 pr-11 py-3 rounded-2xl border border-slate-200 text-sm font-medium focus:outline-none focus:border-[#0056B3] focus:ring-2 focus:ring-blue-100" />
             <button type="button" onclick="toggleAuthPassVisibility()" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
               <i id="auth-eye" class="fa-solid fa-eye text-xs"></i>
             </button>
@@ -144,14 +94,14 @@
           <i class="fa-solid fa-right-to-bracket mr-1.5"></i> Đăng nhập Hệ thống
         </button>
 
-        <div class="pt-2 text-center text-[11px] text-slate-500">
+        <p class="pt-1 text-center text-[11px] text-slate-500">
           Hệ thống tự động ghi nhớ đăng nhập trên thiết bị này cho đến khi bạn bấm <strong>Thoát</strong>.
-        </div>
+        </p>
       </form>
     </div>
   </section>
 
-  <!-- ==================== 2. GIAO DIỆN CHÍNH SAU KHI ĐĂNG NHẬP ==================== -->
+  <!-- ==================== 2. GIAO DIỆN CHÍNH ==================== -->
   <div id="workspace-view" class="hidden min-h-screen flex flex-col lg:flex-row">
 
     <!-- SIDEBAR DESKTOP -->
@@ -172,25 +122,20 @@
         </div>
       </div>
 
-      <!-- Thẻ thông tin người dùng đang đăng nhập -->
       <div class="p-4 mx-3 mt-4 rounded-2xl bg-gradient-to-br from-slate-50 to-blue-50/80 border border-blue-100">
         <div class="flex items-center gap-3">
-          <div id="sb-avatar-wrap" class="w-11 h-11 rounded-xl overflow-hidden bg-[#0056B3] text-white font-bold flex items-center justify-center text-sm shrink-0 shadow-sm">
-            VV
-          </div>
+          <div id="sb-avatar-wrap" class="w-11 h-11 rounded-xl overflow-hidden bg-[#0056B3] text-white font-bold flex items-center justify-center text-sm shrink-0 shadow-sm">VV</div>
           <div class="min-w-0 flex-1">
             <p id="sb-name" class="text-sm font-extrabold text-slate-900 truncate">Võ Quang Vinh</p>
             <div class="flex items-center gap-1.5 mt-0.5 flex-wrap">
               <span id="sb-mssv" class="text-[11px] font-mono font-bold text-slate-600">0026410310</span>
-              <span id="sb-role-pill" class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800 border border-amber-200">
-                Bí Thư
-              </span>
+              <span id="sb-role-pill"></span>
             </div>
           </div>
         </div>
 
         <div class="mt-3 pt-3 border-t border-blue-100 grid grid-cols-3 gap-1.5">
-          <button onclick="openProfileModal()" class="py-1.5 px-1.5 rounded-xl bg-white hover:bg-blue-50 text-[#0056B3] border border-blue-200/80 text-[11px] font-bold transition flex items-center justify-center gap-1">
+          <button onclick="switchTab('handbook')" class="py-1.5 px-1.5 rounded-xl bg-white hover:bg-blue-50 text-[#0056B3] border border-blue-200/80 text-[11px] font-bold transition flex items-center justify-center gap-1">
             <i class="fa-solid fa-user-pen text-[10px]"></i> Hồ sơ
           </button>
           <button onclick="openPassModal()" class="py-1.5 px-1.5 rounded-xl bg-white hover:bg-blue-50 text-slate-700 border border-slate-200 text-[11px] font-bold transition flex items-center justify-center gap-1">
@@ -202,10 +147,9 @@
         </div>
       </div>
 
-      <!-- Menu điều hướng -->
       <nav id="desktop-menu" class="flex-1 px-3 py-4 space-y-1 overflow-y-auto"></nav>
 
-      <div class="p-4 border-t border-slate-100 text-center space-y-1.5">
+      <div class="p-4 border-t border-slate-100 text-center">
         <div id="sync-status-pill" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-[11px] font-semibold text-slate-600">
           <span class="w-2 h-2 rounded-full bg-slate-400"></span> Chế độ cục bộ
         </div>
@@ -216,9 +160,7 @@
     <header class="lg:hidden sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80">
       <div class="px-3.5 py-2.5 flex items-center justify-between gap-2">
         <div class="flex items-center gap-2.5 min-w-0">
-          <div id="mb-avatar-wrap" class="w-9 h-9 rounded-xl overflow-hidden bg-gradient-to-br from-[#0056B3] to-[#0284C7] text-white font-extrabold text-xs flex items-center justify-center shrink-0">
-            VV
-          </div>
+          <div id="mb-avatar-wrap" class="w-9 h-9 rounded-xl overflow-hidden bg-gradient-to-br from-[#0056B3] to-[#0284C7] text-white font-extrabold text-xs flex items-center justify-center shrink-0">VV</div>
           <div class="min-w-0">
             <div class="flex items-center gap-1">
               <h1 class="font-extrabold text-sm text-slate-900 truncate">CHI ĐOÀN ĐHSVAN26A</h1>
@@ -232,10 +174,10 @@
         </div>
 
         <div class="flex items-center gap-1.5 shrink-0">
-          <button onclick="manualCloudPull(true)" title="Làm mới dữ liệu từ Google Sheet" class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs">
+          <button onclick="manualCloudPull(true)" title="Đồng bộ dữ liệu mới nhất" class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs">
             <i class="fa-solid fa-arrows-rotate"></i>
           </button>
-          <button onclick="openProfileModal()" title="Cập nhật hồ sơ" class="w-8 h-8 rounded-xl bg-blue-50 text-[#0056B3] flex items-center justify-center text-xs">
+          <button onclick="switchTab('handbook')" title="Cập nhật hồ sơ" class="w-8 h-8 rounded-xl bg-blue-50 text-[#0056B3] flex items-center justify-center text-xs">
             <i class="fa-solid fa-user-pen"></i>
           </button>
           <button onclick="openPassModal()" title="Đổi mật khẩu" class="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center text-xs">
@@ -250,7 +192,6 @@
 
     <!-- KHU VỰC NỘI DUNG CHÍNH -->
     <main class="flex-1 lg:pl-72 pb-24 lg:pb-10">
-      <!-- Top Bar Desktop -->
       <div class="hidden lg:flex items-center justify-between px-8 py-4 bg-white/85 backdrop-blur-md border-b border-slate-200/70 sticky top-0 z-20">
         <div>
           <div class="flex items-center gap-2 text-xs text-slate-400 font-medium">
@@ -262,14 +203,11 @@
         </div>
 
         <div class="flex items-center gap-2.5">
-          <button onclick="manualCloudPull(true)" title="Đồng bộ dữ liệu mới nhất" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-xs font-bold text-emerald-700 transition">
+          <button onclick="manualCloudPull(true)" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-xs font-bold text-emerald-700 transition">
             <i class="fa-solid fa-arrows-rotate"></i>
-            <span>Đồng bộ</span>
+            <span id="topbar-sync-label">Đồng bộ</span>
           </button>
-          <div id="topbar-role-badge" class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-xs font-bold text-amber-800">
-            <i class="fa-solid fa-star text-amber-500"></i>
-            <span>Bí Thư: Võ Quang Vinh</span>
-          </div>
+          <div id="topbar-role-badge"></div>
           <button onclick="switchTab('qr')" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#0056B3] to-[#0284C7] text-white text-xs font-bold shadow-sm hover:opacity-95 transition">
             <i class="fa-solid fa-qrcode"></i>
             <span>5. QR Điểm danh</span>
@@ -277,7 +215,6 @@
         </div>
       </div>
 
-      <!-- Dynamic Content -->
       <div id="main-container" class="max-w-6xl mx-auto px-3.5 sm:px-6 lg:px-8 pt-4 lg:pt-6"></div>
     </main>
 
@@ -287,74 +224,12 @@
     </nav>
   </div>
 
-  <!-- ==================== MODAL: CẬP NHẬT HỒ SƠ ==================== -->
-  <div id="profile-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
-    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-100 overflow-hidden view-enter">
-      <div class="px-6 py-4 bg-gradient-to-r from-[#0056B3] to-[#0284C7] text-white flex items-center justify-between">
-        <h3 class="font-bold text-sm flex items-center gap-2">
-          <i class="fa-solid fa-address-card"></i> Cập nhật Thông tin Hồ sơ
-        </h3>
-        <button onclick="closeProfileModal()" class="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      </div>
-      <form onsubmit="onSaveProfile(event)" class="p-5 space-y-3.5 max-h-[85vh] overflow-y-auto">
-        <div class="flex items-center gap-4 p-3 rounded-2xl bg-slate-50 border border-slate-200/80">
-          <div id="prof-preview-avatar" class="w-16 h-16 rounded-2xl overflow-hidden bg-[#0056B3] text-white font-extrabold text-xl flex items-center justify-center shrink-0 shadow-sm">
-            VV
-          </div>
-          <div class="space-y-1.5 flex-1">
-            <div class="text-xs font-bold text-slate-800">Ảnh đại diện cá nhân</div>
-            <div class="flex flex-wrap items-center gap-2">
-              <label class="cursor-pointer px-3 py-1.5 rounded-xl bg-[#0056B3] text-white text-xs font-bold hover:bg-[#004494] transition inline-flex items-center gap-1.5">
-                <i class="fa-solid fa-camera"></i> Chọn ảnh
-                <input type="file" accept="image/*" onchange="onAvatarFileSelected(event, 'modal')" class="hidden" />
-              </label>
-              <button type="button" onclick="clearTempAvatar('modal')" class="px-2.5 py-1.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold">
-                Xóa ảnh
-              </button>
-            </div>
-            <p class="text-[10px] text-slate-400">Hỗ trợ JPG, PNG, WEBP</p>
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">Họ và tên *</label>
-          <input type="text" id="prof-name" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold focus:outline-none focus:border-[#0056B3]" />
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">Mã số sinh viên (MSSV) *</label>
-          <input type="text" id="prof-mssv" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-mono font-bold focus:outline-none focus:border-[#0056B3]" />
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">Số điện thoại</label>
-            <input type="tel" id="prof-phone" placeholder="VD: 0912345678" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0056B3]" />
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">Địa chỉ Gmail</label>
-            <input type="email" id="prof-email" placeholder="VD: vinh@gmail.com" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0056B3]" />
-          </div>
-        </div>
-
-        <div class="flex justify-end gap-2 pt-2">
-          <button type="button" onclick="closeProfileModal()" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold">Hủy</button>
-          <button type="submit" class="px-5 py-2 rounded-xl bg-[#0056B3] text-white text-xs font-bold hover:bg-[#004494] shadow-sm">
-            <i class="fa-solid fa-floppy-disk mr-1"></i> Lưu thông tin
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-
   <!-- ==================== MODAL: ĐỔI MẬT KHẨU ==================== -->
   <div id="pass-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
     <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl border border-slate-100 overflow-hidden view-enter">
       <div class="px-6 py-4 bg-gradient-to-r from-[#0056B3] to-[#0284C7] text-white flex items-center justify-between">
         <h3 class="font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-key"></i> Đổi mật khẩu</h3>
-        <button onclick="closePassModal()" class="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+        <button onclick="closeModal('pass-modal')" class="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <form onsubmit="onSavePassword(event)" class="p-5 space-y-3.5">
         <div>
@@ -366,19 +241,19 @@
           <input type="password" id="cp-new" required minlength="4" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0056B3]" />
         </div>
         <div class="flex justify-end gap-2 pt-2">
-          <button type="button" onclick="closePassModal()" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold">Hủy</button>
+          <button type="button" onclick="closeModal('pass-modal')" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold">Hủy</button>
           <button type="submit" class="px-4 py-2 rounded-xl bg-[#0056B3] text-white text-xs font-bold">Cập nhật</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- ==================== MODAL: SỬA GIAO DỊCH QUỸ (ĐIỀU CHỈNH SỐ TIỀN) ==================== -->
+  <!-- ==================== MODAL: SỬA GIAO DỊCH QUỸ ==================== -->
   <div id="ledger-edit-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
     <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-100 overflow-hidden view-enter">
       <div class="px-6 py-4 bg-gradient-to-r from-[#0056B3] to-[#0284C7] text-white flex items-center justify-between">
         <h3 class="font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-pen-to-square"></i> Điều chỉnh Giao dịch Quỹ</h3>
-        <button onclick="closeLedgerEditModal()" class="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+        <button onclick="closeModal('ledger-edit-modal')" class="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <form onsubmit="onSaveEditedLedger(event)" class="p-5 space-y-3.5">
         <input type="hidden" id="edit-lg-id" />
@@ -399,24 +274,30 @@
           <label class="block text-xs font-bold text-slate-700 mb-1">Nội dung giao dịch *</label>
           <input type="text" id="edit-lg-title" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold" />
         </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">Ghi chú</label>
-          <input type="text" id="edit-lg-note" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs" />
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Ngày giao dịch</label>
+            <input type="text" id="edit-lg-date" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Ghi chú</label>
+            <input type="text" id="edit-lg-note" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs" />
+          </div>
         </div>
         <div class="flex justify-end gap-2 pt-2">
-          <button type="button" onclick="closeLedgerEditModal()" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold">Hủy</button>
+          <button type="button" onclick="closeModal('ledger-edit-modal')" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold">Hủy</button>
           <button type="submit" class="px-5 py-2 rounded-xl bg-[#0056B3] text-white text-xs font-bold">Lưu điều chỉnh</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- ==================== MODAL: THÊM HOẠT ĐỘNG (BÍ THƯ) ==================== -->
+  <!-- ==================== MODAL: THÊM HOẠT ĐỘNG ==================== -->
   <div id="activity-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
     <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-slate-100 overflow-hidden view-enter">
       <div class="px-6 py-4 bg-gradient-to-r from-[#0056B3] to-[#0284C7] text-white flex items-center justify-between">
         <h3 class="font-bold text-base flex items-center gap-2"><i class="fa-solid fa-calendar-plus"></i> Tạo Hoạt động Phong trào</h3>
-        <button onclick="closeActivityModal()" class="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+        <button onclick="closeModal('activity-modal')" class="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <form onsubmit="onCreateActivity(event)" class="p-5 space-y-3.5">
         <div>
@@ -442,23 +323,21 @@
           <textarea id="new-act-desc" rows="2" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm"></textarea>
         </div>
         <div class="flex justify-end gap-2 pt-2">
-          <button type="button" onclick="closeActivityModal()" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold">Hủy</button>
+          <button type="button" onclick="closeModal('activity-modal')" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold">Hủy</button>
           <button type="submit" class="px-5 py-2 rounded-xl bg-[#0056B3] text-white text-xs font-bold">Đăng hoạt động</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- ==================== MODAL: PHÓNG TO MÃ QR CHIẾU LỚP ==================== -->
+  <!-- ==================== MODAL: PHÓNG TO MÃ QR ==================== -->
   <div id="qr-zoom-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm">
     <div class="bg-white w-full max-w-md rounded-3xl p-6 text-center shadow-2xl space-y-4 view-enter">
       <div class="flex items-center justify-between">
         <span class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-extrabold inline-flex items-center gap-1.5">
           <span class="w-2 h-2 rounded-full bg-emerald-500 beacon-dot"></span> MÃ QR ĐIỂM DANH ĐANG MỞ
         </span>
-        <button onclick="closeZoomQrModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
+        <button onclick="closeModal('qr-zoom-modal')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <h3 id="zoom-session-title" class="font-extrabold text-base text-slate-900">Sinh hoạt Chi đoàn ĐHSVAN26A</h3>
       <div class="p-4 rounded-3xl bg-white border-2 border-slate-200 inline-block shadow-inner">
@@ -479,7 +358,7 @@
           <h3 id="reg-modal-title" class="font-bold text-sm">Danh sách đăng ký</h3>
           <p id="reg-modal-sub" class="text-[11px] text-slate-300">Chi đoàn ĐHSVAN26A</p>
         </div>
-        <button onclick="closeRegListModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+        <button onclick="closeModal('reg-list-modal')" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div id="reg-modal-body" class="p-4 max-h-80 overflow-y-auto divide-y divide-slate-100"></div>
     </div>
@@ -498,6 +377,12 @@
     // DÁN MÃ DANH SÁCH LỚP CỐ ĐỊNH VÀO DÒNG DƯỚI NẾU MUỐN:
     const PRESET_MEMBERS = [];
 
+    const POSITION_OPTIONS = [
+      'Đoàn viên',
+      'Phó Bí thư Chi đoàn',
+      'Ủy viên BCH Chi đoàn'
+    ];
+
     const SEED_USERS = [
       {
         id: 'BITHU_VINH',
@@ -510,10 +395,8 @@
         phone: '',
         email: '',
         avatar: '',
-        branch: 'Chi đoàn ĐHSVAN26A',
         points: 98,
-        feePaid: true,
-        badgeGradient: 'from-amber-500 to-orange-600'
+        feePaid: true
       }
     ];
 
@@ -525,7 +408,7 @@
       },
       {
         tag: 'Quy chế Điểm danh',
-        title: 'Quy định điểm danh bằng mã QR của Bí Thư tại Chi đoàn ĐHSVAN26A',
+        title: 'Quy định điểm danh bằng mã QR tại Chi đoàn ĐHSVAN26A',
         body: 'Khi Bí Thư mở mã QR điểm danh trong thời gian quy định, Đoàn viên vào mục 5 để bật máy quét QR (hoặc chọn ảnh mã QR Bí Thư gửi) để xác nhận có mặt.'
       },
       {
@@ -594,7 +477,6 @@
         }
       ],
       attendance: {
-        sessionId: 'SESS-26A',
         round: 1,
         title: 'Sinh hoạt Chi đoàn định kỳ Tháng 11/2026',
         location: 'Phòng B.304 - Giảng đường B',
@@ -603,23 +485,78 @@
         openedAtSec: 0,
         qrNonce: '2601',
         logs: [
-          { userId: 'BITHU_VINH', time: '19:00:00 17/11/2026', method: 'Bí Thư chủ trì', round: 1 }
+          { userId: 'BITHU_VINH', mssv: '0026410310', name: 'Võ Quang Vinh', time: '19:00:00 17/11/2026', method: 'Bí Thư chủ trì', round: 1 }
         ]
       }
     };
 
     let db = loadDatabase();
     let latestCompactLinkCache = '';
-    let cloudSyncStatus = 'offline'; // 'offline' | 'syncing' | 'online' | 'error'
+    let cloudSyncStatus = 'offline';
+    let lastSyncedTimeStr = '';
     let cloudPollHandle = null;
     let isCloudBusy = false;
+    let lastLocalMutationAt = 0;
+    let localForceRescan = false;
+    let tempInlineAvatar = null;
+    let guideFilter = '';
+    let memberSearchTerm = '';
+
+    function esc(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    function openModal(id) {
+      const m = document.getElementById(id);
+      if (m) { m.classList.remove('hidden'); m.classList.add('flex'); }
+    }
+
+    function closeModal(id) {
+      const m = document.getElementById(id);
+      if (m) { m.classList.add('hidden'); m.classList.remove('flex'); }
+    }
 
     function getActiveApiUrl() {
       return (db.apiUrl || PRESET_API_URL || '').trim();
     }
 
+    function normalizePositionName(raw) {
+      const s = String(raw || '').trim().toLowerCase();
+      if (s.includes('phó bí thư') || s === 'pbt' || s === '1') return 'Phó Bí thư Chi đoàn';
+      if (s.includes('ủy viên') || s.includes('uỷ viên') || s === 'uv' || s === '2') return 'Ủy viên BCH Chi đoàn';
+      return 'Đoàn viên';
+    }
+
+    function getPositionBadgeHtml(user, compact = false) {
+      if (isSecretary(user)) {
+        return `<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800 border border-amber-200">Bí Thư</span>`;
+      }
+      if (user.position === 'Phó Bí thư Chi đoàn') {
+        return `<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-purple-100 text-purple-800 border border-purple-200">${compact ? 'Phó Bí thư' : 'Phó Bí thư Chi đoàn'}</span>`;
+      }
+      if (user.position === 'Ủy viên BCH Chi đoàn') {
+        return `<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-teal-100 text-teal-800 border border-teal-200">${compact ? 'Ủy viên BCH' : 'Ủy viên BCH Chi đoàn'}</span>`;
+      }
+      return `<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-100 text-[#0056B3]">Đoàn viên</span>`;
+    }
+
+    function getUserAvatarGradient(user) {
+      if (isSecretary(user)) return 'from-amber-500 to-orange-600';
+      if (user && user.position === 'Phó Bí thư Chi đoàn') return 'from-purple-600 to-indigo-600';
+      if (user && user.position === 'Ủy viên BCH Chi đoàn') return 'from-teal-600 to-emerald-600';
+      return 'from-[#0056B3] to-[#0284C7]';
+    }
+
     function updateSyncStatusBadge() {
       const el = document.getElementById('sync-status-pill');
+      const topLabel = document.getElementById('topbar-sync-label');
+      if (topLabel) {
+        topLabel.textContent = lastSyncedTimeStr ? `Đồng bộ (${lastSyncedTimeStr})` : 'Đồng bộ';
+      }
       if (!el) return;
       const url = getActiveApiUrl();
       if (!url) {
@@ -635,7 +572,7 @@
         el.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500"></span> Lỗi kết nối Google Sheet';
       } else {
         el.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold';
-        el.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Đã nối Google Sheet';
+        el.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Đã nối Sheet ${lastSyncedTimeStr ? '• ' + lastSyncedTimeStr : ''}`;
       }
     }
 
@@ -645,7 +582,6 @@
       let changed = false;
 
       if (Array.isArray(remote.users) && remote.users.length > 0) {
-        // Giữ ảnh đại diện cục bộ nếu remote chưa có ảnh
         const localAvatarMap = new Map(db.users.map(u => [u.id, u.avatar]));
         remote.users.forEach(ru => {
           if (!ru.avatar && localAvatarMap.get(ru.id)) {
@@ -676,22 +612,20 @@
       }
       if (remote.attendance && typeof remote.attendance === 'object') {
         db.attendance = { ...db.attendance, ...remote.attendance };
+        if (localForceRescan && db.activeUserId) {
+          db.attendance.logs = (db.attendance.logs || []).filter(l => l.userId !== db.activeUserId);
+        }
         changed = true;
       }
 
-      if (changed) {
-        persistLocalOnly();
-      }
+      if (changed) persistLocalOnly();
       return changed;
     }
 
     function getSharedPayloadSnapshot() {
-      // Lược bớt ảnh base64 quá nặng trước khi gửi lên Google Sheet (giới hạn 50.000 ký tự/ô của Google Sheet)
       const safeUsers = db.users.map(u => {
         const copy = { ...u };
-        if (copy.avatar && copy.avatar.length > 1500) {
-          copy.avatar = '';
-        }
+        if (copy.avatar && copy.avatar.length > 1500) copy.avatar = '';
         return copy;
       });
       return {
@@ -715,40 +649,35 @@
         let res;
         if (!payloadOrNull) {
           const sep = apiUrl.includes('?') ? '&' : '?';
-          res = await fetch(`${apiUrl}${sep}t=${Date.now()}`, { method: 'GET' });
+          res = await fetch(`${apiUrl}${sep}t=${Date.now()}`, { method: 'GET', redirect: 'follow' });
         } else {
           res = await fetch(apiUrl, {
             method: 'POST',
+            redirect: 'follow',
             body: JSON.stringify(payloadOrNull)
           });
         }
         const json = await res.json();
         cloudSyncStatus = 'online';
+        lastSyncedTimeStr = new Date().toTimeString().slice(0, 5);
         updateSyncStatusBadge();
         return json;
       } catch (err) {
         cloudSyncStatus = 'error';
         updateSyncStatusBadge();
-        console.warn('Lỗi đồng bộ Google Sheet:', err);
         return null;
       }
     }
 
-    async function pushFullStateToCloud() {
-      if (!getActiveApiUrl()) return;
-      await cloudApiRequest({
-        action: 'SYNC_PUSH',
-        state: getSharedPayloadSnapshot()
-      });
-    }
-
     async function pushAtomicActionToCloud(actionName, dataObj) {
       if (!getActiveApiUrl()) return;
+      lastLocalMutationAt = Date.now();
       const resp = await cloudApiRequest({
         action: actionName,
         data: dataObj,
         fallbackState: getSharedPayloadSnapshot()
       });
+      lastLocalMutationAt = Date.now();
       if (resp && resp.ok && resp.state) {
         applyRemoteSharedState(resp.state);
         renderApp();
@@ -763,22 +692,24 @@
       }
       if (isCloudBusy) return;
       isCloudBusy = true;
+      const pullStartedAt = Date.now();
       try {
         const resp = await cloudApiRequest(null);
+        if (lastLocalMutationAt > pullStartedAt) return;
+
         if (resp && resp.ok && resp.state) {
           const oldJson = JSON.stringify(getSharedPayloadSnapshot());
           applyRemoteSharedState(resp.state);
           const newJson = JSON.stringify(getSharedPayloadSnapshot());
-          if (oldJson !== newJson) {
+          if (oldJson !== newJson && !isCameraRunning) {
             renderApp();
           }
           if (showNotice) showToast('Đã đồng bộ dữ liệu mới nhất từ Google Sheet!', 'success');
         } else if (resp && resp.ok && !resp.state && isSecretary()) {
-          // Sheet mới tạo chưa có dữ liệu -> Bí Thư đẩy dữ liệu khởi tạo lên
-          await pushFullStateToCloud();
+          await pushAtomicActionToCloud('SYNC_FULL', getSharedPayloadSnapshot());
           if (showNotice) showToast('Đã khởi tạo dữ liệu lên Google Sheet thành công!', 'success');
         } else if (showNotice) {
-          showToast('Không tải được dữ liệu từ Google Sheet. Kiểm tra lại quyền truy cập Web App!', 'error');
+          showToast('Không tải được dữ liệu từ Google Sheet. Kiểm tra quyền truy cập Web App!', 'error');
         }
       } finally {
         isCloudBusy = false;
@@ -789,19 +720,23 @@
       if (cloudPollHandle) clearInterval(cloudPollHandle);
       cloudPollHandle = setInterval(() => {
         if (!getActiveApiUrl()) return;
-        // Không tự render đè khi người dùng đang gõ chữ trong ô nhập liệu
         const activeTag = document.activeElement ? document.activeElement.tagName : '';
         if (activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT') return;
         manualCloudPull(false);
-      }, 6000);
+      }, 4000);
+
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden && getActiveApiUrl()) {
+          manualCloudPull(false);
+        }
+      });
     }
 
-    // ==================== NÉN SIÊU GỌN LINK LỚP HỌC ====================
+    // ==================== NÉN LINK LỚP HỌC ====================
     function bytesToBase64Url(uint8) {
       let binary = '';
-      const chunk = 0x8000;
-      for (let i = 0; i < uint8.length; i += chunk) {
-        binary += String.fromCharCode.apply(null, uint8.subarray(i, i + chunk));
+      for (let i = 0; i < uint8.length; i += 0x8000) {
+        binary += String.fromCharCode.apply(null, uint8.subarray(i, i + 0x8000));
       }
       return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
     }
@@ -811,83 +746,23 @@
       while (b64.length % 4) b64 += '=';
       const binary = atob(b64);
       const bytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i++) {
-        bytes[i] = binary.charCodeAt(i);
-      }
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
       return bytes;
     }
 
-    function lzwCompressString(str) {
-      const inputBytes = new TextEncoder().encode(str);
-      const dict = new Map();
-      for (let i = 0; i < 256; i++) dict.set(String.fromCharCode(i), i);
-      let nextCode = 256;
-      let w = '';
-      const codes = [];
-
-      for (let i = 0; i < inputBytes.length; i++) {
-        const c = String.fromCharCode(inputBytes[i]);
-        const wc = w + c;
-        if (dict.has(wc)) {
-          w = wc;
-        } else {
-          codes.push(dict.get(w));
-          if (nextCode < 65536) dict.set(wc, nextCode++);
-          w = c;
-        }
-      }
-      if (w !== '') codes.push(dict.get(w));
-
-      const outBytes = new Uint8Array(codes.length * 2);
-      for (let i = 0; i < codes.length; i++) {
-        outBytes[i * 2] = (codes[i] >> 8) & 0xff;
-        outBytes[i * 2 + 1] = codes[i] & 0xff;
-      }
-      return bytesToBase64Url(outBytes);
-    }
-
-    function lzwDecompressString(b64url) {
-      const inBytes = base64UrlToBytes(b64url);
-      const codes = [];
-      for (let i = 0; i + 1 < inBytes.length; i += 2) {
-        codes.push((inBytes[i] << 8) | inBytes[i + 1]);
-      }
-      if (codes.length === 0) return '';
-
-      const dict = new Array(65536);
-      for (let i = 0; i < 256; i++) dict[i] = String.fromCharCode(i);
-      let nextCode = 256;
-      let w = dict[codes[0]];
-      let result = w;
-
-      for (let i = 1; i < codes.length; i++) {
-        const k = codes[i];
-        let entry = dict[k] !== undefined ? dict[k] : (k === nextCode ? w + w[0] : '');
-        result += entry;
-        if (nextCode < 65536) dict[nextCode++] = w + entry[0];
-        w = entry;
-      }
-
-      const rawBytes = new Uint8Array(result.length);
-      for (let i = 0; i < result.length; i++) rawBytes[i] = result.charCodeAt(i);
-      return new TextDecoder().decode(rawBytes);
-    }
-
     async function compressDeflateRaw(str) {
-      const inputBytes = new TextEncoder().encode(str);
       const cs = new CompressionStream('deflate-raw');
       const writer = cs.writable.getWriter();
-      writer.write(inputBytes);
+      writer.write(new TextEncoder().encode(str));
       writer.close();
       const buf = await new Response(cs.readable).arrayBuffer();
       return bytesToBase64Url(new Uint8Array(buf));
     }
 
     async function decompressDeflateRaw(b64url) {
-      const compBytes = base64UrlToBytes(b64url);
       const ds = new DecompressionStream('deflate-raw');
       const writer = ds.writable.getWriter();
-      writer.write(compBytes);
+      writer.write(base64UrlToBytes(b64url));
       writer.close();
       const buf = await new Response(ds.readable).arrayBuffer();
       return new TextDecoder().decode(buf);
@@ -898,15 +773,10 @@
       if (members.length >= 2) {
         prefix = members[0].mssv;
         for (let i = 1; i < members.length; i++) {
-          const cur = members[i].mssv;
-          while (prefix && !cur.startsWith(prefix)) {
-            prefix = prefix.slice(0, -1);
-          }
+          while (prefix && !members[i].mssv.startsWith(prefix)) prefix = prefix.slice(0, -1);
         }
         const minLen = Math.min(...members.map(m => m.mssv.length));
-        if (prefix.length > minLen - 2) {
-          prefix = prefix.slice(0, Math.max(0, minLen - 2));
-        }
+        if (prefix.length > minLen - 2) prefix = prefix.slice(0, Math.max(0, minLen - 2));
         if (prefix.length < 3) prefix = '';
       }
 
@@ -921,16 +791,13 @@
         let posCode = '';
         if (m.position === 'Phó Bí thư Chi đoàn') posCode = '1';
         else if (m.position === 'Ủy viên BCH Chi đoàn') posCode = '2';
-        else if (m.position && m.position !== 'Đoàn viên') posCode = m.position.replace(/[\n\r~]/g, ' ').trim();
 
         const passCode = (m.password && m.password !== m.mssv) ? m.password.replace(/[\n\r~]/g, '') : '';
         const ptsCode = Number(m.points) !== 85 ? String(m.points) : '';
         const feeCode = m.feePaid ? '1' : '';
 
         const row = [suffix, name, posCode, passCode, ptsCode, feeCode];
-        while (row.length > 2 && row[row.length - 1] === '') {
-          row.pop();
-        }
+        while (row.length > 2 && row[row.length - 1] === '') row.pop();
         lines.push(row.join('~'));
       });
 
@@ -939,7 +806,6 @@
 
     function unpackMembersCompactText(rawText) {
       const lines = (rawText || '').split('\n');
-      if (lines.length === 0) return [];
       let prefix = '';
       let startIdx = 0;
 
@@ -965,12 +831,7 @@
         if (!mssv) continue;
 
         const name = (parts[1] || `Đoàn viên ${mssv}`).trim();
-        const posRaw = (parts[2] || '').trim();
-        let position = 'Đoàn viên';
-        if (posRaw === '1') position = 'Phó Bí thư Chi đoàn';
-        else if (posRaw === '2') position = 'Ủy viên BCH Chi đoàn';
-        else if (posRaw) position = posRaw;
-
+        const position = normalizePositionName(parts[2]);
         const password = (parts[3] && parts[3].trim()) ? parts[3].trim() : mssv;
         const points = (parts[4] !== undefined && parts[4].trim() !== '') ? Number(parts[4]) : 85;
         const feePaid = parts[5] === '1' ? 1 : 0;
@@ -980,27 +841,18 @@
       return list;
     }
 
-    function encodeUtf8Base64(str) {
-      return btoa(unescape(encodeURIComponent(str)));
-    }
-
-    function decodeUtf8Base64(b64) {
-      return decodeURIComponent(escape(atob(b64)));
-    }
-
     function mergeMemberListIntoDb(compactList) {
       if (!Array.isArray(compactList)) return 0;
-      let addedOrUpdated = 0;
+      let count = 0;
       compactList.forEach(item => {
         if (!Array.isArray(item) || !item[0]) return;
         const mssv = String(item[0]).trim().toUpperCase();
+        if (mssv === '0026410310') return;
         const name = String(item[1] || `Đoàn viên ${mssv}`).trim();
-        const position = String(item[2] || 'Đoàn viên').trim();
+        const position = normalizePositionName(item[2]);
         const password = String(item[3] || mssv).trim();
         const points = Number(item[4] || 85);
         const feePaid = Boolean(item[5]);
-
-        if (mssv === '0026410310') return;
 
         const existing = db.users.find(u => u.mssv.toUpperCase() === mssv);
         if (existing) {
@@ -1020,41 +872,30 @@
             phone: '',
             email: '',
             avatar: '',
-            branch: 'Chi đoàn ĐHSVAN26A',
             points,
-            feePaid,
-            badgeGradient: 'from-[#0056B3] to-[#0284C7]'
+            feePaid
           });
         }
-        addedOrUpdated++;
+        count++;
       });
-      return addedOrUpdated;
+      return count;
     }
 
     async function checkClassInviteLinkOnLoad() {
       try {
-        const hash = window.location.hash || '';
-        const search = window.location.search || '';
-        const combined = hash + '&' + search;
-        let list = [];
-
+        const combined = (window.location.hash || '') + '&' + (window.location.search || '');
         const dMatch = combined.match(/[#&?]d=([A-Za-z0-9\-_]+)/);
-        const lMatch = combined.match(/[#&?]l=([A-Za-z0-9\-_]+)/);
-        const oldMatch = combined.match(/[#&?]lop=([^&]+)/);
+        const uMatch = combined.match(/[#&?]u=([A-Za-z0-9\-_]+)/);
+        let rawText = '';
 
         if (dMatch && dMatch[1]) {
-          const rawText = await decompressDeflateRaw(dMatch[1]);
-          list = unpackMembersCompactText(rawText);
-        } else if (lMatch && lMatch[1]) {
-          const rawText = lzwDecompressString(lMatch[1]);
-          list = unpackMembersCompactText(rawText);
-        } else if (oldMatch && oldMatch[1]) {
-          const decodedJson = decodeUtf8Base64(decodeURIComponent(oldMatch[1]));
-          const parsed = JSON.parse(decodedJson);
-          list = Array.isArray(parsed) ? parsed : (parsed.m || []);
+          rawText = await decompressDeflateRaw(dMatch[1]);
+        } else if (uMatch && uMatch[1]) {
+          rawText = new TextDecoder().decode(base64UrlToBytes(uMatch[1]));
         }
+        if (!rawText) return 0;
 
-        if (!list || list.length === 0) return 0;
+        const list = unpackMembersCompactText(rawText);
         const count = mergeMemberListIntoDb(list);
         if (count > 0) {
           persistLocalOnly();
@@ -1064,7 +905,6 @@
         }
         return count;
       } catch (err) {
-        console.warn('Không đọc được dữ liệu từ link lớp:', err);
         return 0;
       }
     }
@@ -1080,8 +920,7 @@
           return `${baseUrl}#d=${compressed}`;
         } catch (e) {}
       }
-      const lzwCompressed = lzwCompressString(packedText);
-      return `${baseUrl}#l=${lzwCompressed}`;
+      return `${baseUrl}#u=${bytesToBase64Url(new TextEncoder().encode(packedText))}`;
     }
 
     function copyTextSafely(text) {
@@ -1100,11 +939,7 @@
       document.body.appendChild(ta);
       ta.focus();
       ta.select();
-      try {
-        document.execCommand('copy');
-      } catch (e) {
-        prompt('Copy nội dung bên dưới:', text);
-      }
+      try { document.execCommand('copy'); } catch (e) { prompt('Copy nội dung bên dưới:', text); }
       document.body.removeChild(ta);
     }
 
@@ -1127,23 +962,15 @@
       }
 
       copyTextSafely(link);
-      showToast(`Đã copy Link Lớp học nén gọn (${link.length} ký tự)! Dán gửi 1 tin nhắn Zalo là xong.`, 'success');
+      showToast(`Đã copy Link Lớp học nén gọn (${link.length} ký tự)! Dán gửi nhóm Zalo là xong.`, 'success');
     }
 
     function copyGithubPresetCode() {
       const members = db.users.filter(u => u.role === 'member');
-      const compact = members.map(m => [
-        m.mssv,
-        m.name,
-        m.position,
-        m.password,
-        m.points,
-        m.feePaid ? 1 : 0
-      ]);
-      const api = getActiveApiUrl();
-      const codeBlock = `const PRESET_API_URL = ${JSON.stringify(api)};\n    const PRESET_MEMBERS = ${JSON.stringify(compact)};`;
+      const compact = members.map(m => [m.mssv, m.name, m.position, m.password, m.points, m.feePaid ? 1 : 0]);
+      const codeBlock = `const PRESET_API_URL = ${JSON.stringify(getActiveApiUrl())};\n    const PRESET_MEMBERS = ${JSON.stringify(compact)};`;
       copyTextSafely(codeBlock);
-      showToast('Đã copy mã cố định (gồm Link Google Sheet + Danh sách lớp)! Dán đè vào index.html trên GitHub.', 'success');
+      showToast('Đã copy mã cố định! Dán đè vào index.html trên GitHub.', 'success');
     }
 
     function onSaveApiUrlConfig(e) {
@@ -1167,11 +994,35 @@
     }
 
     function copyAppsScriptSource() {
-      const scriptCode = `function doGet(e) {
+      const scriptCode = `function saveStateToSheet(sheet, state) {
+  var json = JSON.stringify(state);
+  var chunkSize = 45000;
+  var totalChunks = Math.max(1, Math.ceil(json.length / chunkSize));
+  for (var i = 0; i < totalChunks; i++) {
+    sheet.getRange(i + 1, 1).setValue(json.substr(i * chunkSize, chunkSize));
+  }
+  var lastRow = sheet.getLastRow();
+  if (lastRow > totalChunks) {
+    sheet.getRange(totalChunks + 1, 1, lastRow - totalChunks, 1).clearContent();
+  }
+  sheet.getRange('B1').setValue(new Date().toLocaleString('vi-VN'));
+}
+
+function loadStateFromSheet(sheet) {
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 1) return null;
+  var values = sheet.getRange(1, 1, lastRow, 1).getValues();
+  var raw = '';
+  for (var i = 0; i < values.length; i++) {
+    if (values[i][0]) raw += String(values[i][0]);
+  }
+  return raw ? JSON.parse(raw) : null;
+}
+
+function doGet(e) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName('DB_STATE') || ss.insertSheet('DB_STATE');
-  var raw = sheet.getRange('A1').getValue();
-  var state = raw ? JSON.parse(raw) : null;
+  var state = loadStateFromSheet(sheet);
   return ContentService.createTextOutput(JSON.stringify({ ok: true, state: state }))
     .setMimeType(ContentService.MimeType.JSON);
 }
@@ -1183,23 +1034,46 @@ function doPost(e) {
     var req = JSON.parse(e.postData.contents);
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheet = ss.getSheetByName('DB_STATE') || ss.insertSheet('DB_STATE');
-    var raw = sheet.getRange('A1').getValue();
-    var state = raw ? JSON.parse(raw) : (req.fallbackState || {});
+    var state = loadStateFromSheet(sheet) || req.fallbackState || {};
 
-    if (req.action === 'SYNC_PUSH' && req.state) {
-      state = req.state;
+    if (req.action === 'SYNC_FULL' && req.data) {
+      state = req.data;
+    } else if (req.action === 'QR_CONTROL' && req.data) {
+      state.attendance = state.attendance || { logs: [] };
+      state.attendance.isOpen = Boolean(req.data.isOpen);
+      state.attendance.durationSec = Number(req.data.durationSec || 120);
+      state.attendance.openedAtSec = Number(req.data.openedAtSec || 0);
+      state.attendance.qrNonce = String(req.data.qrNonce || '');
+      if (req.data.title) state.attendance.title = req.data.title;
+      if (req.data.location) state.attendance.location = req.data.location;
+    } else if (req.action === 'RESET_ATTENDANCE' && req.data) {
+      state.attendance = state.attendance || {};
+      state.attendance.round = Number(req.data.round || 1);
+      state.attendance.qrNonce = String(req.data.qrNonce || '');
+      state.attendance.openedAtSec = Number(req.data.openedAtSec || 0);
+      state.attendance.isOpen = Boolean(req.data.isOpen);
+      state.attendance.logs = req.data.logs || [];
     } else if (req.action === 'SCAN_QR' && req.data) {
       state.attendance = state.attendance || { logs: [] };
       state.attendance.logs = state.attendance.logs || [];
-      var exists = state.attendance.logs.some(function(l) { return l.userId === req.data.userId; });
-      if (!exists) {
-        state.attendance.logs.push(req.data);
-        var logSheet = ss.getSheetByName('DIEM_DANH_LOG') || ss.insertSheet('DIEM_DANH_LOG');
-        if (logSheet.getLastRow() === 0) {
-          logSheet.appendRow(['Thoi gian', 'MSSV / ID', 'Ho va ten', 'Phuong thuc', 'Dot']);
+      var targetRound = Number(req.data.round || 1);
+      var existingIdx = -1;
+      for (var i = 0; i < state.attendance.logs.length; i++) {
+        if (state.attendance.logs[i].userId === req.data.userId) {
+          existingIdx = i;
+          break;
         }
-        logSheet.appendRow([req.data.time, req.data.mssv || req.data.userId, req.data.name || '', req.data.method || 'QR', req.data.round || 1]);
       }
+      if (existingIdx > -1) {
+        state.attendance.logs[existingIdx] = req.data;
+      } else {
+        state.attendance.logs.push(req.data);
+      }
+      var logSheet = ss.getSheetByName('DIEM_DANH_LOG') || ss.insertSheet('DIEM_DANH_LOG');
+      if (logSheet.getLastRow() === 0) {
+        logSheet.appendRow(['Thoi gian', 'MSSV / ID', 'Ho va ten', 'Phuong thuc', 'Dot']);
+      }
+      logSheet.appendRow([req.data.time, req.data.mssv || req.data.userId, req.data.name || '', req.data.method || 'QR', targetRound]);
     } else if (req.action === 'TOGGLE_ACTIVITY' && req.data) {
       var act = (state.activities || []).filter(function(a) { return a.id === req.data.actId; })[0];
       if (act) {
@@ -1208,9 +1082,48 @@ function doPost(e) {
         if (idx > -1) act.joinedIds.splice(idx, 1);
         else act.joinedIds.push(req.data.userId);
       }
+    } else if (req.action === 'SAVE_ACTIVITIES' && Array.isArray(req.data)) {
+      var oldMap = {};
+      (state.activities || []).forEach(function(a) { oldMap[a.id] = a.joinedIds || []; });
+      req.data.forEach(function(a) {
+        if (oldMap[a.id]) a.joinedIds = oldMap[a.id];
+      });
+      state.activities = req.data;
     } else if (req.action === 'SUBMIT_EVIDENCE' && req.data) {
       state.evidences = state.evidences || [];
-      state.evidences.unshift(req.data);
+      if (!state.evidences.some(function(x) { return x.id === req.data.id; })) {
+        state.evidences.unshift(req.data);
+      }
+    } else if (req.action === 'SET_EVIDENCE_STATUS' && req.data) {
+      var ev = (state.evidences || []).filter(function(x) { return x.id === req.data.evId; })[0];
+      if (ev) {
+        var wasOk = ev.status === 'approved';
+        ev.status = req.data.status;
+        var owner = (state.users || []).filter(function(u) { return u.id === ev.userId; })[0];
+        if (owner) {
+          if (req.data.status === 'approved' && !wasOk) owner.points = Math.min(100, Number(owner.points || 85) + 3);
+          else if (req.data.status !== 'approved' && wasOk) owner.points = Math.max(0, Number(owner.points || 85) - 3);
+        }
+      }
+    } else if (req.action === 'SAVE_FINANCE' && req.data) {
+      if (req.data.feeAmount) state.feeAmount = Number(req.data.feeAmount);
+      if (Array.isArray(req.data.ledger)) state.ledger = req.data.ledger;
+      if (req.data.feeMap && Array.isArray(state.users)) {
+        state.users.forEach(function(u) {
+          if (req.data.feeMap.hasOwnProperty(u.id)) u.feePaid = Boolean(req.data.feeMap[u.id]);
+        });
+      }
+    } else if (req.action === 'SAVE_USERS' && Array.isArray(req.data)) {
+      var prevMap = {};
+      (state.users || []).forEach(function(u) { prevMap[u.id] = u; });
+      state.users = req.data.map(function(nu) {
+        var old = prevMap[nu.id];
+        if (old) {
+          if (!nu.phone && old.phone) nu.phone = old.phone;
+          if (!nu.email && old.email) nu.email = old.email;
+        }
+        return nu;
+      });
     } else if (req.action === 'UPDATE_USER' && req.data) {
       var u = (state.users || []).filter(function(x) { return x.id === req.data.id; })[0];
       if (u) {
@@ -1222,8 +1135,7 @@ function doPost(e) {
       }
     }
 
-    sheet.getRange('A1').setValue(JSON.stringify(state));
-    sheet.getRange('B1').setValue(new Date().toLocaleString('vi-VN'));
+    saveStateToSheet(sheet, state);
     return ContentService.createTextOutput(JSON.stringify({ ok: true, state: state }))
       .setMimeType(ContentService.MimeType.JSON);
   } finally {
@@ -1231,18 +1143,17 @@ function doPost(e) {
   }
 }`;
       copyTextSafely(scriptCode);
-      showToast('Đã copy mã Google Apps Script! Dán vào Apps Script của Google Sheet và Triển khai Web App.', 'success');
+      showToast('Đã copy mã Google Apps Script mới! Dán vào Apps Script và Triển khai Web App.', 'success');
     }
 
-    // ==================== LƯU TRỮ LOCAL & GIỮ PHIÊN ĐĂNG NHẬP KHI F5 ====================
+    // ==================== LƯU TRỮ LOCAL ====================
     function loadDatabase() {
       let baseData = JSON.parse(JSON.stringify(INITIAL_DB));
       try {
         const raw = localStorage.getItem(DB_KEY);
         if (raw) {
           const parsed = JSON.parse(raw);
-          const hasSecretary = (parsed.users || []).some(u => u.id === 'BITHU_VINH');
-          if (!hasSecretary) {
+          if (!(parsed.users || []).some(u => u.id === 'BITHU_VINH')) {
             parsed.users = [...SEED_USERS, ...(parsed.users || [])];
           }
           baseData = {
@@ -1255,12 +1166,8 @@ function doPost(e) {
             baseData.activeUserId = null;
           }
         }
-      } catch (err) {
-        console.warn('Lỗi đọc dữ liệu:', err);
-      }
-      if (!baseData.apiUrl && PRESET_API_URL) {
-        baseData.apiUrl = PRESET_API_URL;
-      }
+      } catch (err) {}
+      if (!baseData.apiUrl && PRESET_API_URL) baseData.apiUrl = PRESET_API_URL;
       return baseData;
     }
 
@@ -1273,8 +1180,7 @@ function doPost(e) {
     }
 
     function currentUser() {
-      if (!db.activeUserId) return null;
-      return db.users.find(u => u.id === db.activeUserId) || null;
+      return db.activeUserId ? (db.users.find(u => u.id === db.activeUserId) || null) : null;
     }
 
     function isSecretary(user = currentUser()) {
@@ -1289,7 +1195,7 @@ function doPost(e) {
 
     function renderAvatarContent(user) {
       if (user && user.avatar) {
-        return `<img src="${user.avatar}" alt="${user.name}" class="w-full h-full object-cover" />`;
+        return `<img src="${user.avatar}" alt="${esc(user.name)}" class="w-full h-full object-cover" />`;
       }
       return `<span>${getInitials(user ? user.name : 'ĐV')}</span>`;
     }
@@ -1300,53 +1206,39 @@ function doPost(e) {
 
     function formatSecondsMMSS(totalSec) {
       const s = Math.max(0, Math.floor(totalSec));
-      const mins = Math.floor(s / 60);
-      const secs = s % 60;
-      return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+      return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
     }
 
-    // ==================== HỆ THỐNG ĐĂNG NHẬP / ĐĂNG XUẤT ====================
+    // ==================== ĐĂNG NHẬP / ĐĂNG XUẤT ====================
     function normalizeInput(str) {
-      return (str || '')
-        .trim()
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/\s+/g, '');
+      return (str || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '');
     }
 
     function toggleAuthPassVisibility() {
       const inp = document.getElementById('auth-pass');
       const eye = document.getElementById('auth-eye');
-      if (inp.type === 'password') {
-        inp.type = 'text';
-        eye.className = 'fa-solid fa-eye-slash text-xs';
-      } else {
-        inp.type = 'password';
-        eye.className = 'fa-solid fa-eye text-xs';
-      }
+      inp.type = inp.type === 'password' ? 'text' : 'password';
+      eye.className = inp.type === 'password' ? 'fa-solid fa-eye text-xs' : 'fa-solid fa-eye-slash text-xs';
+    }
+
+    function findMatchingAccount(userInp, passInp) {
+      const norm = normalizeInput(userInp);
+      return db.users.find(u => {
+        const direct = u.username.toLowerCase() === userInp.toLowerCase() || u.mssv.toLowerCase() === userInp.toLowerCase();
+        const fuzzy = normalizeInput(u.username) === norm || normalizeInput(u.mssv) === norm || normalizeInput(u.name) === norm;
+        return (direct || fuzzy) && u.password === passInp;
+      });
     }
 
     async function onLoginSubmit(e) {
       e.preventDefault();
       const userInp = document.getElementById('auth-user').value.trim();
       const passInp = document.getElementById('auth-pass').value.trim();
-      const norm = normalizeInput(userInp);
 
-      let matched = db.users.find(u => {
-        const directMatch = u.username.toLowerCase() === userInp.toLowerCase() || u.mssv.toLowerCase() === userInp.toLowerCase();
-        const fuzzyMatch = normalizeInput(u.username) === norm || normalizeInput(u.mssv) === norm || normalizeInput(u.name) === norm;
-        return (directMatch || fuzzyMatch) && u.password === passInp;
-      });
-
-      // Nếu chưa thấy ở máy và có Google Sheet -> kéo danh sách mới nhất về thử lại
+      let matched = findMatchingAccount(userInp, passInp);
       if (!matched && getActiveApiUrl()) {
         await manualCloudPull(false);
-        matched = db.users.find(u => {
-          const directMatch = u.username.toLowerCase() === userInp.toLowerCase() || u.mssv.toLowerCase() === userInp.toLowerCase();
-          const fuzzyMatch = normalizeInput(u.username) === norm || normalizeInput(u.mssv) === norm || normalizeInput(u.name) === norm;
-          return (directMatch || fuzzyMatch) && u.password === passInp;
-        });
+        matched = findMatchingAccount(userInp, passInp);
       }
 
       if (!matched) {
@@ -1356,6 +1248,7 @@ function doPost(e) {
 
       db.activeUserId = matched.id;
       db.activeTab = 'home';
+      localForceRescan = false;
       persistLocalOnly();
       renderApp();
       showToast(`Xin chào ${matched.name}!`, 'success');
@@ -1365,27 +1258,19 @@ function doPost(e) {
       stopCameraScanner();
       db.activeUserId = null;
       db.activeTab = 'home';
+      localForceRescan = false;
       persistLocalOnly();
       document.getElementById('auth-pass').value = '';
       renderApp();
       showToast('Đã đăng xuất khỏi hệ thống.', 'info');
     }
 
-    // ==================== SAO LƯU & KHÔI PHỤC FILE JSON ====================
+    // ==================== SAO LƯU & KHÔI PHỤC JSON ====================
     function exportBackupJsonFile() {
       const payload = {
         app: 'CHI_DOAN_DHSVAN26A',
-        version: 5,
         exportedAt: new Date().toISOString(),
-        data: {
-          apiUrl: db.apiUrl,
-          feeAmount: db.feeAmount,
-          users: db.users,
-          activities: db.activities,
-          ledger: db.ledger,
-          evidences: db.evidences,
-          attendance: db.attendance
-        }
+        data: { apiUrl: db.apiUrl, ...getSharedPayloadSnapshot() }
       };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
       const url = URL.createObjectURL(blob);
@@ -1405,12 +1290,8 @@ function doPost(e) {
         try {
           const parsed = JSON.parse(ev.target.result);
           const imported = parsed.data || parsed;
-          if (!imported || !Array.isArray(imported.users)) {
-            throw new Error('Cấu trúc file không hợp lệ');
-          }
-          if (!imported.users.some(u => u.id === 'BITHU_VINH')) {
-            imported.users.unshift(SEED_USERS[0]);
-          }
+          if (!imported || !Array.isArray(imported.users)) throw new Error('Invalid');
+          if (!imported.users.some(u => u.id === 'BITHU_VINH')) imported.users.unshift(SEED_USERS[0]);
           if (imported.apiUrl) db.apiUrl = imported.apiUrl;
           if (imported.feeAmount) db.feeAmount = Number(imported.feeAmount);
           db.users = imported.users;
@@ -1420,7 +1301,7 @@ function doPost(e) {
           db.attendance = { ...db.attendance, ...(imported.attendance || {}) };
 
           persistLocalOnly();
-          await pushFullStateToCloud();
+          await pushAtomicActionToCloud('SYNC_FULL', getSharedPayloadSnapshot());
           renderApp();
           showToast('Khôi phục dữ liệu từ file sao lưu thành công!', 'success');
         } catch (err) {
@@ -1432,118 +1313,37 @@ function doPost(e) {
       reader.readAsText(file);
     }
 
-    // ==================== CẬP NHẬT HỒ SƠ & ẢNH ĐẠI DIỆN ====================
-    let tempModalAvatar = '';
-    let tempInlineAvatar = null;
-
-    function compressImageFile(file, callback) {
+    // ==================== HỒ SƠ & MẬT KHẨU ====================
+    function onAvatarFileSelected(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
       const reader = new FileReader();
       reader.onload = function (ev) {
         const img = new Image();
         img.onload = function () {
           const canvas = document.createElement('canvas');
           const maxSize = 180;
-          let w = img.width;
-          let h = img.height;
-          if (w > h) {
-            if (w > maxSize) { h = Math.round((h * maxSize) / w); w = maxSize; }
-          } else {
-            if (h > maxSize) { w = Math.round((w * maxSize) / h); h = maxSize; }
-          }
+          let w = img.width, h = img.height;
+          if (w > h && w > maxSize) { h = Math.round((h * maxSize) / w); w = maxSize; }
+          else if (h >= w && h > maxSize) { w = Math.round((w * maxSize) / h); h = maxSize; }
           canvas.width = w;
           canvas.height = h;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, w, h);
-          callback(canvas.toDataURL('image/jpeg', 0.78));
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          tempInlineAvatar = canvas.toDataURL('image/jpeg', 0.78);
+          const box = document.getElementById('inline-avatar-preview');
+          if (box) box.innerHTML = `<img src="${tempInlineAvatar}" class="w-full h-full object-cover" />`;
+          showToast('Đã tải ảnh đại diện! Nhấn Lưu để hoàn tất.', 'info');
         };
         img.src = ev.target.result;
       };
       reader.readAsDataURL(file);
     }
 
-    function onAvatarFileSelected(event, target) {
-      const file = event.target.files && event.target.files[0];
-      if (!file) return;
-      compressImageFile(file, (dataUrl) => {
-        if (target === 'modal') {
-          tempModalAvatar = dataUrl;
-          const box = document.getElementById('prof-preview-avatar');
-          if (box) box.innerHTML = `<img src="${dataUrl}" class="w-full h-full object-cover" />`;
-        } else {
-          tempInlineAvatar = dataUrl;
-          const box = document.getElementById('inline-avatar-preview');
-          if (box) box.innerHTML = `<img src="${dataUrl}" class="w-full h-full object-cover" />`;
-        }
-        showToast('Đã tải ảnh đại diện! Nhấn Lưu để hoàn tất.', 'info');
-      });
-    }
-
-    function clearTempAvatar(target) {
+    function clearTempAvatar() {
       const u = currentUser();
-      if (target === 'modal') {
-        tempModalAvatar = '';
-        const box = document.getElementById('prof-preview-avatar');
-        if (box) box.innerHTML = `<span>${getInitials(u ? u.name : 'VV')}</span>`;
-      } else {
-        tempInlineAvatar = '';
-        const box = document.getElementById('inline-avatar-preview');
-        if (box) box.innerHTML = `<span>${getInitials(u ? u.name : 'VV')}</span>`;
-      }
-    }
-
-    function openProfileModal() {
-      const u = currentUser();
-      if (!u) return;
-      tempModalAvatar = u.avatar || '';
-      document.getElementById('prof-name').value = u.name || '';
-      document.getElementById('prof-mssv').value = u.mssv || '';
-      document.getElementById('prof-phone').value = u.phone || '';
-      document.getElementById('prof-email').value = u.email || '';
-      document.getElementById('prof-preview-avatar').innerHTML = renderAvatarContent(u);
-
-      const modal = document.getElementById('profile-modal');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-    }
-
-    function closeProfileModal() {
-      const modal = document.getElementById('profile-modal');
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-    }
-
-    async function onSaveProfile(e) {
-      e.preventDefault();
-      const u = currentUser();
-      if (!u) return;
-      const newName = document.getElementById('prof-name').value.trim();
-      const newMssv = document.getElementById('prof-mssv').value.trim().toUpperCase();
-      const newPhone = document.getElementById('prof-phone').value.trim();
-      const newEmail = document.getElementById('prof-email').value.trim();
-
-      if (!newName || !newMssv) {
-        showToast('Vui lòng nhập đầy đủ Họ tên và MSSV!', 'error');
-        return;
-      }
-
-      const conflict = db.users.some(other => other.id !== u.id && other.mssv.toUpperCase() === newMssv);
-      if (conflict) {
-        showToast(`MSSV ${newMssv} đã được sử dụng bởi tài khoản khác!`, 'error');
-        return;
-      }
-
-      u.name = newName;
-      u.mssv = newMssv;
-      if (u.role !== 'secretary') u.username = newMssv;
-      u.phone = newPhone;
-      u.email = newEmail;
-      u.avatar = tempModalAvatar;
-
-      persistLocalOnly();
-      closeProfileModal();
-      renderApp();
-      showToast('Đã cập nhật thông tin hồ sơ thành công!', 'success');
-      await pushAtomicActionToCloud('UPDATE_USER', { id: u.id, name: u.name, mssv: u.mssv, username: u.username, phone: u.phone, email: u.email });
+      tempInlineAvatar = '';
+      const box = document.getElementById('inline-avatar-preview');
+      if (box) box.innerHTML = `<span>${getInitials(u ? u.name : 'VV')}</span>`;
     }
 
     async function onSaveInlineProfile(e) {
@@ -1559,9 +1359,7 @@ function doPost(e) {
         showToast('Vui lòng nhập đầy đủ Họ tên và MSSV!', 'error');
         return;
       }
-
-      const conflict = db.users.some(other => other.id !== u.id && other.mssv.toUpperCase() === newMssv);
-      if (conflict) {
+      if (db.users.some(other => other.id !== u.id && other.mssv.toUpperCase() === newMssv)) {
         showToast(`MSSV ${newMssv} đã tồn tại trên hệ thống!`, 'error');
         return;
       }
@@ -1582,37 +1380,25 @@ function doPost(e) {
       await pushAtomicActionToCloud('UPDATE_USER', { id: u.id, name: u.name, mssv: u.mssv, username: u.username, phone: u.phone, email: u.email });
     }
 
-    function openPassModal() {
-      const m = document.getElementById('pass-modal');
-      m.classList.remove('hidden');
-      m.classList.add('flex');
-    }
-
-    function closePassModal() {
-      const m = document.getElementById('pass-modal');
-      m.classList.add('hidden');
-      m.classList.remove('flex');
-    }
+    function openPassModal() { openModal('pass-modal'); }
 
     async function onSavePassword(e) {
       e.preventDefault();
       const u = currentUser();
       if (!u) return;
-      const oldP = document.getElementById('cp-old').value.trim();
-      const newP = document.getElementById('cp-new').value.trim();
-      if (oldP !== u.password) {
+      if (document.getElementById('cp-old').value.trim() !== u.password) {
         showToast('Mật khẩu hiện tại không đúng!', 'error');
         return;
       }
-      u.password = newP;
+      u.password = document.getElementById('cp-new').value.trim();
       persistLocalOnly();
       e.target.reset();
-      closePassModal();
+      closeModal('pass-modal');
       showToast('Đổi mật khẩu thành công!', 'success');
       await pushAtomicActionToCloud('UPDATE_USER', { id: u.id, password: u.password });
     }
 
-    // ==================== HỆ THỐNG QR CODE & RESET ĐỂ QUÉT LẠI ====================
+    // ==================== HỆ THỐNG QR CODE & ĐIỂM DANH ====================
     let qrTickerHandle = null;
     let html5ScannerInstance = null;
     let isCameraRunning = false;
@@ -1622,19 +1408,16 @@ function doPost(e) {
     function getQrRemainingSeconds() {
       if (!db.attendance.isOpen || !db.attendance.openedAtSec) return 0;
       const nowSec = Math.floor(Date.now() / 1000);
-      const endSec = db.attendance.openedAtSec + Number(db.attendance.durationSec || 120);
-      return Math.max(0, endSec - nowSec);
+      return Math.max(0, db.attendance.openedAtSec + Number(db.attendance.durationSec || 120) - nowSec);
     }
 
     function getQrEncodedText() {
-      const round = Number(db.attendance.round || 1);
-      return `DHSVAN26A|${db.attendance.openedAtSec}|${db.attendance.durationSec}|${db.attendance.qrNonce}|${round}`;
+      return `DHSVAN26A|${db.attendance.openedAtSec}|${db.attendance.durationSec}|${db.attendance.qrNonce}|${Number(db.attendance.round || 1)}`;
     }
 
     function renderCrispQrCanvas(canvasId, sizePx) {
       const canvas = document.getElementById(canvasId);
-      if (!canvas || !db.attendance.isOpen) return;
-      if (typeof QRious !== 'undefined') {
+      if (canvas && db.attendance.isOpen && typeof QRious !== 'undefined') {
         new QRious({
           element: canvas,
           value: getQrEncodedText(),
@@ -1654,10 +1437,17 @@ function doPost(e) {
         const left = getQrRemainingSeconds();
         if (left <= 0) {
           db.attendance.isOpen = false;
+          db.attendance.qrNonce = 'EXPIRED';
           persistLocalOnly();
-          closeZoomQrModal();
-          if (db.activeTab === 'qr') {
-            renderMainBody();
+          closeModal('qr-zoom-modal');
+          if (db.activeTab === 'qr') renderMainBody();
+          if (isSecretary()) {
+            pushAtomicActionToCloud('QR_CONTROL', {
+              isOpen: false,
+              durationSec: db.attendance.durationSec,
+              openedAtSec: db.attendance.openedAtSec,
+              qrNonce: 'EXPIRED'
+            });
           }
           showToast('Đã hết thời gian điểm danh QR code!', 'info');
           return;
@@ -1669,14 +1459,14 @@ function doPost(e) {
     function updateQrCountdownDom(leftSec) {
       const total = Math.max(1, Number(db.attendance.durationSec || 120));
       const pct = Math.min(100, Math.round((leftSec / total) * 100));
-      const timeFormatted = formatSecondsMMSS(leftSec);
+      const formatted = formatSecondsMMSS(leftSec);
 
       const timeEl = document.getElementById('qr-remaining-label');
       const barEl = document.getElementById('qr-remaining-bar');
       const zoomEl = document.getElementById('zoom-countdown');
 
-      if (timeEl) timeEl.textContent = timeFormatted;
-      if (zoomEl) zoomEl.textContent = timeFormatted;
+      if (timeEl) timeEl.textContent = formatted;
+      if (zoomEl) zoomEl.textContent = formatted;
       if (barEl) {
         barEl.style.width = `${pct}%`;
         barEl.classList.toggle('bg-rose-500', leftSec <= 10);
@@ -1694,8 +1484,13 @@ function doPost(e) {
       }
       persistLocalOnly();
       renderMainBody();
-      showToast(`Đã đặt thời gian QR code: ${formatSecondsMMSS(secVal)} (${secVal} giây)!`, 'success');
-      await pushFullStateToCloud();
+      showToast(`Đã đặt thời gian QR code: ${formatSecondsMMSS(secVal)}!`, 'success');
+      await pushAtomicActionToCloud('QR_CONTROL', {
+        isOpen: db.attendance.isOpen,
+        durationSec: db.attendance.durationSec,
+        openedAtSec: db.attendance.openedAtSec,
+        qrNonce: db.attendance.qrNonce
+      });
     }
 
     function onCustomDurationSubmit(e) {
@@ -1706,14 +1501,14 @@ function doPost(e) {
         showToast('Vui lòng nhập số thời gian hợp lệ!', 'error');
         return;
       }
-      const totalSeconds = unit === 'min' ? num * 60 : num;
-      onSetQrDuration(totalSeconds);
+      onSetQrDuration(unit === 'min' ? num * 60 : num);
     }
 
     async function onToggleOpenQrCode() {
       if (!isSecretary()) return;
       if (db.attendance.isOpen) {
         db.attendance.isOpen = false;
+        db.attendance.qrNonce = 'CLOSED';
         persistLocalOnly();
         renderMainBody();
         showToast('Bí Thư đã đóng mã QR điểm danh.', 'info');
@@ -1725,10 +1520,16 @@ function doPost(e) {
         renderMainBody();
         showToast(`Đã mở mã QR điểm danh Đợt #${db.attendance.round || 1} (${formatSecondsMMSS(db.attendance.durationSec)})!`, 'success');
       }
-      await pushFullStateToCloud();
+      await pushAtomicActionToCloud('QR_CONTROL', {
+        isOpen: db.attendance.isOpen,
+        durationSec: db.attendance.durationSec,
+        openedAtSec: db.attendance.openedAtSec,
+        qrNonce: db.attendance.qrNonce,
+        title: db.attendance.title,
+        location: db.attendance.location
+      });
     }
 
-    // Reset điểm danh để cả lớp có thể quét lại từ đầu
     async function onResetAttendanceSession() {
       if (!isSecretary()) return;
       const now = new Date();
@@ -1740,6 +1541,8 @@ function doPost(e) {
       db.attendance.logs = [
         {
           userId: 'BITHU_VINH',
+          mssv: '0026410310',
+          name: 'Võ Quang Vinh',
           time: `${now.toTimeString().slice(0, 8)} ${now.toLocaleDateString('vi-VN')}`,
           method: 'Bí Thư chủ trì',
           round: db.attendance.round
@@ -1747,14 +1550,20 @@ function doPost(e) {
       ];
       persistLocalOnly();
       renderApp();
-      showToast(`Đã Reset danh sách điểm danh sang Đợt #${db.attendance.round}! Tất cả đoàn viên có thể quét QR lại.`, 'success');
-      await pushFullStateToCloud();
+      showToast(`Đã Reset danh sách điểm danh sang Đợt #${db.attendance.round}!`, 'success');
+      await pushAtomicActionToCloud('RESET_ATTENDANCE', {
+        round: db.attendance.round,
+        qrNonce: db.attendance.qrNonce,
+        openedAtSec: db.attendance.openedAtSec,
+        isOpen: db.attendance.isOpen,
+        logs: db.attendance.logs
+      });
     }
 
-    // Cho phép Đoàn viên mở lại máy quét nếu Bí Thư vừa mở đợt QR mới
     function resetMyLocalScanForRescan() {
       const u = currentUser();
       if (!u) return;
+      localForceRescan = true;
       db.attendance.logs = db.attendance.logs.filter(l => l.userId !== u.id);
       persistLocalOnly();
       renderMainBody();
@@ -1763,10 +1572,7 @@ function doPost(e) {
 
     function downloadQrPng() {
       const canvas = document.getElementById('secretary-qr-canvas');
-      if (!canvas) {
-        showToast('Hãy mở mã QR trước khi tải ảnh!', 'error');
-        return;
-      }
+      if (!canvas) return;
       const link = document.createElement('a');
       link.download = `QR_DiemDanh_DHSVAN26A_Dot${db.attendance.round || 1}.png`;
       link.href = canvas.toDataURL('image/png');
@@ -1777,17 +1583,9 @@ function doPost(e) {
     function openZoomQrModal() {
       if (!db.attendance.isOpen) return;
       document.getElementById('zoom-session-title').textContent = `${db.attendance.title} (Đợt #${db.attendance.round || 1})`;
-      const m = document.getElementById('qr-zoom-modal');
-      m.classList.remove('hidden');
-      m.classList.add('flex');
+      openModal('qr-zoom-modal');
       renderCrispQrCanvas('zoom-qr-canvas', 270);
       updateQrCountdownDom(getQrRemainingSeconds());
-    }
-
-    function closeZoomQrModal() {
-      const m = document.getElementById('qr-zoom-modal');
-      m.classList.add('hidden');
-      m.classList.remove('flex');
     }
 
     function playSuccessBeep() {
@@ -1812,78 +1610,38 @@ function doPost(e) {
     async function startMemberCameraScanner() {
       const box = document.getElementById('qr-camera-box');
       const statusEl = document.getElementById('scanner-status-text');
-      if (!box) return;
-
-      if (typeof Html5Qrcode === 'undefined') {
-        showToast('Trình duyệt chưa tải được bộ quét Camera. Hãy dùng nút "Quét từ ảnh QR" bên dưới.', 'error');
+      if (!box || typeof Html5Qrcode === 'undefined') {
+        showToast('Trình duyệt chưa tải được bộ quét Camera. Hãy dùng nút "Quét từ ảnh QR".', 'error');
         return;
       }
 
       try {
         await stopCameraScanner();
-
-        const formats = typeof Html5QrcodeSupportedFormats !== 'undefined'
-          ? [Html5QrcodeSupportedFormats.QR_CODE]
-          : undefined;
-
+        const formats = typeof Html5QrcodeSupportedFormats !== 'undefined' ? [Html5QrcodeSupportedFormats.QR_CODE] : undefined;
         html5ScannerInstance = new Html5Qrcode('qr-camera-box', formats ? { formatsToSupport: formats, verbose: false } : false);
-
         if (statusEl) statusEl.textContent = 'Đang khởi động camera...';
 
-        try {
-          availableCameras = await Html5Qrcode.getCameras();
-        } catch (camErr) {
-          availableCameras = [];
-        }
+        try { availableCameras = await Html5Qrcode.getCameras(); } catch (e) { availableCameras = []; }
 
         const scanConfig = {
           fps: 12,
-          qrbox: function (viewfinderWidth, viewfinderHeight) {
-            const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-            const size = Math.max(160, Math.floor(minEdge * 0.72));
+          qrbox: (w, h) => {
+            const size = Math.max(160, Math.floor(Math.min(w, h) * 0.72));
             return { width: size, height: size };
           }
         };
 
-        let started = false;
-
-        if (availableCameras && availableCameras.length > 0) {
+        let cameraTarget = { facingMode: 'environment' };
+        if (availableCameras.length > 0) {
           const backIdx = availableCameras.findIndex(c => /back|rear|environment|sau/i.test(c.label || ''));
-          if (backIdx !== -1 && currentCameraIndex === 0) {
-            currentCameraIndex = backIdx;
-          }
-          const chosenCam = availableCameras[currentCameraIndex % availableCameras.length];
-          try {
-            await html5ScannerInstance.start(
-              chosenCam.id,
-              scanConfig,
-              (decodedText) => onQrCodeScannedSuccess(decodedText),
-              () => {}
-            );
-            started = true;
-          } catch (e1) {
-            started = false;
-          }
+          if (backIdx !== -1 && currentCameraIndex === 0) currentCameraIndex = backIdx;
+          cameraTarget = availableCameras[currentCameraIndex % availableCameras.length].id;
         }
 
-        if (!started) {
-          try {
-            await html5ScannerInstance.start(
-              { facingMode: 'environment' },
-              scanConfig,
-              (decodedText) => onQrCodeScannedSuccess(decodedText),
-              () => {}
-            );
-            started = true;
-          } catch (e2) {
-            await html5ScannerInstance.start(
-              { facingMode: 'user' },
-              scanConfig,
-              (decodedText) => onQrCodeScannedSuccess(decodedText),
-              () => {}
-            );
-            started = true;
-          }
+        try {
+          await html5ScannerInstance.start(cameraTarget, scanConfig, (txt) => onQrCodeScannedSuccess(txt), () => {});
+        } catch (err1) {
+          await html5ScannerInstance.start({ facingMode: 'user' }, scanConfig, (txt) => onQrCodeScannedSuccess(txt), () => {});
         }
 
         isCameraRunning = true;
@@ -1892,15 +1650,13 @@ function doPost(e) {
       } catch (err) {
         isCameraRunning = false;
         updateScannerUiState();
-        if (statusEl) {
-          statusEl.textContent = 'Không truy cập được Camera (do trình duyệt chặn quyền hoặc thiết bị không có camera). Bạn có thể dùng nút "Quét từ ảnh QR" ngay bên dưới!';
-        }
+        if (statusEl) statusEl.textContent = 'Không truy cập được Camera. Bạn có thể dùng nút "Quét từ ảnh QR Bí Thư gửi" ngay bên dưới!';
         showToast('Không bật được camera! Hãy cấp quyền Camera hoặc dùng nút "Quét từ ảnh QR".', 'error');
       }
     }
 
     async function switchMemberCamera() {
-      if (!availableCameras || availableCameras.length < 2) {
+      if (availableCameras.length < 2) {
         showToast('Thiết bị chỉ có 1 camera.', 'info');
         return;
       }
@@ -1911,9 +1667,7 @@ function doPost(e) {
     async function stopCameraScanner() {
       if (html5ScannerInstance) {
         try {
-          if (isCameraRunning) {
-            await html5ScannerInstance.stop();
-          }
+          if (isCameraRunning) await html5ScannerInstance.stop();
           await html5ScannerInstance.clear();
         } catch (e) {}
       }
@@ -1935,13 +1689,7 @@ function doPost(e) {
 
     async function onScanQrFromImageFile(event) {
       const file = event.target.files && event.target.files[0];
-      if (!file) return;
-
-      if (typeof Html5Qrcode === 'undefined') {
-        showToast('Trình duyệt không hỗ trợ đọc ảnh QR.', 'error');
-        return;
-      }
-
+      if (!file || typeof Html5Qrcode === 'undefined') return;
       try {
         await stopCameraScanner();
         const fileScanner = new Html5Qrcode('qr-file-temp-slot', false);
@@ -1964,6 +1712,7 @@ function doPost(e) {
 
       const openedAtSec = parseInt(parts[1], 10);
       const durationSec = parseInt(parts[2], 10);
+      const scannedNonce = String(parts[3] || '');
       const scannedRound = parseInt(parts[4] || '1', 10);
       const nowSec = Math.floor(Date.now() / 1000);
 
@@ -1973,16 +1722,30 @@ function doPost(e) {
         return;
       }
 
+      if (getActiveApiUrl()) {
+        const resp = await cloudApiRequest(null);
+        if (resp && resp.ok && resp.state && resp.state.attendance) {
+          const remoteAtt = resp.state.attendance;
+          if (!remoteAtt.isOpen || (remoteAtt.qrNonce && remoteAtt.qrNonce !== scannedNonce)) {
+            await stopCameraScanner();
+            showToast('Mã QR này đã bị Bí Thư đóng hoặc đã chuyển sang đợt mới!', 'error');
+            return;
+          }
+        }
+      }
+
+      const wasForcedRescan = localForceRescan;
+      localForceRescan = false;
       await stopCameraScanner();
       playSuccessBeep();
-      await commitAttendance(db.activeUserId, 'Quét QR Bí Thư', scannedRound);
+      await commitAttendance(db.activeUserId, 'Quét QR Bí Thư', scannedRound, wasForcedRescan);
     }
 
     function copyAttendanceReceipt() {
       const u = currentUser();
       const log = db.attendance.logs.find(l => l.userId === u.id);
       if (!u || !log) return;
-      const msg = `✅ ĐIỂM DANH CÓ MẶT - CHI ĐOÀN ĐHSVAN26A\n• Họ tên: ${u.name}\n• MSSV: ${u.mssv}\n• Thời gian quét QR: ${log.time}`;
+      const msg = `✅ ĐIỂM DANH CÓ MẶT - CHI ĐOÀN ĐHSVAN26A\n• Họ tên: ${u.name}\n• MSSV: ${u.mssv}\n• Chức vụ: ${u.position}\n• Đợt: #${log.round || db.attendance.round || 1}\n• Thời gian quét QR: ${log.time}`;
       copyTextSafely(msg);
       showToast('Đã copy phiếu xác nhận! Bạn có thể dán gửi vào nhóm Zalo điểm danh.', 'success');
     }
@@ -1998,13 +1761,7 @@ function doPost(e) {
         { id: 'qr', title: '5. QR Điểm danh', short: 'Quét QR', icon: 'fa-qrcode', pill: isSecretary() ? 'Bí Thư' : 'Quét QR' }
       ];
       if (isSecretary()) {
-        list.push({
-          id: 'accounts',
-          title: '6. Quản lý & Cấp tài khoản',
-          short: 'Cấp TK',
-          icon: 'fa-user-shield',
-          pill: 'Bí Thư'
-        });
+        list.push({ id: 'accounts', title: '6. Quản lý & Cấp tài khoản', short: 'Cấp TK', icon: 'fa-user-shield', pill: 'Bí Thư' });
       }
       return list;
     }
@@ -2014,9 +1771,7 @@ function doPost(e) {
         showToast('Chỉ Bí Thư mới có quyền truy cập mục này!', 'error');
         return;
       }
-      if (db.activeTab === 'qr' && tabId !== 'qr') {
-        stopCameraScanner();
-      }
+      if (db.activeTab === 'qr' && tabId !== 'qr') stopCameraScanner();
       db.activeTab = tabId;
       persistLocalOnly();
       renderApp();
@@ -2043,34 +1798,26 @@ function doPost(e) {
 
       const sbAvatar = document.getElementById('sb-avatar-wrap');
       sbAvatar.innerHTML = renderAvatarContent(user);
-      sbAvatar.className = `w-11 h-11 rounded-xl overflow-hidden bg-gradient-to-br ${user.badgeGradient || 'from-[#0056B3] to-[#0284C7]'} text-white font-bold flex items-center justify-center text-sm shrink-0 shadow-sm`;
+      sbAvatar.className = `w-11 h-11 rounded-xl overflow-hidden bg-gradient-to-br ${getUserAvatarGradient(user)} text-white font-bold flex items-center justify-center text-sm shrink-0 shadow-sm`;
 
       document.getElementById('sb-name').textContent = user.name;
       document.getElementById('sb-mssv').textContent = user.mssv;
-
-      const sbPill = document.getElementById('sb-role-pill');
-      if (sec) {
-        sbPill.textContent = 'Bí Thư';
-        sbPill.className = 'px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800 border border-amber-200';
-      } else {
-        sbPill.textContent = 'Đoàn viên';
-        sbPill.className = 'px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-100 text-[#0056B3]';
-      }
+      document.getElementById('sb-role-pill').innerHTML = getPositionBadgeHtml(user, true);
 
       const mbAvatar = document.getElementById('mb-avatar-wrap');
       mbAvatar.innerHTML = renderAvatarContent(user);
       document.getElementById('mb-name').textContent = user.name;
       const mbRole = document.getElementById('mb-role');
-      mbRole.textContent = sec ? `Bí Thư • ${user.mssv}` : `MSSV: ${user.mssv}`;
+      mbRole.textContent = sec ? `Bí Thư • ${user.mssv}` : `${user.position} • ${user.mssv}`;
       mbRole.className = sec ? 'font-bold text-amber-600' : 'font-bold text-[#0056B3]';
 
       const topBadge = document.getElementById('topbar-role-badge');
       if (sec) {
         topBadge.className = 'flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-xs font-bold text-amber-800';
-        topBadge.innerHTML = `<i class="fa-solid fa-star text-amber-500"></i><span>Bí Thư: ${user.name} (${user.mssv})</span>`;
+        topBadge.innerHTML = `<i class="fa-solid fa-star text-amber-500"></i><span>Bí Thư: ${esc(user.name)} (${esc(user.mssv)})</span>`;
       } else {
         topBadge.className = 'flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-blue-50 border border-blue-100 text-xs font-semibold text-[#0056B3]';
-        topBadge.innerHTML = `<i class="fa-solid fa-id-card"></i><span>Đoàn viên • MSSV: ${user.mssv}</span>`;
+        topBadge.innerHTML = `<i class="fa-solid fa-id-card"></i><span>${esc(user.position)} • MSSV: ${esc(user.mssv)}</span>`;
       }
 
       document.getElementById('desktop-menu').innerHTML = menu.map(item => {
@@ -2092,11 +1839,9 @@ function doPost(e) {
               </span>
               <span class="truncate">${item.title}</span>
             </span>
-            ${item.pill ? `
-              <span class="ml-2 px-2 py-0.5 rounded-full text-[10px] font-extrabold shrink-0 ${
-                active ? 'bg-white/20 text-white' : item.pill === 'Quét QR' ? 'bg-blue-100 text-[#0056B3]' : 'bg-amber-200 text-amber-900'
-              }">${item.pill}</span>
-            ` : ''}
+            ${item.pill ? `<span class="ml-2 px-2 py-0.5 rounded-full text-[10px] font-extrabold shrink-0 ${
+              active ? 'bg-white/20 text-white' : item.pill === 'Quét QR' ? 'bg-blue-100 text-[#0056B3]' : 'bg-amber-200 text-amber-900'
+            }">${item.pill}</span>` : ''}
           </button>
         `;
       }).join('');
@@ -2109,9 +1854,7 @@ function doPost(e) {
         const active = db.activeTab === item.id;
         const isQr = item.id === 'qr';
         return `
-          <button onclick="switchTab('${item.id}')" class="relative flex flex-col items-center justify-center py-1.5 px-1 rounded-xl ${
-            active ? 'text-[#0056B3]' : 'text-slate-500'
-          }">
+          <button onclick="switchTab('${item.id}')" class="relative flex flex-col items-center justify-center py-1.5 px-1 rounded-xl ${active ? 'text-[#0056B3]' : 'text-slate-500'}">
             ${isQr ? `
               <div class="w-10 h-10 -mt-5 mb-0.5 rounded-2xl bg-gradient-to-br from-[#0056B3] to-[#0284C7] text-white flex items-center justify-center shadow-lg border-2 border-white">
                 <i class="fa-solid ${item.icon} text-base"></i>
@@ -2140,6 +1883,7 @@ function doPost(e) {
       const user = currentUser();
       const sec = isSecretary(user);
       const memberTotal = db.users.filter(u => u.role === 'member').length;
+      const bchCount = db.users.filter(u => u.role === 'secretary' || u.position === 'Phó Bí thư Chi đoàn' || u.position === 'Ủy viên BCH Chi đoàn').length;
       const pendingEv = db.evidences.filter(e => e.status === 'pending').length;
 
       const cards = [
@@ -2161,7 +1905,7 @@ function doPost(e) {
         cards.push({
           id: 'accounts',
           title: '6. Quản lý & Cấp tài khoản',
-          sub: `${memberTotal} TK • Nối Google Sheet & Link Zalo`,
+          sub: `${memberTotal} TK • Cấp chức vụ Phó Bí thư, Ủy viên`,
           icon: 'fa-user-shield',
           bg: 'from-amber-500 to-orange-600',
           tag: 'BÍ THƯ'
@@ -2171,7 +1915,6 @@ function doPost(e) {
       return `
         <div class="space-y-6 view-enter">
           <section class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#003370] via-[#0056B3] to-[#0284C7] text-white p-5 sm:p-8 shadow-xl shadow-blue-900/15">
-            <div class="absolute -right-12 -top-12 w-56 h-56 rounded-full bg-white/10 blur-xl pointer-events-none"></div>
             <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div class="space-y-3 max-w-2xl">
                 <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 border border-white/20 text-xs font-bold">
@@ -2181,9 +1924,7 @@ function doPost(e) {
                   <span>Đoàn TNCS Hồ Chí Minh • Chi đoàn ĐHSVAN26A</span>
                 </div>
 
-                <h2 class="text-xl sm:text-3xl font-extrabold tracking-tight">
-                  Hệ thống Quản lý Đoàn viên & Điểm danh Số
-                </h2>
+                <h2 class="text-xl sm:text-3xl font-extrabold tracking-tight">Hệ thống Quản lý Đoàn viên & Điểm danh Số</h2>
 
                 <p class="text-sm sm:text-base text-blue-100 italic border-l-4 border-amber-400 pl-3.5">
                   "Đâu cần thanh niên có, việc gì khó có thanh niên"
@@ -2191,9 +1932,9 @@ function doPost(e) {
 
                 <div class="pt-1 flex flex-wrap items-center gap-2.5 text-xs">
                   <span class="px-3 py-1.5 rounded-xl bg-white/15 font-semibold">
-                    <i class="fa-solid fa-user-check mr-1.5 text-amber-300"></i>${sec ? 'Bí Thư' : 'Đoàn viên'}: <strong>${user.name}</strong> • MSSV: <strong class="font-mono">${user.mssv}</strong>
+                    <i class="fa-solid fa-user-check mr-1.5 text-amber-300"></i>${esc(user.position)}: <strong>${esc(user.name)}</strong> • MSSV: <strong class="font-mono">${esc(user.mssv)}</strong>
                   </span>
-                  <button onclick="openProfileModal()" class="px-3 py-1.5 rounded-xl bg-white text-[#0056B3] font-extrabold hover:bg-blue-50 transition">
+                  <button onclick="switchTab('handbook')" class="px-3 py-1.5 rounded-xl bg-white text-[#0056B3] font-extrabold hover:bg-blue-50 transition">
                     <i class="fa-solid fa-camera mr-1"></i> Cập nhật Ảnh / SĐT / Gmail
                   </button>
                 </div>
@@ -2201,27 +1942,21 @@ function doPost(e) {
 
               <div class="grid grid-cols-3 md:grid-cols-1 gap-2.5 shrink-0 bg-white/12 backdrop-blur-md p-3.5 rounded-2xl border border-white/20">
                 <div class="flex items-center gap-3">
-                  <div class="w-9 h-9 rounded-xl bg-amber-400/20 text-amber-300 flex items-center justify-center text-sm shrink-0">
-                    <i class="fa-solid fa-users"></i>
-                  </div>
+                  <div class="w-9 h-9 rounded-xl bg-amber-400/20 text-amber-300 flex items-center justify-center text-sm shrink-0"><i class="fa-solid fa-users"></i></div>
                   <div>
-                    <div class="text-base sm:text-lg font-extrabold leading-none">${memberTotal}</div>
+                    <div class="text-base sm:text-lg font-extrabold leading-none">${memberTotal} <span class="text-[11px] font-normal text-blue-100">(${bchCount} BCH)</span></div>
                     <div class="text-[11px] text-blue-100 mt-0.5">Đoàn viên</div>
                   </div>
                 </div>
                 <div class="flex items-center gap-3">
-                  <div class="w-9 h-9 rounded-xl bg-emerald-400/20 text-emerald-300 flex items-center justify-center text-sm shrink-0">
-                    <i class="fa-solid fa-calendar-check"></i>
-                  </div>
+                  <div class="w-9 h-9 rounded-xl bg-emerald-400/20 text-emerald-300 flex items-center justify-center text-sm shrink-0"><i class="fa-solid fa-calendar-check"></i></div>
                   <div>
                     <div class="text-base sm:text-lg font-extrabold leading-none">${db.activities.length}</div>
                     <div class="text-[11px] text-blue-100 mt-0.5">Hoạt động</div>
                   </div>
                 </div>
                 <div class="flex items-center gap-3">
-                  <div class="w-9 h-9 rounded-xl bg-sky-300/20 text-sky-200 flex items-center justify-center text-sm shrink-0">
-                    <i class="fa-solid fa-qrcode"></i>
-                  </div>
+                  <div class="w-9 h-9 rounded-xl bg-sky-300/20 text-sky-200 flex items-center justify-center text-sm shrink-0"><i class="fa-solid fa-qrcode"></i></div>
                   <div>
                     <div class="text-base sm:text-lg font-extrabold leading-none">${db.attendance.logs.length}</div>
                     <div class="text-[11px] text-blue-100 mt-0.5">Đã điểm danh</div>
@@ -2232,14 +1967,11 @@ function doPost(e) {
           </section>
 
           <section class="bg-white rounded-3xl p-4 sm:p-6 border border-slate-200/80 shadow-xs">
-            <div class="flex items-center justify-between mb-4">
-              <div>
-                <h3 class="text-base sm:text-lg font-extrabold text-slate-900 flex items-center gap-2">
-                  <span class="w-2 h-6 rounded-full bg-[#0056B3]"></span>
-                  Thao tác nhanh
-                </h3>
-                <p class="text-xs text-slate-500 mt-0.5">Chọn phân hệ chức năng bạn muốn làm việc</p>
-              </div>
+            <div class="mb-4">
+              <h3 class="text-base sm:text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                <span class="w-2 h-6 rounded-full bg-[#0056B3]"></span> Thao tác nhanh
+              </h3>
+              <p class="text-xs text-slate-500 mt-0.5">Chọn phân hệ chức năng bạn muốn làm việc</p>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
@@ -2277,7 +2009,7 @@ function doPost(e) {
               <p class="text-xs text-slate-500 mt-0.5">Đăng ký tham gia hoạt động để tích lũy điểm rèn luyện Chi đoàn ĐHSVAN26A</p>
             </div>
             ${sec ? `
-              <button onclick="openActivityModal()" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-[#0056B3] to-[#0284C7] text-white text-xs font-bold shadow-md hover:opacity-95 transition shrink-0">
+              <button onclick="openModal('activity-modal')" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-[#0056B3] to-[#0284C7] text-white text-xs font-bold shadow-md hover:opacity-95 transition shrink-0">
                 <i class="fa-solid fa-plus"></i> Thêm hoạt động mới
               </button>
             ` : `
@@ -2294,15 +2026,15 @@ function doPost(e) {
                 <article class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between">
                   <div>
                     <div class="flex items-center justify-between gap-2 mb-3">
-                      <span class="px-2.5 py-1 rounded-xl bg-blue-50 text-[#0056B3] text-[11px] font-bold">${act.tag}</span>
+                      <span class="px-2.5 py-1 rounded-xl bg-blue-50 text-[#0056B3] text-[11px] font-bold">${esc(act.tag)}</span>
                       <span class="px-2.5 py-1 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 text-[11px] font-extrabold">+${act.points} điểm RL</span>
                     </div>
-                    <h3 class="font-extrabold text-base text-slate-900">${act.title}</h3>
-                    <p class="text-xs text-slate-600 mt-2 leading-relaxed">${act.desc}</p>
+                    <h3 class="font-extrabold text-base text-slate-900">${esc(act.title)}</h3>
+                    <p class="text-xs text-slate-600 mt-2 leading-relaxed">${esc(act.desc)}</p>
 
                     <div class="mt-4 space-y-1.5 text-xs text-slate-500 bg-slate-50 p-3 rounded-2xl">
-                      <div><i class="fa-regular fa-calendar text-[#0056B3] w-4"></i> <strong class="text-slate-700">${act.date}</strong></div>
-                      <div><i class="fa-solid fa-location-dot text-rose-500 w-4"></i> <strong class="text-slate-700">${act.location}</strong></div>
+                      <div><i class="fa-regular fa-calendar text-[#0056B3] w-4"></i> <strong class="text-slate-700">${esc(act.date)}</strong></div>
+                      <div><i class="fa-solid fa-location-dot text-rose-500 w-4"></i> <strong class="text-slate-700">${esc(act.location)}</strong></div>
                       <div class="flex items-center justify-between pt-1">
                         <span><i class="fa-solid fa-users text-emerald-600 w-4"></i> Đã đăng ký: <strong class="text-slate-900">${act.joinedIds.length}</strong> đoàn viên</span>
                         <button onclick="openRegListModal('${act.id}')" class="text-[#0056B3] font-bold hover:underline">Xem danh sách</button>
@@ -2330,9 +2062,7 @@ function doPost(e) {
       `;
     }
 
-    // 2. SỔ TAY ĐOÀN VIÊN & CẬP NHẬT HỒ SƠ
-    let guideFilter = '';
-
+    // 2. SỔ TAY ĐOÀN VIÊN & HỒ SƠ
     function buildHandbookHtml() {
       const user = currentUser();
       const filtered = GUIDE_DOCS.filter(d =>
@@ -2346,20 +2076,18 @@ function doPost(e) {
           <section class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-xs">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-100">
               <div class="flex items-center gap-4">
-                <div id="inline-avatar-preview" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-gradient-to-br ${user.badgeGradient || 'from-[#0056B3] to-[#0284C7]'} text-white font-extrabold text-2xl flex items-center justify-center shadow-md shrink-0">
+                <div id="inline-avatar-preview" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-gradient-to-br ${getUserAvatarGradient(user)} text-white font-extrabold text-2xl flex items-center justify-center shadow-md shrink-0">
                   ${renderAvatarContent(user)}
                 </div>
                 <div>
                   <div class="flex flex-wrap items-center gap-2">
-                    <h2 class="text-lg sm:text-xl font-extrabold text-slate-900">${user.name}</h2>
-                    <span class="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200 text-xs font-extrabold">
-                      ${isSecretary(user) ? 'Bí Thư' : user.position}
-                    </span>
+                    <h2 class="text-lg sm:text-xl font-extrabold text-slate-900">${esc(user.name)}</h2>
+                    ${getPositionBadgeHtml(user)}
                   </div>
                   <div class="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600">
-                    <span><i class="fa-solid fa-id-card text-[#0056B3] mr-1"></i>MSSV: <strong class="font-mono text-slate-900">${user.mssv}</strong></span>
-                    <span><i class="fa-solid fa-phone text-emerald-600 mr-1"></i>SĐT: <strong>${user.phone || 'Chưa cập nhật'}</strong></span>
-                    <span><i class="fa-solid fa-envelope text-rose-500 mr-1"></i>Gmail: <strong>${user.email || 'Chưa cập nhật'}</strong></span>
+                    <span><i class="fa-solid fa-id-card text-[#0056B3] mr-1"></i>MSSV: <strong class="font-mono text-slate-900">${esc(user.mssv)}</strong></span>
+                    <span><i class="fa-solid fa-phone text-emerald-600 mr-1"></i>SĐT: <strong>${esc(user.phone) || 'Chưa cập nhật'}</strong></span>
+                    <span><i class="fa-solid fa-envelope text-rose-500 mr-1"></i>Gmail: <strong>${esc(user.email) || 'Chưa cập nhật'}</strong></span>
                   </div>
                 </div>
               </div>
@@ -2382,36 +2110,33 @@ function doPost(e) {
             <form onsubmit="onSaveInlineProfile(event)" class="mt-5 space-y-4">
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                  <i class="fa-solid fa-user-pen text-[#0056B3]"></i>
-                  Cập nhật Ảnh đại diện, MSSV, Số điện thoại & Gmail
+                  <i class="fa-solid fa-user-pen text-[#0056B3]"></i> Cập nhật Ảnh đại diện, MSSV, Số điện thoại & Gmail
                 </h3>
                 <div class="flex items-center gap-2">
                   <label class="cursor-pointer px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0056B3] border border-blue-200 text-xs font-bold transition inline-flex items-center gap-1.5">
                     <i class="fa-solid fa-camera"></i> Tải ảnh đại diện
-                    <input type="file" accept="image/*" onchange="onAvatarFileSelected(event, 'inline')" class="hidden" />
+                    <input type="file" accept="image/*" onchange="onAvatarFileSelected(event)" class="hidden" />
                   </label>
-                  <button type="button" onclick="clearTempAvatar('inline')" class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold">
-                    Gỡ ảnh
-                  </button>
+                  <button type="button" onclick="clearTempAvatar()" class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold">Gỡ ảnh</button>
                 </div>
               </div>
 
               <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 <div>
                   <label class="block text-[11px] font-bold text-slate-600 mb-1">Họ và tên *</label>
-                  <input type="text" id="in-prof-name" required value="${user.name}" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:border-[#0056B3]" />
+                  <input type="text" id="in-prof-name" required value="${esc(user.name)}" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:border-[#0056B3]" />
                 </div>
                 <div>
                   <label class="block text-[11px] font-bold text-slate-600 mb-1">Mã số sinh viên (MSSV) *</label>
-                  <input type="text" id="in-prof-mssv" required value="${user.mssv}" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-mono font-bold focus:outline-none focus:border-[#0056B3]" />
+                  <input type="text" id="in-prof-mssv" required value="${esc(user.mssv)}" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-mono font-bold focus:outline-none focus:border-[#0056B3]" />
                 </div>
                 <div>
                   <label class="block text-[11px] font-bold text-slate-600 mb-1">Số điện thoại</label>
-                  <input type="tel" id="in-prof-phone" value="${user.phone || ''}" placeholder="VD: 0912345678" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#0056B3]" />
+                  <input type="tel" id="in-prof-phone" value="${esc(user.phone)}" placeholder="VD: 0912345678" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#0056B3]" />
                 </div>
                 <div>
                   <label class="block text-[11px] font-bold text-slate-600 mb-1">Địa chỉ Gmail</label>
-                  <input type="email" id="in-prof-email" value="${user.email || ''}" placeholder="VD: voquangvinh@gmail.com" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#0056B3]" />
+                  <input type="email" id="in-prof-email" value="${esc(user.email)}" placeholder="VD: voquangvinh@gmail.com" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#0056B3]" />
                 </div>
               </div>
 
@@ -2431,13 +2156,7 @@ function doPost(e) {
               </div>
               <div class="relative w-full sm:w-64">
                 <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                <input
-                  type="text"
-                  value="${guideFilter}"
-                  oninput="onFilterGuide(this.value)"
-                  placeholder="Tìm quy định..."
-                  class="w-full pl-9 pr-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#0056B3]"
-                />
+                <input type="text" value="${esc(guideFilter)}" oninput="onFilterGuide(this.value)" placeholder="Tìm quy định..." class="w-full pl-9 pr-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#0056B3]" />
               </div>
             </div>
 
@@ -2455,7 +2174,7 @@ function doPost(e) {
       `;
     }
 
-    // 3. ĐOÀN PHÍ VÀ TÀI CHÍNH (ĐÃ SỬA HOÀN TÁC TRỪ TIỀN & BỔ SUNG ĐIỀU CHỈNH SỐ TIỀN)
+    // 3. ĐOÀN PHÍ VÀ TÀI CHÍNH
     function buildFinanceHtml() {
       const sec = isSecretary();
       const feeRate = Number(db.feeAmount || 120000);
@@ -2481,7 +2200,6 @@ function doPost(e) {
           </div>
 
           <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
-            <!-- CỘT ĐOÀN PHÍ THÀNH VIÊN -->
             <div class="lg:col-span-6 bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs">
               <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
                 <h3 class="font-extrabold text-base text-slate-900">Đóng Đoàn phí (${formatVND(feeRate)}/năm)</h3>
@@ -2497,12 +2215,15 @@ function doPost(e) {
                 ${db.users.map(u => `
                   <div class="py-3 flex items-center justify-between gap-3">
                     <div class="flex items-center gap-3 min-w-0">
-                      <div class="w-9 h-9 rounded-xl overflow-hidden bg-gradient-to-br ${u.badgeGradient || 'from-[#0056B3] to-[#0284C7]'} text-white font-bold text-xs flex items-center justify-center shrink-0">
+                      <div class="w-9 h-9 rounded-xl overflow-hidden bg-gradient-to-br ${getUserAvatarGradient(u)} text-white font-bold text-xs flex items-center justify-center shrink-0">
                         ${renderAvatarContent(u)}
                       </div>
                       <div class="min-w-0">
-                        <div class="font-bold text-xs sm:text-sm text-slate-900 truncate">${u.name}</div>
-                        <div class="text-[11px] text-slate-500 font-mono">${u.mssv} • <span class="font-sans">${isSecretary(u) ? 'Bí Thư' : u.position}</span></div>
+                        <div class="font-bold text-xs sm:text-sm text-slate-900 truncate">${esc(u.name)}</div>
+                        <div class="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                          <span class="text-[11px] text-slate-500 font-mono">${esc(u.mssv)}</span>
+                          ${getPositionBadgeHtml(u, true)}
+                        </div>
                       </div>
                     </div>
 
@@ -2514,9 +2235,7 @@ function doPost(e) {
                       </span>
                       ${sec ? `
                         <button onclick="toggleFeePaid('${u.id}')" class="px-2.5 py-1 rounded-xl text-[11px] font-bold transition ${
-                          u.feePaid
-                            ? 'bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200'
-                            : 'bg-slate-100 hover:bg-[#0056B3] hover:text-white text-slate-700'
+                          u.feePaid ? 'bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200' : 'bg-slate-100 hover:bg-[#0056B3] hover:text-white text-slate-700'
                         }">
                           ${u.feePaid ? 'Hoàn tác' : 'Xác nhận thu'}
                         </button>
@@ -2527,33 +2246,28 @@ function doPost(e) {
               </div>
             </div>
 
-            <!-- CỘT SỔ THU CHI & ĐIỀU CHỈNH SỐ TIỀN -->
             <div class="lg:col-span-6 bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between">
               <div>
                 <div class="flex items-center justify-between gap-2 mb-1">
                   <h3 class="font-extrabold text-base text-slate-900">Sổ thu chi minh bạch</h3>
                   <span class="text-[11px] font-semibold text-slate-400">${db.ledger.length} giao dịch</span>
                 </div>
-                <p class="text-xs text-slate-500 mb-4">${sec ? 'Bí Thư có thể bấm biểu tượng bút để điều chỉnh số tiền hoặc xóa giao dịch' : 'Lịch sử giao dịch quỹ Chi đoàn ĐHSVAN26A'}</p>
+                <p class="text-xs text-slate-500 mb-4">${sec ? 'Bí Thư có thể điều chỉnh số tiền hoặc xóa giao dịch' : 'Lịch sử giao dịch quỹ Chi đoàn ĐHSVAN26A'}</p>
 
                 <div class="space-y-2.5 max-h-80 overflow-y-auto pr-1">
                   ${db.ledger.map(item => `
                     <div class="p-3 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between gap-2">
                       <div class="min-w-0 flex-1">
-                        <div class="font-bold text-xs text-slate-900 truncate">${item.title}</div>
-                        <div class="text-[11px] text-slate-500 mt-0.5">${item.date} • ${item.note || ''}</div>
+                        <div class="font-bold text-xs text-slate-900 truncate">${esc(item.title)}</div>
+                        <div class="text-[11px] text-slate-500 mt-0.5">${esc(item.date)} • ${esc(item.note)}</div>
                       </div>
                       <div class="flex items-center gap-2 shrink-0">
                         <span class="font-extrabold text-xs ${item.kind === 'in' ? 'text-emerald-600' : 'text-rose-600'}">
                           ${item.kind === 'in' ? '+' : '-'}${formatVND(item.amount)}
                         </span>
                         ${sec ? `
-                          <button onclick="openLedgerEditModal('${item.id}')" title="Điều chỉnh số tiền / nội dung" class="w-7 h-7 rounded-lg bg-white hover:bg-blue-50 text-[#0056B3] border border-slate-200 flex items-center justify-center text-[11px]">
-                            <i class="fa-solid fa-pen"></i>
-                          </button>
-                          <button onclick="deleteLedgerEntry('${item.id}')" title="Xóa giao dịch" class="w-7 h-7 rounded-lg bg-white hover:bg-rose-50 text-rose-600 border border-slate-200 flex items-center justify-center text-[11px]">
-                            <i class="fa-solid fa-trash-can"></i>
-                          </button>
+                          <button onclick="openLedgerEditModal('${item.id}')" title="Điều chỉnh" class="w-7 h-7 rounded-lg bg-white hover:bg-blue-50 text-[#0056B3] border border-slate-200 flex items-center justify-center text-[11px]"><i class="fa-solid fa-pen"></i></button>
+                          <button onclick="deleteLedgerEntry('${item.id}')" title="Xóa" class="w-7 h-7 rounded-lg bg-white hover:bg-rose-50 text-rose-600 border border-slate-200 flex items-center justify-center text-[11px]"><i class="fa-solid fa-trash-can"></i></button>
                         ` : ''}
                       </div>
                     </div>
@@ -2613,12 +2327,12 @@ function doPost(e) {
               <form onsubmit="onSubmitEvidence(event)" class="space-y-3.5">
                 <div>
                   <label class="block text-xs font-bold text-slate-700 mb-1">Người nộp</label>
-                  <input type="text" disabled value="${user.name} (${user.mssv})" class="w-full px-3.5 py-2 rounded-xl bg-slate-100 border border-slate-200 text-xs font-bold text-slate-600" />
+                  <input type="text" disabled value="${esc(user.name)} (${esc(user.mssv)})" class="w-full px-3.5 py-2 rounded-xl bg-slate-100 border border-slate-200 text-xs font-bold text-slate-600" />
                 </div>
                 <div>
                   <label class="block text-xs font-bold text-slate-700 mb-1">Hoạt động đã tham gia *</label>
                   <select id="ev-act" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-medium bg-white">
-                    ${db.activities.map(a => `<option value="${a.title}">${a.title}</option>`).join('')}
+                    ${db.activities.map(a => `<option value="${esc(a.title)}">${esc(a.title)}</option>`).join('')}
                   </select>
                 </div>
                 <div>
@@ -2662,12 +2376,12 @@ function doPost(e) {
                       <div class="sm:col-span-4">${renderEvidenceBanner(ev.bannerKind)}</div>
                       <div class="sm:col-span-8 space-y-2">
                         <div class="flex items-center justify-between gap-2">
-                          <span class="text-xs font-extrabold text-[#0056B3]">${author.name} (${author.mssv})</span>
+                          <span class="text-xs font-extrabold text-[#0056B3]">${esc(author.name)} (${esc(author.mssv)})</span>
                           ${badge}
                         </div>
-                        <h4 class="font-bold text-sm text-slate-900">${ev.actTitle}</h4>
-                        <p class="text-xs text-slate-600">${ev.note}</p>
-                        <div class="text-[11px] text-slate-400">Nộp lúc: ${ev.createdAt}</div>
+                        <h4 class="font-bold text-sm text-slate-900">${esc(ev.actTitle)}</h4>
+                        <p class="text-xs text-slate-600">${esc(ev.note)}</p>
+                        <div class="text-[11px] text-slate-400">Nộp lúc: ${esc(ev.createdAt)}</div>
 
                         ${sec ? `
                           <div class="pt-2 flex items-center gap-2">
@@ -2690,11 +2404,11 @@ function doPost(e) {
       `;
     }
 
-    // ==================== 5. PHẦN ĐIỂM DANH QR CODE (HỖ TRỢ RESET & QUÉT LẠI NHIỀU ĐỢT) ====================
+    // 5. QR ĐIỂM DANH
     function buildQrAttendanceHtml() {
       const user = currentUser();
       const sec = isSecretary(user);
-      const checkedIn = db.attendance.logs.some(l => l.userId === user.id);
+      const checkedIn = !localForceRescan && db.attendance.logs.some(l => l.userId === user.id);
       const totalUsers = db.users.length;
       const presentCount = db.attendance.logs.length;
       const percentPresent = totalUsers > 0 ? Math.round((presentCount / totalUsers) * 100) : 0;
@@ -2711,12 +2425,10 @@ function doPost(e) {
                   <span class="w-2 h-2 rounded-full ${db.attendance.isOpen ? 'bg-emerald-500 beacon-dot' : 'bg-slate-400'}"></span>
                   ${db.attendance.isOpen ? 'MÃ QR ĐIỂM DANH ĐANG MỞ' : 'MÃ QR ĐANG ĐÓNG'}
                 </span>
-                <span class="px-2.5 py-0.5 rounded-full bg-blue-50 text-[#0056B3] text-[11px] font-extrabold">
-                  Đợt điểm danh #${currentRound}
-                </span>
+                <span class="px-2.5 py-0.5 rounded-full bg-blue-50 text-[#0056B3] text-[11px] font-extrabold">Đợt điểm danh #${currentRound}</span>
               </div>
-              <h2 class="text-lg font-extrabold text-slate-900">${db.attendance.title}</h2>
-              <p class="text-xs text-slate-500"><i class="fa-solid fa-location-dot text-[#0056B3] mr-1"></i>${db.attendance.location}</p>
+              <h2 class="text-lg font-extrabold text-slate-900">${esc(db.attendance.title)}</h2>
+              <p class="text-xs text-slate-500"><i class="fa-solid fa-location-dot text-[#0056B3] mr-1"></i>${esc(db.attendance.location)}</p>
             </div>
 
             <div class="flex items-center gap-2.5 shrink-0">
@@ -2725,7 +2437,7 @@ function doPost(e) {
                 <div class="text-xl font-extrabold text-[#0056B3]">${presentCount} / ${totalUsers}</div>
               </div>
               ${sec ? `
-                <button onclick="exportAttendanceCsv()" title="Xuất danh sách ra Excel (.csv)" class="px-3.5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs flex items-center gap-1.5">
+                <button onclick="exportAttendanceCsv()" class="px-3.5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs flex items-center gap-1.5">
                   <i class="fa-solid fa-file-excel"></i>
                   <span class="hidden sm:inline">Xuất Excel</span>
                 </button>
@@ -2734,7 +2446,6 @@ function doPost(e) {
           </div>
 
           ${sec ? `
-            <!-- BẢNG ĐIỀU KHIỂN BÍ THƯ: CÀI ĐẶT THỜI GIAN, MỞ QR & RESET QUÉT LẠI -->
             <div class="bg-white rounded-3xl p-5 border border-amber-200/80 shadow-xs space-y-4">
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
                 <div>
@@ -2763,7 +2474,7 @@ function doPost(e) {
                 <div class="lg:col-span-7 space-y-2">
                   <label class="block text-xs font-bold text-slate-700">
                     <i class="fa-regular fa-clock text-[#0056B3] mr-1"></i>
-                    Đặt thời gian hiệu lực QR Code (Hiện tại: <span class="text-[#0056B3] font-extrabold">${formatSecondsMMSS(currentDur)}</span>):
+                    Thời gian hiệu lực QR Code (<span class="text-[#0056B3] font-extrabold">${formatSecondsMMSS(currentDur)}</span>):
                   </label>
                   <div class="flex flex-wrap gap-2">
                     ${[
@@ -2774,12 +2485,8 @@ function doPost(e) {
                       { label: '15 phút', sec: 900 }
                     ].map(p => `
                       <button type="button" onclick="onSetQrDuration(${p.sec})" class="px-3.5 py-2 rounded-xl text-xs font-bold border transition ${
-                        currentDur === p.sec
-                          ? 'bg-[#0056B3] text-white border-[#0056B3] shadow-xs'
-                          : 'bg-slate-50 hover:bg-blue-50 text-slate-700 border-slate-200'
-                      }">
-                        ${p.label}
-                      </button>
+                        currentDur === p.sec ? 'bg-[#0056B3] text-white border-[#0056B3] shadow-xs' : 'bg-slate-50 hover:bg-blue-50 text-slate-700 border-slate-200'
+                      }">${p.label}</button>
                     `).join('')}
                   </div>
                 </div>
@@ -2795,32 +2502,27 @@ function doPost(e) {
                       </select>
                     </div>
                   </div>
-                  <button type="submit" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shrink-0">
-                    Đặt thời gian
-                  </button>
+                  <button type="submit" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shrink-0">Đặt</button>
                 </form>
               </div>
 
               <form onsubmit="onUpdateAttendanceSession(event)" class="pt-3 border-t border-slate-100 grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
                 <div class="md:col-span-5">
                   <label class="block text-[11px] font-bold text-slate-600 mb-1">Tên buổi điểm danh</label>
-                  <input type="text" id="sess-title-input" required value="${db.attendance.title}" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-semibold" />
+                  <input type="text" id="sess-title-input" required value="${esc(db.attendance.title)}" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-semibold" />
                 </div>
                 <div class="md:col-span-5">
                   <label class="block text-[11px] font-bold text-slate-600 mb-1">Địa điểm</label>
-                  <input type="text" id="sess-loc-input" required value="${db.attendance.location}" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs" />
+                  <input type="text" id="sess-loc-input" required value="${esc(db.attendance.location)}" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs" />
                 </div>
                 <div class="md:col-span-2">
-                  <button type="submit" class="w-full py-2 px-3 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0056B3] border border-blue-200 text-xs font-bold">
-                    Lưu tên buổi
-                  </button>
+                  <button type="submit" class="w-full py-2 px-3 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0056B3] border border-blue-200 text-xs font-bold">Lưu tên buổi</button>
                 </div>
               </form>
             </div>
           ` : ''}
 
           <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
-            <!-- CỘT TRÁI: HIỂN THỊ QR (BÍ THƯ) HOẶC MÁY QUÉT QR (THÀNH VIÊN) -->
             <div class="lg:col-span-6 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs flex flex-col items-center text-center">
               ${sec ? `
                 <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200 text-xs font-extrabold mb-3">
@@ -2828,10 +2530,7 @@ function doPost(e) {
                 </span>
 
                 ${db.attendance.isOpen ? `
-                  <p class="text-xs text-slate-500 max-w-sm mb-4">
-                    Đưa mã QR này cho các thành viên quét hoặc bấm <strong>Tải ảnh QR</strong> để gửi vào nhóm lớp.
-                  </p>
-
+                  <p class="text-xs text-slate-500 max-w-sm mb-4">Đưa mã QR này cho các thành viên quét hoặc bấm <strong>Tải ảnh QR</strong> gửi vào nhóm lớp.</p>
                   <div class="p-3 rounded-3xl bg-white border-2 border-slate-200 shadow-lg inline-block">
                     <canvas id="secretary-qr-canvas" class="mx-auto block"></canvas>
                   </div>
@@ -2839,9 +2538,7 @@ function doPost(e) {
                   <div class="w-full max-w-xs mt-5 space-y-2">
                     <div class="flex items-center justify-between text-xs">
                       <span class="font-semibold text-slate-500">Thời gian còn lại:</span>
-                      <span id="qr-remaining-label" class="font-mono text-lg font-extrabold text-emerald-600">
-                        ${formatSecondsMMSS(leftSec)}
-                      </span>
+                      <span id="qr-remaining-label" class="font-mono text-lg font-extrabold text-emerald-600">${formatSecondsMMSS(leftSec)}</span>
                     </div>
                     <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
                       <div id="qr-remaining-bar" class="h-full bg-emerald-500 transition-all duration-1000 ease-linear" style="width: ${Math.min(100, Math.round((leftSec / Math.max(1, currentDur)) * 100))}%"></div>
@@ -2858,13 +2555,9 @@ function doPost(e) {
                   </div>
                 ` : `
                   <div class="py-10 px-5 w-full rounded-3xl bg-slate-50 border-2 border-dashed border-slate-200 text-center space-y-3">
-                    <div class="w-16 h-16 rounded-2xl bg-amber-100 text-amber-600 text-2xl flex items-center justify-center mx-auto">
-                      <i class="fa-solid fa-qrcode"></i>
-                    </div>
+                    <div class="w-16 h-16 rounded-2xl bg-amber-100 text-amber-600 text-2xl flex items-center justify-center mx-auto"><i class="fa-solid fa-qrcode"></i></div>
                     <h3 class="font-extrabold text-base text-slate-900">Mã QR hiện đang tắt</h3>
-                    <p class="text-xs text-slate-500 max-w-xs mx-auto">
-                      Bí Thư hãy chọn thời gian hiệu lực và nhấn nút <strong>Mở QR Code Điểm danh</strong> ở bảng điều khiển phía trên.
-                    </p>
+                    <p class="text-xs text-slate-500 max-w-xs mx-auto">Bí Thư hãy chọn thời gian và nhấn <strong>Mở QR Code Điểm danh</strong> ở phía trên.</p>
                     <button onclick="onToggleOpenQrCode()" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-sm">
                       <i class="fa-solid fa-play mr-1"></i> Mở QR Code ngay (${formatSecondsMMSS(currentDur)})
                     </button>
@@ -2872,18 +2565,14 @@ function doPost(e) {
                 `}
               ` : `
                 <span class="px-3 py-1 rounded-full bg-blue-100 text-[#0056B3] text-xs font-extrabold mb-3">
-                  <i class="fa-solid fa-camera mr-1"></i> Máy quét QR Điểm danh (${user.mssv})
+                  <i class="fa-solid fa-camera mr-1"></i> Máy quét QR Điểm danh (${esc(user.mssv)})
                 </span>
 
                 ${checkedIn ? `
                   <div class="py-7 px-5 w-full rounded-3xl bg-emerald-50 border border-emerald-200 text-center space-y-3">
-                    <div class="w-16 h-16 rounded-full bg-emerald-500 text-white text-2xl flex items-center justify-center mx-auto shadow-md">
-                      <i class="fa-solid fa-check"></i>
-                    </div>
+                    <div class="w-16 h-16 rounded-full bg-emerald-500 text-white text-2xl flex items-center justify-center mx-auto shadow-md"><i class="fa-solid fa-check"></i></div>
                     <h3 class="font-extrabold text-base text-emerald-900">Đã điểm danh Có mặt (Đợt #${currentRound})!</h3>
-                    <p class="text-xs text-emerald-700">
-                      Hệ thống đã ghi nhận <strong>${user.name} (${user.mssv})</strong> có mặt thành công.
-                    </p>
+                    <p class="text-xs text-emerald-700">Hệ thống đã ghi nhận <strong>${esc(user.name)} (${esc(user.mssv)})</strong> có mặt thành công.</p>
                     <div class="flex flex-col sm:flex-row items-center justify-center gap-2 pt-1">
                       <button type="button" onclick="copyAttendanceReceipt()" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs inline-flex items-center justify-center gap-1.5">
                         <i class="fa-solid fa-copy"></i> Copy phiếu xác nhận
@@ -2900,9 +2589,7 @@ function doPost(e) {
 
                   <div class="w-full max-w-xs rounded-2xl overflow-hidden bg-slate-900 border-2 border-[#0056B3] relative min-h-[230px] flex items-center justify-center">
                     <div id="cam-idle-placeholder" class="p-5 text-center text-slate-300 space-y-2">
-                      <div class="w-14 h-14 rounded-2xl bg-white/10 text-sky-400 text-2xl flex items-center justify-center mx-auto">
-                        <i class="fa-solid fa-qrcode"></i>
-                      </div>
+                      <div class="w-14 h-14 rounded-2xl bg-white/10 text-sky-400 text-2xl flex items-center justify-center mx-auto"><i class="fa-solid fa-qrcode"></i></div>
                       <p class="text-xs font-medium">Máy quét đang chờ khởi động</p>
                     </div>
                     <div id="qr-camera-box" class="w-full"></div>
@@ -2932,18 +2619,13 @@ function doPost(e) {
               `}
             </div>
 
-            <!-- CỘT PHẢI: DANH SÁCH ĐIỂM DANH -->
             <div class="lg:col-span-6 bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs">
               <div class="flex items-center justify-between mb-4">
                 <div>
                   <h3 class="font-extrabold text-base text-slate-900">Danh sách Điểm danh (Đợt #${currentRound})</h3>
-                  <p class="text-xs text-slate-500">Trạng thái Có mặt / Vắng của toàn Chi đoàn</p>
+                  <p class="text-xs text-slate-500">Tự động cập nhật khi thành viên quét QR</p>
                 </div>
-                ${sec ? `
-                  <button onclick="onResetAttendanceSession()" class="text-xs font-bold text-rose-600 hover:underline">
-                    Reset danh sách
-                  </button>
-                ` : ''}
+                ${sec ? `<button onclick="onResetAttendanceSession()" class="text-xs font-bold text-rose-600 hover:underline">Reset danh sách</button>` : ''}
               </div>
 
               <div class="divide-y divide-slate-100 max-h-[430px] overflow-y-auto pr-1">
@@ -2952,12 +2634,15 @@ function doPost(e) {
                   return `
                     <div class="py-3 flex items-center justify-between gap-3">
                       <div class="flex items-center gap-3 min-w-0">
-                        <div class="w-9 h-9 rounded-xl overflow-hidden bg-gradient-to-br ${u.badgeGradient || 'from-[#0056B3] to-[#0284C7]'} text-white font-bold text-xs flex items-center justify-center shrink-0">
+                        <div class="w-9 h-9 rounded-xl overflow-hidden bg-gradient-to-br ${getUserAvatarGradient(u)} text-white font-bold text-xs flex items-center justify-center shrink-0">
                           ${renderAvatarContent(u)}
                         </div>
                         <div class="min-w-0">
-                          <div class="font-bold text-xs sm:text-sm text-slate-900 truncate">${u.name}</div>
-                          <div class="text-[11px] text-slate-500 font-mono">${u.mssv} • <span class="font-sans">${isSecretary(u) ? 'Bí Thư' : u.position}</span></div>
+                          <div class="font-bold text-xs sm:text-sm text-slate-900 truncate">${esc(u.name)}</div>
+                          <div class="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                            <span class="text-[11px] text-slate-500 font-mono">${esc(u.mssv)}</span>
+                            ${getPositionBadgeHtml(u, true)}
+                          </div>
                         </div>
                       </div>
 
@@ -2966,16 +2651,12 @@ function doPost(e) {
                           <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold">
                             <i class="fa-solid fa-circle-check"></i> Có mặt
                           </span>
-                          <div class="text-[10px] text-slate-400 mt-0.5">${log.time} • ${log.method}</div>
+                          <div class="text-[10px] text-slate-400 mt-0.5">${esc(log.time)} • ${esc(log.method)}</div>
                         </div>
                       ` : `
                         <div class="flex items-center gap-2 shrink-0">
                           <span class="px-2.5 py-1 rounded-xl bg-slate-100 text-slate-500 text-[11px] font-semibold">Chưa điểm danh</span>
-                          ${sec ? `
-                            <button onclick="secretaryCheckInUser('${u.id}')" class="px-2.5 py-1 rounded-xl bg-blue-50 hover:bg-[#0056B3] text-[#0056B3] hover:text-white text-[11px] font-bold transition">
-                              Điểm danh hộ
-                            </button>
-                          ` : ''}
+                          ${sec ? `<button onclick="secretaryCheckInUser('${u.id}')" class="px-2.5 py-1 rounded-xl bg-blue-50 hover:bg-[#0056B3] text-[#0056B3] hover:text-white text-[11px] font-bold transition">Điểm danh hộ</button>` : ''}
                         </div>
                       `}
                     </div>
@@ -2988,43 +2669,52 @@ function doPost(e) {
       `;
     }
 
-    // ==================== 6. QUẢN LÝ TÀI KHOẢN & KẾT NỐI GOOGLE SHEET (BÍ THƯ) ====================
-    let memberSearchTerm = '';
-
+    // 6. QUẢN LÝ & CẤP TÀI KHOẢN + CẤP CHỨC VỤ PHÓ BÍ THƯ, ỦY VIÊN (BÍ THƯ)
     function buildAccountsAdminHtml() {
       const members = db.users.filter(u => u.role === 'member');
+      const pbtCount = members.filter(m => m.position === 'Phó Bí thư Chi đoàn').length;
+      const uvCount = members.filter(m => m.position === 'Ủy viên BCH Chi đoàn').length;
       const visible = members.filter(m =>
         m.mssv.toLowerCase().includes(memberSearchTerm.toLowerCase()) ||
         m.name.toLowerCase().includes(memberSearchTerm.toLowerCase()) ||
+        m.position.toLowerCase().includes(memberSearchTerm.toLowerCase()) ||
         (m.phone || '').includes(memberSearchTerm)
       );
       const activeApi = getActiveApiUrl();
 
       return `
         <div class="space-y-5 view-enter">
-          <!-- Banner Bí Thư -->
           <div class="bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-3xl p-5 sm:p-6 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 text-[11px] font-extrabold mb-1.5">
                 <i class="fa-solid fa-star"></i> ĐẶC QUYỀN BÍ THƯ • VÕ QUANG VINH
               </div>
-              <h2 class="text-lg sm:text-xl font-extrabold">6. Quản lý Tài khoản & Đồng bộ Google Sheet</h2>
+              <h2 class="text-lg sm:text-xl font-extrabold">6. Quản lý Tài khoản & Cấp chức vụ BCH</h2>
               <p class="text-xs text-amber-50 mt-1">
-                Kết nối Google Sheet miễn phí để điểm danh QR, đăng ký hoạt động và quỹ lớp đồng bộ trực tiếp giữa toàn bộ điện thoại của cả lớp.
+                Cấp tài khoản đoàn viên, phân công chức vụ <strong>Phó Bí thư</strong>, <strong>Ủy viên BCH</strong> và kết nối Google Sheet đồng bộ toàn lớp.
               </p>
             </div>
-            <div class="bg-white/15 px-4 py-3 rounded-2xl border border-white/25 text-center shrink-0">
-              <div class="text-2xl font-extrabold leading-none">${members.length}</div>
-              <div class="text-[11px] text-amber-100 mt-1">Tài khoản đã cấp</div>
+            <div class="flex items-center gap-2 shrink-0">
+              <div class="bg-white/15 px-3.5 py-2.5 rounded-2xl border border-white/25 text-center">
+                <div class="text-xl font-extrabold leading-none">${pbtCount}</div>
+                <div class="text-[10px] text-amber-100 mt-1">Phó Bí thư</div>
+              </div>
+              <div class="bg-white/15 px-3.5 py-2.5 rounded-2xl border border-white/25 text-center">
+                <div class="text-xl font-extrabold leading-none">${uvCount}</div>
+                <div class="text-[10px] text-amber-100 mt-1">Ủy viên</div>
+              </div>
+              <div class="bg-white/15 px-3.5 py-2.5 rounded-2xl border border-white/25 text-center">
+                <div class="text-xl font-extrabold leading-none">${members.length}</div>
+                <div class="text-[10px] text-amber-100 mt-1">Tổng TK</div>
+              </div>
             </div>
           </div>
 
-          <!-- KHỐI 1: KẾT NỐI GOOGLE SHEET ĐỂ ĐỒNG BỘ TOÀN LỚP -->
           <div class="bg-white rounded-3xl p-5 sm:p-6 border border-emerald-200/90 shadow-xs space-y-4">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-extrabold mb-1">
-                  <i class="fa-solid fa-table"></i> CƠ SỞ DỮ LIỆU CHUNG MIỄN PHÍ (THAY FIREBASE)
+                  <i class="fa-solid fa-table"></i> ĐỒNG BỘ DỮ LIỆU CHUNG QUA GOOGLE SHEETS
                 </span>
                 <h3 class="font-extrabold text-base text-slate-900">Kết nối Google Sheets để đồng bộ giữa Bí Thư & Đoàn viên</h3>
               </div>
@@ -3034,13 +2724,7 @@ function doPost(e) {
             </div>
 
             <form onsubmit="onSaveApiUrlConfig(event)" class="flex flex-col sm:flex-row gap-2">
-              <input
-                type="url"
-                id="sheet-api-url-input"
-                value="${activeApi}"
-                placeholder="Dán link Web App Google Apps Script (https://script.google.com/macros/s/.../exec)"
-                class="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-mono focus:outline-none focus:border-[#0056B3]"
-              />
+              <input type="url" id="sheet-api-url-input" value="${esc(activeApi)}" placeholder="Dán link Web App Google Apps Script (https://script.google.com/macros/s/.../exec)" class="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-mono focus:outline-none focus:border-[#0056B3]" />
               <button type="submit" class="px-5 py-2.5 rounded-xl bg-[#0056B3] hover:bg-[#004494] text-white text-xs font-extrabold shrink-0">
                 <i class="fa-solid fa-plug mr-1"></i> Lưu & Kết nối
               </button>
@@ -3061,21 +2745,18 @@ function doPost(e) {
                 <span id="generated-link-len" class="font-mono font-bold text-emerald-700">${latestCompactLinkCache ? latestCompactLinkCache.length + ' ký tự' : ''}</span>
               </div>
               <div class="flex gap-1.5">
-                <input id="generated-link-input" type="text" readonly value="${latestCompactLinkCache}" onclick="this.select()" class="flex-1 px-2.5 py-1.5 rounded-xl bg-white border border-emerald-200 text-[11px] font-mono text-slate-700" />
-                <button type="button" onclick="copyTextSafely(document.getElementById('generated-link-input').value); showToast('Đã copy link!', 'success');" class="px-3 py-1.5 rounded-xl bg-emerald-600 text-white text-[11px] font-bold shrink-0">
-                  Copy
-                </button>
+                <input id="generated-link-input" type="text" readonly value="${esc(latestCompactLinkCache)}" onclick="this.select()" class="flex-1 px-2.5 py-1.5 rounded-xl bg-white border border-emerald-200 text-[11px] font-mono text-slate-700" />
+                <button type="button" onclick="copyTextSafely(document.getElementById('generated-link-input').value); showToast('Đã copy link!', 'success');" class="px-3 py-1.5 rounded-xl bg-emerald-600 text-white text-[11px] font-bold shrink-0">Copy</button>
               </div>
             </div>
           </div>
 
-          <!-- KHỐI 2: CẤP TÀI KHOẢN & DANH SÁCH ĐOÀN VIÊN -->
           <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
             <div class="lg:col-span-5 space-y-5">
               <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-xs">
                 <h3 class="font-extrabold text-base text-slate-900 flex items-center gap-2">
                   <span class="w-8 h-8 rounded-xl bg-blue-50 text-[#0056B3] flex items-center justify-center text-sm"><i class="fa-solid fa-user-plus"></i></span>
-                  Cấp tài khoản Đoàn viên
+                  Cấp tài khoản & Chức vụ mới
                 </h3>
 
                 <form onsubmit="onCreateMemberUser(event)" class="mt-4 space-y-3">
@@ -3102,16 +2783,14 @@ function doPost(e) {
 
                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     <div>
-                      <label class="block text-xs font-bold text-slate-700 mb-1">Số điện thoại</label>
-                      <input type="tel" id="add-mem-phone" placeholder="09xxxxxxxx" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs" />
+                      <label class="block text-xs font-bold text-slate-700 mb-1">Cấp chức vụ</label>
+                      <select id="add-mem-pos" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold bg-white">
+                        ${POSITION_OPTIONS.map(pos => `<option value="${pos}">${pos}</option>`).join('')}
+                      </select>
                     </div>
                     <div>
-                      <label class="block text-xs font-bold text-slate-700 mb-1">Chức vụ</label>
-                      <select id="add-mem-pos" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs bg-white">
-                        <option value="Đoàn viên">Đoàn viên</option>
-                        <option value="Phó Bí thư Chi đoàn">Phó Bí thư Chi đoàn</option>
-                        <option value="Ủy viên BCH Chi đoàn">Ủy viên BCH Chi đoàn</option>
-                      </select>
+                      <label class="block text-xs font-bold text-slate-700 mb-1">Số điện thoại</label>
+                      <input type="tel" id="add-mem-phone" placeholder="09xxxxxxxx" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs" />
                     </div>
                   </div>
 
@@ -3123,27 +2802,19 @@ function doPost(e) {
 
               <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs space-y-3">
                 <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
-                  <i class="fa-solid fa-list-check text-emerald-600"></i>
-                  Cấp nhanh hàng loạt cả lớp (Dán danh sách)
+                  <i class="fa-solid fa-list-check text-emerald-600"></i> Cấp nhanh hàng loạt cả lớp
                 </h3>
                 <p class="text-[11px] text-slate-500">
-                  Mỗi dòng nhập 1 bạn theo mẫu: <code class="bg-slate-100 px-1.5 py-0.5 rounded font-mono">MSSV - Họ và tên</code>
+                  Nhập mỗi bạn 1 dòng: <code class="bg-slate-100 px-1 py-0.5 rounded font-mono">MSSV - Họ tên</code> hoặc thêm chức vụ <code class="bg-slate-100 px-1 py-0.5 rounded font-mono">- Phó Bí thư</code> / <code class="bg-slate-100 px-1 py-0.5 rounded font-mono">- Ủy viên</code>
                 </p>
                 <form onsubmit="onBulkCreateMembers(event)" class="space-y-2.5">
-                  <textarea
-                    id="bulk-members-input"
-                    rows="4"
-                    required
-                    placeholder="0026410311 - Nguyễn Văn An&#10;0026410312 - Trần Thị Bình&#10;0026410313 - Lê Hoàng Cường"
-                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-mono focus:outline-none focus:border-[#0056B3]"
-                  ></textarea>
+                  <textarea id="bulk-members-input" rows="4" required placeholder="0026410311 - Nguyễn Văn An - Phó Bí thư&#10;0026410312 - Trần Thị Bình - Ủy viên&#10;0026410313 - Lê Hoàng Cường" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-mono focus:outline-none focus:border-[#0056B3]"></textarea>
                   <button type="submit" class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold">
                     <i class="fa-solid fa-bolt mr-1 text-amber-400"></i> Cấp tài khoản hàng loạt
                   </button>
                 </form>
               </div>
 
-              <!-- Sao lưu JSON -->
               <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs space-y-2.5">
                 <div class="text-xs font-extrabold text-slate-800"><i class="fa-solid fa-floppy-disk text-[#0056B3] mr-1"></i>Sao lưu & Khôi phục File dự phòng (.JSON)</div>
                 <div class="grid grid-cols-2 gap-2">
@@ -3161,10 +2832,10 @@ function doPost(e) {
             <div class="lg:col-span-7 bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-xs h-fit">
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                 <div>
-                  <h3 class="font-extrabold text-base text-slate-900">Danh sách Tài khoản đã cấp (${members.length})</h3>
-                  <p class="text-xs text-slate-500">Reset mật khẩu về MSSV hoặc xóa tài khoản</p>
+                  <h3 class="font-extrabold text-base text-slate-900">Danh sách Tài khoản & Phân công Chức vụ (${members.length})</h3>
+                  <p class="text-xs text-slate-500">Chọn chức vụ trực tiếp để bổ nhiệm Phó Bí thư / Ủy viên BCH</p>
                 </div>
-                <input type="text" value="${memberSearchTerm}" oninput="onSearchMembers(this.value)" placeholder="Tìm MSSV / Họ tên..." class="w-full sm:w-56 px-3.5 py-2 rounded-xl border border-slate-200 text-xs" />
+                <input type="text" value="${esc(memberSearchTerm)}" oninput="onSearchMembers(this.value)" placeholder="Tìm MSSV / Họ tên / Chức vụ..." class="w-full sm:w-56 px-3.5 py-2 rounded-xl border border-slate-200 text-xs" />
               </div>
 
               ${visible.length === 0 ? `
@@ -3174,12 +2845,12 @@ function doPost(e) {
                   <p class="text-xs text-slate-500">Bí Thư hãy nhập MSSV lẻ hoặc dán danh sách cả lớp ở cột bên trái.</p>
                 </div>
               ` : `
-                <div class="overflow-x-auto max-h-[640px] overflow-y-auto">
+                <div class="overflow-x-auto max-h-[660px] overflow-y-auto">
                   <table class="w-full text-left border-collapse">
-                    <thead class="sticky top-0 bg-white">
+                    <thead class="sticky top-0 bg-white z-10">
                       <tr class="border-b border-slate-200 text-[11px] font-bold uppercase text-slate-400">
                         <th class="py-3 px-2">Đoàn viên</th>
-                        <th class="py-3 px-2">MSSV</th>
+                        <th class="py-3 px-2">Cấp chức vụ</th>
                         <th class="py-3 px-2">Mật khẩu</th>
                         <th class="py-3 px-2 text-right">Thao tác</th>
                       </tr>
@@ -3188,11 +2859,21 @@ function doPost(e) {
                       ${visible.map(m => `
                         <tr class="hover:bg-blue-50/40">
                           <td class="py-3 px-2">
-                            <div class="font-bold text-slate-900">${m.name}</div>
-                            <div class="text-[11px] text-slate-500">${m.position} ${m.phone ? '• ' + m.phone : ''}</div>
+                            <div class="font-bold text-slate-900">${esc(m.name)}</div>
+                            <div class="text-[11px] text-slate-500 font-mono">${esc(m.mssv)} ${m.phone ? '• ' + esc(m.phone) : ''}</div>
                           </td>
-                          <td class="py-3 px-2"><span class="px-2 py-1 rounded-lg bg-blue-50 text-[#0056B3] font-mono font-bold">${m.mssv}</span></td>
-                          <td class="py-3 px-2 font-mono font-semibold text-slate-700">${m.password}</td>
+                          <td class="py-3 px-2">
+                            <select onchange="onChangeMemberPosition('${m.id}', this.value)" class="px-2.5 py-1.5 rounded-xl border text-[11px] font-extrabold cursor-pointer focus:outline-none ${
+                              m.position === 'Phó Bí thư Chi đoàn'
+                                ? 'bg-purple-50 text-purple-800 border-purple-200'
+                                : m.position === 'Ủy viên BCH Chi đoàn'
+                                ? 'bg-teal-50 text-teal-800 border-teal-200'
+                                : 'bg-slate-50 text-slate-700 border-slate-200'
+                            }">
+                              ${POSITION_OPTIONS.map(pos => `<option value="${pos}" ${m.position === pos ? 'selected' : ''}>${pos}</option>`).join('')}
+                            </select>
+                          </td>
+                          <td class="py-3 px-2 font-mono font-semibold text-slate-700">${esc(m.password)}</td>
                           <td class="py-3 px-2 text-right">
                             <div class="inline-flex items-center gap-1.5">
                               <button onclick="resetPasswordToMssv('${m.id}')" class="px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 text-[11px] font-bold">Reset MK</button>
@@ -3214,10 +2895,8 @@ function doPost(e) {
     // ==================== XỬ LÝ SỰ KIỆN NGHIỆP VỤ ====================
     function previewMssvCredential(val) {
       const clean = (val || '').trim().toUpperCase();
-      const uEl = document.getElementById('cred-user-preview');
-      const pEl = document.getElementById('cred-pass-preview');
-      if (uEl) uEl.textContent = clean || '---';
-      if (pEl) pEl.textContent = clean || '---';
+      document.getElementById('cred-user-preview').textContent = clean || '---';
+      document.getElementById('cred-pass-preview').textContent = clean || '---';
     }
 
     async function onCreateMemberUser(e) {
@@ -3231,7 +2910,7 @@ function doPost(e) {
       }
       const name = document.getElementById('add-mem-name').value.trim() || `Đoàn viên ${mssv}`;
       const phone = document.getElementById('add-mem-phone').value.trim();
-      const position = document.getElementById('add-mem-pos').value;
+      const position = normalizePositionName(document.getElementById('add-mem-pos').value);
 
       db.users.push({
         id: 'MEM_' + mssv,
@@ -3244,18 +2923,16 @@ function doPost(e) {
         phone,
         email: '',
         avatar: '',
-        branch: 'Chi đoàn ĐHSVAN26A',
         points: 85,
-        feePaid: false,
-        badgeGradient: 'from-[#0056B3] to-[#0284C7]'
+        feePaid: false
       });
 
       latestCompactLinkCache = '';
       persistLocalOnly();
       e.target.reset();
       renderApp();
-      showToast(`Đã cấp tài khoản ${mssv}!`, 'success');
-      await pushFullStateToCloud();
+      showToast(`Đã cấp tài khoản ${mssv} (${position})!`, 'success');
+      await pushAtomicActionToCloud('SAVE_USERS', getSharedPayloadSnapshot().users);
     }
 
     async function onBulkCreateMembers(e) {
@@ -3264,17 +2941,23 @@ function doPost(e) {
       const rawText = document.getElementById('bulk-members-input').value.trim();
       if (!rawText) return;
 
-      const lines = rawText.split(/\r?\n/);
       let createdCount = 0;
-
-      lines.forEach(line => {
+      rawText.split(/\r?\n/).forEach(line => {
         const cleanLine = line.trim();
         if (!cleanLine) return;
         const parts = cleanLine.split(/\s*[-–|,\t]\s*/);
         const mssv = (parts[0] || '').trim().toUpperCase();
         if (!mssv || mssv === '0026410310') return;
 
-        const name = (parts.slice(1).join(' ') || `Đoàn viên ${mssv}`).trim();
+        let name = `Đoàn viên ${mssv}`;
+        let position = 'Đoàn viên';
+        if (parts.length >= 3) {
+          position = normalizePositionName(parts[parts.length - 1]);
+          name = parts.slice(1, parts.length - 1).join(' ').trim() || name;
+        } else if (parts[1]) {
+          name = parts[1].trim();
+        }
+
         if (!db.users.some(u => u.mssv.toUpperCase() === mssv)) {
           db.users.push({
             id: 'MEM_' + mssv,
@@ -3282,15 +2965,13 @@ function doPost(e) {
             password: mssv,
             mssv,
             name,
-            position: 'Đoàn viên',
+            position,
             role: 'member',
             phone: '',
             email: '',
             avatar: '',
-            branch: 'Chi đoàn ĐHSVAN26A',
             points: 85,
-            feePaid: false,
-            badgeGradient: 'from-[#0056B3] to-[#0284C7]'
+            feePaid: false
           });
           createdCount++;
         }
@@ -3301,7 +2982,19 @@ function doPost(e) {
       e.target.reset();
       renderApp();
       showToast(`Đã cấp thành công ${createdCount} tài khoản mới!`, 'success');
-      await pushFullStateToCloud();
+      await pushAtomicActionToCloud('SAVE_USERS', getSharedPayloadSnapshot().users);
+    }
+
+    async function onChangeMemberPosition(id, newPosition) {
+      if (!isSecretary()) return;
+      const u = db.users.find(x => x.id === id);
+      if (!u || u.role === 'secretary') return;
+      u.position = normalizePositionName(newPosition);
+      latestCompactLinkCache = '';
+      persistLocalOnly();
+      renderApp();
+      showToast(`Đã cấp chức vụ "${u.position}" cho ${u.name}!`, 'success');
+      await pushAtomicActionToCloud('SAVE_USERS', getSharedPayloadSnapshot().users);
     }
 
     function onSearchMembers(v) {
@@ -3317,7 +3010,7 @@ function doPost(e) {
       persistLocalOnly();
       renderApp();
       showToast(`Đã đặt lại mật khẩu của ${u.mssv} về mặc định (${u.mssv}).`, 'info');
-      await pushFullStateToCloud();
+      await pushAtomicActionToCloud('SAVE_USERS', getSharedPayloadSnapshot().users);
     }
 
     async function deleteMemberUser(id) {
@@ -3328,7 +3021,7 @@ function doPost(e) {
       persistLocalOnly();
       renderApp();
       showToast(`Đã xóa tài khoản ${u.mssv}.`, 'info');
-      await pushFullStateToCloud();
+      await pushAtomicActionToCloud('SAVE_USERS', getSharedPayloadSnapshot().users);
     }
 
     async function toggleActivityJoin(actId) {
@@ -3348,18 +3041,6 @@ function doPost(e) {
       await pushAtomicActionToCloud('TOGGLE_ACTIVITY', { actId, userId: u.id });
     }
 
-    function openActivityModal() {
-      const m = document.getElementById('activity-modal');
-      m.classList.remove('hidden');
-      m.classList.add('flex');
-    }
-
-    function closeActivityModal() {
-      const m = document.getElementById('activity-modal');
-      m.classList.add('hidden');
-      m.classList.remove('flex');
-    }
-
     async function onCreateActivity(e) {
       e.preventDefault();
       db.activities.unshift({
@@ -3373,11 +3054,11 @@ function doPost(e) {
         joinedIds: [db.activeUserId]
       });
       persistLocalOnly();
-      closeActivityModal();
+      closeModal('activity-modal');
       e.target.reset();
       renderApp();
       showToast('Đã đăng hoạt động mới!', 'success');
-      await pushFullStateToCloud();
+      await pushAtomicActionToCloud('SAVE_ACTIVITIES', db.activities);
     }
 
     async function removeActivity(actId) {
@@ -3385,7 +3066,7 @@ function doPost(e) {
       persistLocalOnly();
       renderApp();
       showToast('Đã xóa hoạt động.', 'info');
-      await pushFullStateToCloud();
+      await pushAtomicActionToCloud('SAVE_ACTIVITIES', db.activities);
     }
 
     function openRegListModal(actId) {
@@ -3394,34 +3075,24 @@ function doPost(e) {
       document.getElementById('reg-modal-title').textContent = act.title;
       document.getElementById('reg-modal-sub').textContent = `Tổng số: ${act.joinedIds.length} người đăng ký`;
       const body = document.getElementById('reg-modal-body');
-      if (act.joinedIds.length === 0) {
-        body.innerHTML = `<p class="py-6 text-center text-xs text-slate-400">Chưa có người đăng ký.</p>`;
-      } else {
-        body.innerHTML = act.joinedIds.map((uid, i) => {
-          const u = db.users.find(x => x.id === uid) || { name: uid, mssv: '' };
-          return `
-            <div class="py-2.5 flex items-center justify-between text-xs">
-              <div class="flex items-center gap-2.5">
-                <span class="w-6 h-6 rounded-lg bg-blue-50 text-[#0056B3] font-bold flex items-center justify-center">${i + 1}</span>
-                <div>
-                  <div class="font-bold text-slate-900">${u.name}</div>
-                  <div class="text-[11px] font-mono text-slate-400">${u.mssv}</div>
+      body.innerHTML = act.joinedIds.length === 0
+        ? `<p class="py-6 text-center text-xs text-slate-400">Chưa có người đăng ký.</p>`
+        : act.joinedIds.map((uid, i) => {
+            const u = db.users.find(x => x.id === uid) || { name: uid, mssv: '', position: 'Đoàn viên' };
+            return `
+              <div class="py-2.5 flex items-center justify-between text-xs">
+                <div class="flex items-center gap-2.5">
+                  <span class="w-6 h-6 rounded-lg bg-blue-50 text-[#0056B3] font-bold flex items-center justify-center">${i + 1}</span>
+                  <div>
+                    <div class="font-bold text-slate-900">${esc(u.name)}</div>
+                    <div class="text-[11px] font-mono text-slate-400">${esc(u.mssv)}</div>
+                  </div>
                 </div>
+                ${getPositionBadgeHtml(u, true)}
               </div>
-              <span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-bold text-[10px]">Đã ĐK</span>
-            </div>
-          `;
-        }).join('');
-      }
-      const m = document.getElementById('reg-list-modal');
-      m.classList.remove('hidden');
-      m.classList.add('flex');
-    }
-
-    function closeRegListModal() {
-      const m = document.getElementById('reg-list-modal');
-      m.classList.add('hidden');
-      m.classList.remove('flex');
+            `;
+          }).join('');
+      openModal('reg-list-modal');
     }
 
     function onFilterGuide(v) {
@@ -3429,11 +3100,16 @@ function doPost(e) {
       renderMainBody();
     }
 
-    // ==================== ĐOÀN PHÍ & ĐIỀU CHỈNH TIỀN QUỸ ====================
+    // ==================== ĐOÀN PHÍ & TÀI CHÍNH ====================
+    function getFinanceSyncPayload() {
+      const feeMap = {};
+      db.users.forEach(u => { feeMap[u.id] = Boolean(u.feePaid); });
+      return { feeAmount: db.feeAmount, ledger: db.ledger, feeMap };
+    }
+
     async function onChangeFeeAmount() {
       if (!isSecretary()) return;
-      const cur = Number(db.feeAmount || 120000);
-      const ans = prompt('Nhập mức thu Đoàn phí mới (VNĐ):', String(cur));
+      const ans = prompt('Nhập mức thu Đoàn phí mới (VNĐ):', String(Number(db.feeAmount || 120000)));
       if (ans === null) return;
       const num = parseInt(ans.replace(/\D/g, ''), 10);
       if (isNaN(num) || num < 0) {
@@ -3444,7 +3120,7 @@ function doPost(e) {
       persistLocalOnly();
       renderApp();
       showToast(`Đã cập nhật mức thu Đoàn phí: ${formatVND(num)}/năm`, 'success');
-      await pushFullStateToCloud();
+      await pushAtomicActionToCloud('SAVE_FINANCE', getFinanceSyncPayload());
     }
 
     async function toggleFeePaid(uid) {
@@ -3454,7 +3130,6 @@ function doPost(e) {
       const feeRate = Number(db.feeAmount || 120000);
 
       if (!u.feePaid) {
-        // Xác nhận thu: cộng vào sổ quỹ (đảm bảo không trùng)
         u.feePaid = true;
         db.ledger = db.ledger.filter(x => x.feeUserId !== u.id && x.title !== `Thu Đoàn phí (${u.name})`);
         db.ledger.unshift({
@@ -3468,7 +3143,6 @@ function doPost(e) {
         });
         showToast(`Đã xác nhận thu ${formatVND(feeRate)} của ${u.name}`, 'success');
       } else {
-        // Hoàn tác: đặt lại chưa đóng VÀ trừ khỏi sổ quỹ
         u.feePaid = false;
         let removedAmount = 0;
         db.ledger = db.ledger.filter(x => {
@@ -3481,7 +3155,7 @@ function doPost(e) {
 
       persistLocalOnly();
       renderApp();
-      await pushFullStateToCloud();
+      await pushAtomicActionToCloud('SAVE_FINANCE', getFinanceSyncPayload());
     }
 
     function openLedgerEditModal(lgId) {
@@ -3492,53 +3166,43 @@ function doPost(e) {
       document.getElementById('edit-lg-kind').value = item.kind;
       document.getElementById('edit-lg-amount').value = item.amount;
       document.getElementById('edit-lg-title').value = item.title;
+      document.getElementById('edit-lg-date').value = item.date || '';
       document.getElementById('edit-lg-note').value = item.note || '';
-
-      const m = document.getElementById('ledger-edit-modal');
-      m.classList.remove('hidden');
-      m.classList.add('flex');
-    }
-
-    function closeLedgerEditModal() {
-      const m = document.getElementById('ledger-edit-modal');
-      m.classList.add('hidden');
-      m.classList.remove('flex');
+      openModal('ledger-edit-modal');
     }
 
     async function onSaveEditedLedger(e) {
       e.preventDefault();
       if (!isSecretary()) return;
-      const id = document.getElementById('edit-lg-id').value;
-      const item = db.ledger.find(x => x.id === id);
+      const item = db.ledger.find(x => x.id === document.getElementById('edit-lg-id').value);
       if (!item) return;
 
       item.kind = document.getElementById('edit-lg-kind').value;
       item.amount = Math.max(0, parseInt(document.getElementById('edit-lg-amount').value, 10) || 0);
       item.title = document.getElementById('edit-lg-title').value.trim();
+      item.date = document.getElementById('edit-lg-date').value.trim() || item.date;
       item.note = document.getElementById('edit-lg-note').value.trim();
 
       persistLocalOnly();
-      closeLedgerEditModal();
+      closeModal('ledger-edit-modal');
       renderApp();
-      showToast('Đã lưu điều chỉnh số tiền giao dịch!', 'success');
-      await pushFullStateToCloud();
+      showToast('Đã lưu điều chỉnh giao dịch!', 'success');
+      await pushAtomicActionToCloud('SAVE_FINANCE', getFinanceSyncPayload());
     }
 
     async function deleteLedgerEntry(lgId) {
       if (!isSecretary()) return;
       const item = db.ledger.find(x => x.id === lgId);
       if (!item) return;
-
       if (item.feeUserId) {
         const u = db.users.find(x => x.id === item.feeUserId);
         if (u) u.feePaid = false;
       }
       db.ledger = db.ledger.filter(x => x.id !== lgId);
-
       persistLocalOnly();
       renderApp();
-      showToast(`Đã xóa giao dịch "${item.title}" và cập nhật lại số dư quỹ!`, 'info');
-      await pushFullStateToCloud();
+      showToast(`Đã xóa giao dịch "${item.title}"!`, 'info');
+      await pushAtomicActionToCloud('SAVE_FINANCE', getFinanceSyncPayload());
     }
 
     async function onAddLedgerEntry(e) {
@@ -3558,9 +3222,10 @@ function doPost(e) {
       persistLocalOnly();
       renderApp();
       showToast('Đã lưu vào sổ quỹ!', 'success');
-      await pushFullStateToCloud();
+      await pushAtomicActionToCloud('SAVE_FINANCE', getFinanceSyncPayload());
     }
 
+    // ==================== MINH CHỨNG & ĐIỂM DANH ====================
     async function onSubmitEvidence(e) {
       e.preventDefault();
       const u = currentUser();
@@ -3589,16 +3254,16 @@ function doPost(e) {
       ev.status = status;
 
       const owner = db.users.find(u => u.id === ev.userId);
-      if (owner && status === 'approved' && !wasOk) {
-        owner.points = Math.min(100, owner.points + 3);
+      if (owner) {
+        if (status === 'approved' && !wasOk) owner.points = Math.min(100, owner.points + 3);
+        else if (status !== 'approved' && wasOk) owner.points = Math.max(0, owner.points - 3);
       }
       persistLocalOnly();
       renderApp();
       showToast(status === 'approved' ? 'Bí Thư đã duyệt minh chứng (+3 ĐRL)!' : 'Đã từ chối minh chứng.', status === 'approved' ? 'success' : 'info');
-      await pushFullStateToCloud();
+      await pushAtomicActionToCloud('SET_EVIDENCE_STATUS', { evId, status });
     }
 
-    // Điểm danh
     async function onUpdateAttendanceSession(e) {
       e.preventDefault();
       db.attendance.title = document.getElementById('sess-title-input').value.trim();
@@ -3606,10 +3271,17 @@ function doPost(e) {
       persistLocalOnly();
       renderApp();
       showToast('Đã cập nhật thông tin buổi điểm danh!', 'success');
-      await pushFullStateToCloud();
+      await pushAtomicActionToCloud('QR_CONTROL', {
+        isOpen: db.attendance.isOpen,
+        durationSec: db.attendance.durationSec,
+        openedAtSec: db.attendance.openedAtSec,
+        qrNonce: db.attendance.qrNonce,
+        title: db.attendance.title,
+        location: db.attendance.location
+      });
     }
 
-    async function commitAttendance(uid, method, roundNum = Number(db.attendance.round || 1)) {
+    async function commitAttendance(uid, method, roundNum = Number(db.attendance.round || 1), allowSameRoundOverwrite = false) {
       const u = db.users.find(x => x.id === uid);
       const now = new Date();
       const stamp = `${now.toTimeString().slice(0, 8)} ${now.toLocaleDateString('vi-VN')}`;
@@ -3617,7 +3289,7 @@ function doPost(e) {
       const existingIdx = db.attendance.logs.findIndex(l => l.userId === uid);
       if (existingIdx > -1) {
         const oldRound = Number(db.attendance.logs[existingIdx].round || 1);
-        if (roundNum <= oldRound) {
+        if (!allowSameRoundOverwrite && roundNum <= oldRound) {
           showToast('Tài khoản này đã điểm danh Có mặt ở đợt hiện tại rồi!', 'info');
           return;
         }
@@ -3644,17 +3316,13 @@ function doPost(e) {
     }
 
     function exportAttendanceCsv() {
-      const rows = [['STT', 'Ho va ten', 'MSSV', 'Chuc vu', 'Trang thai', 'Thoi gian', 'Phuong thuc']];
+      const rows = [['STT', 'Ho va ten', 'MSSV', 'Chuc vu', 'Trang thai', 'Thoi gian', 'Phuong thuc', 'Dot']];
       db.users.forEach((u, idx) => {
         const log = db.attendance.logs.find(l => l.userId === u.id);
         rows.push([
-          idx + 1,
-          u.name,
-          u.mssv,
-          isSecretary(u) ? 'Bí Thư' : u.position,
-          log ? 'Có mặt' : 'Vắng',
-          log ? log.time : '',
-          log ? log.method : ''
+          idx + 1, u.name, u.mssv, isSecretary(u) ? 'Bí Thư' : u.position,
+          log ? 'Có mặt' : 'Vắng', log ? log.time : '', log ? log.method : '',
+          log ? (log.round || db.attendance.round || 1) : ''
         ]);
       });
       const csvContent = '\uFEFF' + rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
@@ -3682,7 +3350,7 @@ function doPost(e) {
         error: 'fa-triangle-exclamation text-white'
       };
       el.className = `pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-2xl shadow-xl border-l-4 text-xs font-semibold view-enter ${styleMap[type] || styleMap.info}`;
-      el.innerHTML = `<i class="fa-solid ${iconMap[type] || iconMap.info} text-sm shrink-0"></i><span>${msg}</span>`;
+      el.innerHTML = `<i class="fa-solid ${iconMap[type] || iconMap.info} text-sm shrink-0"></i><span>${esc(msg)}</span>`;
       box.appendChild(el);
       setTimeout(() => {
         el.style.opacity = '0';
@@ -3703,6 +3371,7 @@ function doPost(e) {
         case 'qr':
           if (db.attendance.isOpen && getQrRemainingSeconds() <= 0) {
             db.attendance.isOpen = false;
+            db.attendance.qrNonce = 'EXPIRED';
             persistLocalOnly();
           }
           container.innerHTML = buildQrAttendanceHtml();
@@ -3724,17 +3393,14 @@ function doPost(e) {
       renderMainBody();
     }
 
-    ['profile-modal', 'pass-modal', 'ledger-edit-modal', 'activity-modal', 'qr-zoom-modal', 'reg-list-modal'].forEach(id => {
+    ['pass-modal', 'ledger-edit-modal', 'activity-modal', 'qr-zoom-modal', 'reg-list-modal'].forEach(id => {
       document.getElementById(id).addEventListener('click', (e) => {
-        if (e.target.id === id) {
-          e.target.classList.add('hidden');
-          e.target.classList.remove('flex');
-        }
+        if (e.target.id === id) closeModal(id);
       });
     });
 
     window.addEventListener('DOMContentLoaded', async () => {
-      if (Array.isArray(PRESET_MEMBERS) && PRESET_MEMBERS.length > 0) {
+      if (!localStorage.getItem(DB_KEY) && Array.isArray(PRESET_MEMBERS) && PRESET_MEMBERS.length > 0) {
         mergeMemberListIntoDb(PRESET_MEMBERS);
         persistLocalOnly();
       }
@@ -3753,7 +3419,6 @@ function doPost(e) {
       startQrCountdownLoop();
       startCloudAutoSync();
 
-      // Kéo dữ liệu chung mới nhất từ Google Sheet ngay khi mở trang
       if (getActiveApiUrl()) {
         await manualCloudPull(false);
       }
