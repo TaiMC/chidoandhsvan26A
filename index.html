@@ -1,0 +1,2189 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CHI ĐOÀN ĐHSVAN26A • Quản lý Đoàn viên & Điểm danh</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts: Be Vietnam Pro & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Be Vietnam Pro"', 'Inter', 'sans-serif'],
+          },
+          colors: {
+            youth: {
+              50: '#F0F7FF',
+              100: '#E0EFFE',
+              200: '#BAE0FD',
+              500: '#0284C7',
+              600: '#0056B3',
+              700: '#004494',
+              800: '#003370',
+              900: '#00224D',
+            }
+          },
+          boxShadow: {
+            'soft': '0 4px 20px -2px rgba(0, 86, 179, 0.08)',
+            'card': '0 2px 12px -1px rgba(15, 23, 42, 0.05)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Be Vietnam Pro', 'Inter', sans-serif;
+      background-color: #F8FAFC;
+      color: #0F172A;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #F1F5F9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94A3B8;
+    }
+
+    /* Smooth Tab Transitions */
+    .tab-fade-in {
+      animation: fadeSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes fadeSlideUp {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* QR Scanner Laser Animation */
+    @keyframes scanLaser {
+      0%, 100% { top: 8%; }
+      50% { top: 88%; }
+    }
+    .qr-laser {
+      animation: scanLaser 2.2s ease-in-out infinite;
+    }
+
+    /* Pulse ring for 15s live badge */
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(1.25); }
+    }
+    .live-dot {
+      animation: pulseDot 1.4s infinite;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-[#F8FAFC] text-slate-800 select-none sm:select-auto">
+
+  <!-- ==================== MÀN HÌNH ĐĂNG NHẬP (KHI CHƯA ĐĂNG NHẬP) ==================== -->
+  <div id="login-screen" class="hidden min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-[#003370] via-[#0056B3] to-[#0284C7] relative overflow-hidden">
+    <div class="absolute -top-24 -left-24 w-72 h-72 rounded-full bg-white/10 blur-2xl pointer-events-none"></div>
+    <div class="absolute -bottom-24 -right-24 w-80 h-80 rounded-full bg-sky-300/15 blur-2xl pointer-events-none"></div>
+
+    <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-white/20 overflow-hidden relative z-10 tab-fade-in">
+      <!-- Top Youth Union Banner -->
+      <div class="bg-gradient-to-r from-[#004494] to-[#0056B3] px-6 py-6 text-white text-center relative">
+        <div class="w-16 h-16 mx-auto rounded-2xl bg-white/15 backdrop-blur-xs border border-white/25 flex items-center justify-center font-extrabold text-2xl shadow-lg relative">
+          26A
+          <span class="absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-full bg-red-600 border-2 border-amber-300 flex items-center justify-center text-[10px] text-amber-300">
+            <i class="fa-solid fa-star"></i>
+          </span>
+        </div>
+        <h1 class="font-extrabold text-lg sm:text-xl tracking-tight mt-3">CHI ĐOÀN ĐHSVAN26A</h1>
+        <p class="text-xs text-blue-100 mt-1">Hệ thống Quản lý Đoàn viên & Điểm danh Số</p>
+      </div>
+
+      <!-- Login Form -->
+      <form onsubmit="handleLogin(event)" class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">Tài khoản đăng nhập *</label>
+          <div class="relative">
+            <i class="fa-solid fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+            <input
+              type="text"
+              id="login-username"
+              required
+              placeholder="Nhập tên tài khoản hoặc MSSV..."
+              class="w-full pl-10 pr-4 py-3 rounded-2xl border border-slate-200 text-sm font-medium focus:outline-none focus:border-[#0056B3] focus:ring-2 focus:ring-blue-100"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">Mật khẩu *</label>
+          <div class="relative">
+            <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+            <input
+              type="password"
+              id="login-password"
+              required
+              placeholder="Nhập mật khẩu..."
+              class="w-full pl-10 pr-10 py-3 rounded-2xl border border-slate-200 text-sm font-medium focus:outline-none focus:border-[#0056B3] focus:ring-2 focus:ring-blue-100"
+            />
+            <button type="button" onclick="toggleLoginPassword()" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs">
+              <i id="login-eye-icon" class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#0056B3] to-[#0284C7] text-white text-sm font-extrabold shadow-lg shadow-blue-600/25 hover:opacity-95 transition active:scale-[0.99]">
+          <i class="fa-solid fa-right-to-bracket mr-1.5"></i> Đăng nhập Hệ thống
+        </button>
+
+        <!-- Quick Hint for Admin & Member Login -->
+        <div class="p-3.5 rounded-2xl bg-blue-50/80 border border-blue-100 text-xs space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-[#0056B3]"><i class="fa-solid fa-crown text-amber-500 mr-1"></i>Tài khoản Chủ web:</span>
+            <button type="button" onclick="fillAdminDemo()" class="px-2.5 py-1 rounded-lg bg-white text-[#0056B3] border border-blue-200 font-bold text-[11px] hover:bg-blue-50 transition">
+              Điền nhanh
+            </button>
+          </div>
+          <p class="text-slate-600 text-[11px]">
+            Tài khoản: <strong class="text-slate-900">Võ Quang Vinh</strong> • Mật khẩu: <strong class="text-slate-900">123456</strong>
+          </p>
+          <p class="text-slate-500 text-[11px] pt-1 border-t border-blue-100">
+            * Đoàn viên: Đăng nhập bằng <strong>MSSV</strong>, mật khẩu mặc định là <strong>MSSV</strong>.
+          </p>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== GIAO DIỆN CHÍNH SAU KHI ĐĂNG NHẬP ==================== -->
+  <div id="main-shell" class="hidden min-h-screen flex flex-col lg:flex-row">
+
+    <!-- ==================== DESKTOP SIDEBAR ==================== -->
+    <aside class="hidden lg:flex lg:w-72 lg:flex-col lg:fixed lg:inset-y-0 bg-white border-r border-slate-200/80 z-30 shadow-soft">
+      <!-- Brand Header -->
+      <div class="p-5 border-b border-slate-100">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#0056B3] to-[#0284C7] flex items-center justify-center text-white font-extrabold text-lg shadow-md shadow-blue-500/25 shrink-0 relative">
+            26A
+            <span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-amber-400 border-2 border-white flex items-center justify-center text-[8px] text-red-700">
+              <i class="fa-solid fa-star"></i>
+            </span>
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5">
+              <h1 class="font-extrabold text-[15px] tracking-tight text-slate-900 truncate">CHI ĐOÀN ĐHSVAN26A</h1>
+              <i class="fa-solid fa-circle-check text-[#0284C7] text-sm shrink-0"></i>
+            </div>
+            <p class="text-xs text-slate-500 font-medium truncate">Quản lý Đoàn viên & Điểm danh</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Logged-in User Card -->
+      <div class="p-4 mx-3 mt-4 rounded-2xl bg-gradient-to-br from-slate-50 to-blue-50/70 border border-blue-100/80">
+        <div class="flex items-center gap-3">
+          <div id="sidebar-avatar" class="w-10 h-10 rounded-xl bg-[#0056B3] text-white font-bold flex items-center justify-center text-sm shrink-0 shadow-sm">
+            VV
+          </div>
+          <div class="min-w-0 flex-1">
+            <p id="sidebar-user-name" class="text-sm font-bold text-slate-900 truncate">Võ Quang Vinh</p>
+            <div class="flex items-center gap-1.5 mt-0.5">
+              <span id="sidebar-user-mssv" class="text-[11px] font-semibold text-slate-500">Chủ web</span>
+              <span class="text-slate-300">•</span>
+              <span id="sidebar-role-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+                Quản trị viên
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-3 pt-3 border-t border-blue-100/80 grid grid-cols-2 gap-1.5">
+          <button onclick="openChangePasswordModal()" class="py-1.5 px-2 rounded-xl bg-white hover:bg-blue-50 text-[#0056B3] border border-blue-200/80 text-[11px] font-bold transition flex items-center justify-center gap-1">
+            <i class="fa-solid fa-key text-[10px]"></i> Đổi mật khẩu
+          </button>
+          <button onclick="handleLogout()" class="py-1.5 px-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/70 text-[11px] font-bold transition flex items-center justify-center gap-1">
+            <i class="fa-solid fa-right-from-bracket text-[10px]"></i> Đăng xuất
+          </button>
+        </div>
+      </div>
+
+      <!-- Navigation Menu -->
+      <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto" id="desktop-nav">
+        <!-- Rendered via JS -->
+      </nav>
+
+      <!-- Footer Badge -->
+      <div class="p-4 border-t border-slate-100 text-center">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 text-[11px] font-medium text-slate-500">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span>Đoàn TNCS Hồ Chí Minh • 26A</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ==================== MOBILE TOP HEADER ==================== -->
+    <header class="lg:hidden sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-2xs">
+      <div class="px-3.5 py-2.5 flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0056B3] to-[#0284C7] text-white font-extrabold text-xs flex items-center justify-center shadow-sm shrink-0">
+            26A
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1">
+              <h1 class="font-extrabold text-sm text-slate-900 truncate">CHI ĐOÀN ĐHSVAN26A</h1>
+              <i class="fa-solid fa-circle-check text-[#0284C7] text-xs shrink-0"></i>
+            </div>
+            <p class="text-[11px] text-slate-500 font-medium truncate">
+              <span id="mobile-user-name" class="font-bold text-slate-800">Võ Quang Vinh</span> •
+              <span id="mobile-header-role" class="font-bold text-amber-600">Chủ web</span>
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-1.5 shrink-0">
+          <button onclick="openChangePasswordModal()" title="Đổi mật khẩu" class="w-8 h-8 rounded-xl bg-blue-50 text-[#0056B3] flex items-center justify-center text-xs">
+            <i class="fa-solid fa-key"></i>
+          </button>
+          <button onclick="handleLogout()" title="Đăng xuất" class="px-2.5 py-1.5 rounded-xl bg-rose-50 text-rose-600 border border-rose-200/70 text-[11px] font-bold">
+            Thoát
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ==================== MAIN CONTENT AREA ==================== -->
+    <main class="flex-1 lg:pl-72 pb-24 lg:pb-10">
+      <!-- Desktop Top Bar -->
+      <div class="hidden lg:flex items-center justify-between px-8 py-4 bg-white/80 backdrop-blur-md border-b border-slate-200/70 sticky top-0 z-20">
+        <div>
+          <div class="flex items-center gap-2 text-xs text-slate-400 font-medium">
+            <span>Đoàn TNCS Hồ Chí Minh • Chi đoàn ĐHSVAN26A</span>
+            <i class="fa-solid fa-chevron-right text-[9px]"></i>
+            <span id="desktop-breadcrumb" class="text-[#0056B3] font-semibold">Trang chủ Chi đoàn</span>
+          </div>
+          <h2 id="desktop-page-title" class="text-lg font-extrabold text-slate-900 mt-0.5">Trang chủ Chi đoàn ĐHSVAN26A</h2>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <div id="role-status-banner" class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-xs font-bold text-amber-800">
+            <i class="fa-solid fa-crown text-amber-500"></i>
+            <span>Chủ web (Quản trị viên)</span>
+          </div>
+          <button onclick="navigateTo('qr')" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#0056B3] to-[#0284C7] text-white text-xs font-bold shadow-sm hover:opacity-95 transition active:scale-95">
+            <i class="fa-solid fa-qrcode"></i>
+            <span>QR Điểm danh</span>
+            <span class="px-1.5 py-0.5 text-[10px] rounded-md bg-rose-500 text-white font-extrabold">15s</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Dynamic Tab Views Container -->
+      <div id="app-content" class="max-w-6xl mx-auto px-3.5 sm:px-6 lg:px-8 pt-4 lg:pt-6">
+        <!-- Content injected dynamically by JS -->
+      </div>
+    </main>
+
+    <!-- ==================== MOBILE BOTTOM NAVIGATION BAR ==================== -->
+    <nav class="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200 z-30 px-1 py-1.5 shadow-[0_-4px_16px_rgba(0,0,0,0.05)]">
+      <div class="grid grid-cols-5 gap-0.5" id="mobile-bottom-nav">
+        <!-- Rendered via JS -->
+      </div>
+    </nav>
+  </div>
+
+  <!-- ==================== MODAL: ĐỔI MẬT KHẨU ==================== -->
+  <div id="password-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+    <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl border border-slate-100 overflow-hidden tab-fade-in">
+      <div class="px-6 py-4 bg-gradient-to-r from-[#0056B3] to-[#0284C7] text-white flex items-center justify-between">
+        <h3 class="font-bold text-sm flex items-center gap-2">
+          <i class="fa-solid fa-key"></i> Đổi mật khẩu cá nhân
+        </h3>
+        <button onclick="closeChangePasswordModal()" class="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <form onsubmit="handleChangePassword(event)" class="p-5 space-y-3.5">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Mật khẩu hiện tại *</label>
+          <input type="password" id="old-pass-input" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0056B3]" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Mật khẩu mới *</label>
+          <input type="password" id="new-pass-input" required minlength="4" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0056B3]" />
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeChangePasswordModal()" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold">Hủy</button>
+          <button type="submit" class="px-4 py-2 rounded-xl bg-[#0056B3] text-white text-xs font-bold hover:bg-[#004494]">Lưu mật khẩu</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: TẠO HOẠT ĐỘNG MỚI (CHỦ WEB) ==================== -->
+  <div id="activity-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+    <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-slate-100 overflow-hidden tab-fade-in">
+      <div class="px-6 py-4 bg-gradient-to-r from-[#0056B3] to-[#0284C7] text-white flex items-center justify-between">
+        <h3 class="font-bold text-base flex items-center gap-2">
+          <i class="fa-solid fa-calendar-plus"></i> Tạo Hoạt động & Phong trào mới
+        </h3>
+        <button onclick="closeActivityModal()" class="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <form onsubmit="handleAddActivity(event)" class="p-5 space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Tên hoạt động / chương trình *</label>
+          <input type="text" id="act-title" required placeholder="VD: Ngày hội Thanh niên Khỏe 2026" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0056B3]" />
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Thời gian tổ chức *</label>
+            <input type="text" id="act-date" required placeholder="VD: 25/11/2026 • 07:30" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0056B3]" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Điểm rèn luyện cộng *</label>
+            <input type="number" id="act-points" required value="5" min="1" max="20" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0056B3]" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Địa điểm *</label>
+          <input type="text" id="act-location" required placeholder="VD: Hội trường A - Cơ sở chính" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0056B3]" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Mô tả chi tiết</label>
+          <textarea id="act-desc" rows="2" placeholder="Nội dung triển khai, trang phục yêu cầu..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0056B3]"></textarea>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeActivityModal()" class="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold hover:bg-slate-200">Hủy bỏ</button>
+          <button type="submit" class="px-5 py-2.5 rounded-xl bg-[#0056B3] text-white text-xs font-bold hover:bg-[#004494] shadow-sm">Đăng hoạt động</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: XEM DANH SÁCH ĐĂNG KÝ HOẠT ĐỘNG ==================== -->
+  <div id="participants-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-100 overflow-hidden tab-fade-in">
+      <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+        <div>
+          <h3 class="font-bold text-sm" id="part-modal-title">Danh sách đăng ký</h3>
+          <p class="text-[11px] text-slate-300" id="part-modal-sub">Chi đoàn ĐHSVAN26A</p>
+        </div>
+        <button onclick="closeParticipantsModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="p-4 max-h-80 overflow-y-auto divide-y divide-slate-100" id="part-modal-list"></div>
+    </div>
+  </div>
+
+  <!-- ==================== TOAST NOTIFICATION CONTAINER ==================== -->
+  <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none max-w-xs w-full"></div>
+
+  <!-- ==================== APPLICATION LOGIC ==================== -->
+  <script>
+    // ==================== 1. INITIAL DATA & AUTHENTICATION ====================
+    const STORAGE_KEY = 'dhsvan26a_vinh_admin_v2';
+
+    const DEFAULT_ACCOUNTS = [
+      {
+        id: 'ADMIN_VINH',
+        username: 'Võ Quang Vinh',
+        password: '123456',
+        mssv: 'ADMIN-26A',
+        name: 'Võ Quang Vinh',
+        position: 'Chủ web • Ban Chấp hành Chi đoàn',
+        role: 'owner', // 'owner' | 'member'
+        joinDate: '26/03/2023',
+        branch: 'Chi đoàn ĐHSVAN26A',
+        points: 98,
+        feePaid: true,
+        avatarBg: 'from-amber-500 to-orange-600'
+      }
+    ];
+
+    const HANDBOOK_ARTICLES = [
+      {
+        id: 'hb-1',
+        tag: 'Điều lệ Đoàn',
+        title: 'Nhiệm vụ và Quyền hạn của Đoàn viên TNCS Hồ Chí Minh',
+        summary: 'Luôn phấn đấu vì lý tưởng của Đảng và Bác Hồ; tích cực học tập, rèn luyện đạo đức, tác phong; chấp hành nghiêm chỉnh Điều lệ Đoàn và đóng đoàn phí đúng quy định.'
+      },
+      {
+        id: 'hb-2',
+        tag: 'Sinh hoạt Chi đoàn',
+        title: 'Quy định điểm danh và đánh giá rèn luyện Đoàn viên năm học 2026 - 2027',
+        summary: 'Đoàn viên tham gia sinh hoạt định kỳ bằng mã QR động 15 giây, hoàn thành tối thiểu 02 hoạt động tình nguyện/năm và nộp minh chứng trên hệ thống để xét phân loại Xuất sắc.'
+      },
+      {
+        id: 'hb-3',
+        tag: 'Tài chính & Đoàn phí',
+        title: 'Mức đóng và sử dụng Đoàn phí tại Chi đoàn ĐHSVAN26A',
+        summary: 'Mức thu đoàn phí theo quy định hiện hành được công khai 100% trên mục Đoàn phí & Tài chính, phục vụ trực tiếp cho phong trào và khen thưởng đoàn viên lớp.'
+      },
+      {
+        id: 'hb-4',
+        tag: 'Tác phong Đoàn viên',
+        title: 'Quy định trang phục Áo Thanh niên Việt Nam',
+        summary: 'Đoàn viên mặc Áo Thanh niên Việt Nam (áo xanh tình nguyện) kèm thẻ/huy hiệu Đoàn trong các buổi lễ, đại hội chi đoàn và chiến dịch tình nguyện.'
+      }
+    ];
+
+    const DEFAULT_STATE = {
+      loggedInUserId: 'ADMIN_VINH', // Đăng nhập sẵn bằng Võ Quang Vinh để vào thẳng giao diện quản trị & sử dụng ngay
+      currentTab: 'home',
+      accounts: DEFAULT_ACCOUNTS,
+      activities: [
+        {
+          id: 'act-1',
+          title: 'Chiến dịch Thanh niên Tình nguyện Mùa Hè Xanh 2026',
+          category: 'Tình nguyện',
+          date: '15/07/2026 • 06:30',
+          location: 'Xã Tân Phú Trung, Huyện Củ Chi',
+          points: 10,
+          desc: 'Ra quân dọn dẹp tuyến kênh thanh niên tự quản, dạy học hè và trao tặng tủ sách thiếu nhi.',
+          participants: ['ADMIN_VINH']
+        },
+        {
+          id: 'act-2',
+          title: 'Ngày Chủ Nhật Xanh lần thứ IV - Vì môi trường học đường',
+          category: 'Môi trường',
+          date: '22/11/2026 • 07:30',
+          location: 'Khuôn viên Giảng đường B & Vườn hoa Thanh niên',
+          points: 5,
+          desc: 'Trồng mới 30 cây xanh, phân loại rác thải nhựa và chỉnh trang bảng tin Chi đoàn ĐHSVAN26A.',
+          participants: ['ADMIN_VINH']
+        },
+        {
+          id: 'act-3',
+          title: 'Hội thi Rung Chuông Vàng: Tìm hiểu Tư tưởng Hồ Chí Minh',
+          category: 'Học thuật - Lý luận',
+          date: '29/11/2026 • 13:30',
+          location: 'Hội trường Lớn Khu A',
+          points: 8,
+          desc: 'Sân chơi tìm hiểu lịch sử Đảng, Đoàn TNCS Hồ Chí Minh và các tác phẩm văn học cách mạng.',
+          participants: []
+        }
+      ],
+      financeTransactions: [
+        { id: 'tx-1', type: 'in', title: 'Quỹ khen thưởng Chi đoàn Vững mạnh Xuất sắc', amount: 500000, date: '25/10/2026', note: 'Đoàn Khoa Ngữ Văn trao tặng' },
+        { id: 'tx-2', type: 'out', title: 'Mua dụng cụ & cây xanh Ngày Chủ Nhật Xanh', amount: 185000, date: '02/11/2026', note: 'Có hóa đơn đính kèm' }
+      ],
+      proofs: [
+        {
+          id: 'prf-1',
+          userId: 'ADMIN_VINH',
+          activityTitle: 'Chiến dịch Thanh niên Tình nguyện Mùa Hè Xanh 2026',
+          desc: 'Tổ chức điều phối đội hình tình nguyện viên Chi đoàn ĐHSVAN26A.',
+          imageType: 'volunteer',
+          submittedAt: '14/11/2026 09:20',
+          status: 'approved'
+        }
+      ],
+      attendanceSession: {
+        title: 'Sinh hoạt Chi đoàn định kỳ Tháng 11/2026',
+        location: 'Phòng B.304 - Giảng đường B',
+        records: [
+          { userId: 'ADMIN_VINH', time: '19:00:00', method: 'Chủ web khởi tạo' }
+        ]
+      }
+    };
+
+    let state = loadState();
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          // Đảm bảo tài khoản chủ web Võ Quang Vinh luôn tồn tại
+          const hasAdmin = (parsed.accounts || []).some(a => a.id === 'ADMIN_VINH');
+          if (!hasAdmin) {
+            parsed.accounts = [...DEFAULT_ACCOUNTS, ...(parsed.accounts || [])];
+          }
+          return { ...DEFAULT_STATE, ...parsed };
+        }
+      } catch (e) {
+        console.warn('Lỗi đọc dữ liệu:', e);
+      }
+      return JSON.parse(JSON.stringify(DEFAULT_STATE));
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {
+        console.warn('Lỗi lưu dữ liệu:', e);
+      }
+    }
+
+    function getCurrentUser() {
+      if (!state.loggedInUserId) return null;
+      return state.accounts.find(a => a.id === state.loggedInUserId) || null;
+    }
+
+    function isOwnerUser(user = getCurrentUser()) {
+      return user && user.role === 'owner';
+    }
+
+    // ==================== 2. LOGIN / LOGOUT / PASSWORD ====================
+    function normalizeText(str) {
+      return (str || '')
+        .trim()
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/\s+/g, '');
+    }
+
+    function fillAdminDemo() {
+      document.getElementById('login-username').value = 'Võ Quang Vinh';
+      document.getElementById('login-password').value = '123456';
+    }
+
+    function toggleLoginPassword() {
+      const input = document.getElementById('login-password');
+      const icon = document.getElementById('login-eye-icon');
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'fa-solid fa-eye-slash';
+      } else {
+        input.type = 'password';
+        icon.className = 'fa-solid fa-eye';
+      }
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const rawUser = document.getElementById('login-username').value.trim();
+      const rawPass = document.getElementById('login-password').value.trim();
+      const normInput = normalizeText(rawUser);
+
+      const found = state.accounts.find(acc => {
+        const matchExact = acc.username.toLowerCase() === rawUser.toLowerCase() || acc.mssv.toLowerCase() === rawUser.toLowerCase();
+        const matchNorm = normalizeText(acc.username) === normInput || normalizeText(acc.mssv) === normInput;
+        return (matchExact || matchNorm) && acc.password === rawPass;
+      });
+
+      if (!found) {
+        showToast('Sai tên tài khoản hoặc mật khẩu! Vui lòng kiểm tra lại.', 'error');
+        return;
+      }
+
+      state.loggedInUserId = found.id;
+      state.currentTab = 'home';
+      saveState();
+      renderAll();
+      showToast(`Chào mừng ${found.name} đăng nhập hệ thống!`, 'success');
+    }
+
+    function handleLogout() {
+      state.loggedInUserId = null;
+      saveState();
+      renderAll();
+      showToast('Đã đăng xuất khỏi tài khoản.', 'info');
+    }
+
+    function openChangePasswordModal() {
+      const m = document.getElementById('password-modal');
+      m.classList.remove('hidden');
+      m.classList.add('flex');
+    }
+
+    function closeChangePasswordModal() {
+      const m = document.getElementById('password-modal');
+      m.classList.add('hidden');
+      m.classList.remove('flex');
+    }
+
+    function handleChangePassword(e) {
+      e.preventDefault();
+      const user = getCurrentUser();
+      if (!user) return;
+      const oldPass = document.getElementById('old-pass-input').value.trim();
+      const newPass = document.getElementById('new-pass-input').value.trim();
+
+      if (oldPass !== user.password) {
+        showToast('Mật khẩu hiện tại không chính xác!', 'error');
+        return;
+      }
+
+      user.password = newPass;
+      saveState();
+      e.target.reset();
+      closeChangePasswordModal();
+      showToast('Đổi mật khẩu thành công!', 'success');
+    }
+
+    // ==================== 3. DYNAMIC 15s QR ENGINE ====================
+    let qrSecondsLeft = 15;
+    let currentQrToken = generateOtpToken();
+    let qrInterval = null;
+
+    function generateOtpToken() {
+      return Math.floor(100000 + Math.random() * 900000).toString();
+    }
+
+    function startQrTicker() {
+      if (qrInterval) clearInterval(qrInterval);
+      qrInterval = setInterval(() => {
+        qrSecondsLeft--;
+        if (qrSecondsLeft <= 0) {
+          qrSecondsLeft = 15;
+          currentQrToken = generateOtpToken();
+        }
+        updateQrLiveDom();
+      }, 1000);
+    }
+
+    function updateQrLiveDom() {
+      const countdownEl = document.getElementById('qr-countdown-text');
+      const progressEl = document.getElementById('qr-progress-bar');
+      const tokenEl = document.getElementById('qr-live-token');
+      const svgContainer = document.getElementById('dynamic-qr-svg');
+
+      if (countdownEl) countdownEl.textContent = `${qrSecondsLeft}s`;
+      if (progressEl) {
+        const pct = (qrSecondsLeft / 15) * 100;
+        progressEl.style.width = `${pct}%`;
+        progressEl.classList.toggle('bg-rose-500', qrSecondsLeft <= 4);
+        progressEl.classList.toggle('bg-[#0056B3]', qrSecondsLeft > 4);
+      }
+      if (tokenEl) tokenEl.textContent = `${currentQrToken.slice(0, 3)} ${currentQrToken.slice(3)}`;
+      if (svgContainer && qrSecondsLeft === 15) {
+        svgContainer.innerHTML = buildPseudoQrSvg(currentQrToken);
+      }
+    }
+
+    function buildPseudoQrSvg(seedStr) {
+      const size = 21;
+      let seed = parseInt(seedStr, 10) || 260011;
+      const rand = () => {
+        seed = (seed * 9301 + 49297) % 233280;
+        return seed / 233280;
+      };
+
+      const isFinder = (r, c) =>
+        (r < 7 && c < 7) || (r < 7 && c >= size - 7) || (r >= size - 7 && c < 7);
+
+      let rects = '';
+      for (let r = 0; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+          if (isFinder(r, c)) continue;
+          if (r >= 8 && r <= 12 && c >= 8 && c <= 12) continue;
+          if (rand() > 0.48) {
+            rects += `<rect x="${c * 10}" y="${r * 10}" width="8.5" height="8.5" rx="2" fill="#0F172A"/>`;
+          }
+        }
+      }
+
+      const finderBox = (x, y) => `
+        <g transform="translate(${x}, ${y})">
+          <rect x="0" y="0" width="70" height="70" rx="14" fill="none" stroke="#0056B3" stroke-width="10"/>
+          <rect x="20" y="20" width="30" height="30" rx="6" fill="#0056B3"/>
+        </g>
+      `;
+
+      return `
+        <svg viewBox="0 0 210 210" class="w-full h-full">
+          <rect width="210" height="210" fill="#FFFFFF" rx="16"/>
+          ${finderBox(0, 0)}
+          ${finderBox(140, 0)}
+          ${finderBox(0, 140)}
+          ${rects}
+          <rect x="82" y="82" width="46" height="46" rx="12" fill="#0056B3"/>
+          <text x="105" y="110" text-anchor="middle" fill="#FFFFFF" font-size="16" font-weight="800" font-family="Be Vietnam Pro, sans-serif">26A</text>
+        </svg>
+      `;
+    }
+
+    // ==================== 4. NAVIGATION CONFIG ====================
+    function getNavItems() {
+      const items = [
+        { id: 'home', label: 'Trang chủ Chi đoàn', shortLabel: 'Trang chủ', icon: 'fa-house' },
+        { id: 'activities', label: '1. Hoạt động và phong trào', shortLabel: 'Hoạt động', icon: 'fa-fire-flame-curved' },
+        { id: 'handbook', label: '2. Sổ tay Đoàn viên', shortLabel: 'Sổ tay', icon: 'fa-book-bookmark' },
+        { id: 'finance', label: '3. Đoàn phí và Tài chính', shortLabel: 'Đoàn phí', icon: 'fa-wallet' },
+        { id: 'proofs', label: '4. Minh chứng hoạt động', shortLabel: 'Minh chứng', icon: 'fa-file-circle-check' },
+        { id: 'qr', label: '5. QR Điểm danh', shortLabel: 'QR 15s', icon: 'fa-qrcode', badge: '15s' }
+      ];
+
+      // Mục 6: Quản lý Tài khoản & Cấp quyền - CHỈ HIỂN THỊ CHO CHỦ WEB VÕ QUANG VINH
+      if (isOwnerUser()) {
+        items.push({
+          id: 'accounts',
+          label: '6. Quản lý & Cấp tài khoản',
+          shortLabel: 'Quản lý TK',
+          icon: 'fa-user-shield',
+          badge: 'Chủ web'
+        });
+      }
+      return items;
+    }
+
+    function navigateTo(tabId) {
+      if (tabId === 'accounts' && !isOwnerUser()) {
+        showToast('Chỉ tài khoản Chủ web Võ Quang Vinh mới có quyền truy cập mục này!', 'error');
+        return;
+      }
+      state.currentTab = tabId;
+      saveState();
+      renderAll();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function getInitials(fullName) {
+      const parts = (fullName || 'ĐV').trim().split(' ');
+      if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+
+    function formatCurrency(num) {
+      return new Intl.NumberFormat('vi-VN').format(num) + 'đ';
+    }
+
+    // ==================== 5. RENDER SHELL ====================
+    function renderShell() {
+      const user = getCurrentUser();
+      const loginScreen = document.getElementById('login-screen');
+      const mainShell = document.getElementById('main-shell');
+
+      if (!user) {
+        loginScreen.classList.remove('hidden');
+        mainShell.classList.add('hidden');
+        return;
+      }
+
+      loginScreen.classList.add('hidden');
+      mainShell.classList.remove('hidden');
+
+      const owner = isOwnerUser(user);
+      const navItems = getNavItems();
+
+      // Sidebar Profile
+      const sidebarAvatar = document.getElementById('sidebar-avatar');
+      sidebarAvatar.textContent = getInitials(user.name);
+      sidebarAvatar.className = `w-10 h-10 rounded-xl bg-gradient-to-br ${user.avatarBg || 'from-[#0056B3] to-[#0284C7]'} text-white font-bold flex items-center justify-center text-sm shrink-0 shadow-sm`;
+
+      document.getElementById('sidebar-user-name').textContent = user.name;
+      document.getElementById('sidebar-user-mssv').textContent = owner ? 'Chủ web' : user.mssv;
+
+      const roleBadge = document.getElementById('sidebar-role-badge');
+      if (owner) {
+        roleBadge.textContent = 'Quản trị viên';
+        roleBadge.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200';
+      } else {
+        roleBadge.textContent = 'Đoàn viên';
+        roleBadge.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-[#0056B3]';
+      }
+
+      // Mobile Header
+      document.getElementById('mobile-user-name').textContent = user.name;
+      const mRole = document.getElementById('mobile-header-role');
+      mRole.textContent = owner ? 'Chủ web' : `MSSV: ${user.mssv}`;
+      mRole.className = owner ? 'font-bold text-amber-600' : 'font-bold text-[#0056B3]';
+
+      // Desktop Role Banner
+      const roleBanner = document.getElementById('role-status-banner');
+      if (owner) {
+        roleBanner.className = 'flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-xs font-bold text-amber-800';
+        roleBanner.innerHTML = `<i class="fa-solid fa-crown text-amber-500"></i><span>Chủ web: Võ Quang Vinh</span>`;
+      } else {
+        roleBanner.className = 'flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-blue-50 border border-blue-100 text-xs font-semibold text-[#0056B3]';
+        roleBanner.innerHTML = `<i class="fa-solid fa-id-card"></i><span>Đoàn viên • MSSV: ${user.mssv}</span>`;
+      }
+
+      // Desktop Nav
+      const desktopNav = document.getElementById('desktop-nav');
+      desktopNav.innerHTML = navItems.map(item => {
+        const active = state.currentTab === item.id;
+        const isManageTab = item.id === 'accounts';
+        return `
+          <button onclick="navigateTo('${item.id}')" class="w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-left text-[13px] font-semibold transition-all ${
+            active
+              ? 'bg-gradient-to-r from-[#0056B3] to-[#0284C7] text-white shadow-md shadow-blue-500/20'
+              : isManageTab
+              ? 'bg-amber-50/70 text-amber-900 hover:bg-amber-100/80 border border-amber-200/60'
+              : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900'
+          }">
+            <span class="flex items-center gap-3 min-w-0">
+              <span class="w-7 h-7 rounded-xl flex items-center justify-center text-xs shrink-0 ${
+                active ? 'bg-white/20 text-white' : isManageTab ? 'bg-amber-200/70 text-amber-800' : 'bg-slate-100 text-[#0056B3]'
+              }">
+                <i class="fa-solid ${item.icon}"></i>
+              </span>
+              <span class="truncate">${item.label}</span>
+            </span>
+            ${item.badge ? `
+              <span class="ml-2 px-2 py-0.5 rounded-full text-[10px] font-extrabold tracking-wide shrink-0 ${
+                active
+                  ? 'bg-white/20 text-white'
+                  : item.badge === '15s'
+                  ? 'bg-rose-100 text-rose-600'
+                  : 'bg-amber-200 text-amber-900'
+              }">${item.badge}</span>
+            ` : ''}
+          </button>
+        `;
+      }).join('');
+
+      // Mobile Bottom Nav
+      const mobileBottomItems = owner
+        ? [navItems[0], navItems[1], navItems[5], navItems[6], navItems[3]]
+        : [navItems[0], navItems[1], navItems[5], navItems[2], navItems[4]];
+
+      const mobileBottomNav = document.getElementById('mobile-bottom-nav');
+      mobileBottomNav.innerHTML = mobileBottomItems.map(item => {
+        const active = state.currentTab === item.id;
+        const isQr = item.id === 'qr';
+        return `
+          <button onclick="navigateTo('${item.id}')" class="relative flex flex-col items-center justify-center py-1.5 px-1 rounded-xl transition-all ${
+            active ? 'text-[#0056B3]' : 'text-slate-500 hover:text-slate-800'
+          }">
+            ${isQr ? `
+              <div class="w-10 h-10 -mt-5 mb-0.5 rounded-2xl bg-gradient-to-br from-[#0056B3] to-[#0284C7] text-white flex items-center justify-center shadow-lg shadow-blue-500/30 border-2 border-white">
+                <i class="fa-solid ${item.icon} text-base"></i>
+              </div>
+              <span class="text-[10px] font-extrabold ${active ? 'text-[#0056B3]' : 'text-slate-700'}">${item.shortLabel}</span>
+              <span class="absolute -top-4 right-2 px-1.5 py-0.2 bg-rose-500 text-white text-[8px] font-extrabold rounded-full shadow-2xs">15s</span>
+            ` : `
+              <div class="w-7 h-7 rounded-xl flex items-center justify-center text-sm mb-0.5 ${active ? 'bg-blue-50 text-[#0056B3]' : ''}">
+                <i class="fa-solid ${item.icon}"></i>
+              </div>
+              <span class="text-[10px] font-bold truncate max-w-full">${item.shortLabel}</span>
+            `}
+          </button>
+        `;
+      }).join('');
+
+      // Breadcrumb & Page Title
+      const activeObj = navItems.find(n => n.id === state.currentTab) || navItems[0];
+      document.getElementById('desktop-breadcrumb').textContent = activeObj.label;
+      document.getElementById('desktop-page-title').textContent = activeObj.id === 'home'
+        ? 'Trang chủ Chi đoàn ĐHSVAN26A'
+        : activeObj.label;
+    }
+
+    // ==================== 6. VIEW RENDERERS ====================
+
+    // ----- TAB 0: TRANG CHỦ CHI ĐOÀN -----
+    function renderHomeView() {
+      const user = getCurrentUser();
+      const owner = isOwnerUser(user);
+      const memberCount = state.accounts.filter(a => a.role === 'member').length;
+      const pendingProofsCount = state.proofs.filter(p => p.status === 'pending').length;
+
+      const quickActions = [
+        {
+          id: 'activities',
+          title: '1. Hoạt động và phong trào',
+          subtitle: `${state.activities.length} phong trào đang triển khai`,
+          icon: 'fa-fire-flame-curved',
+          gradient: 'from-blue-600 to-[#0056B3]'
+        },
+        {
+          id: 'handbook',
+          title: '2. Sổ tay Đoàn viên',
+          subtitle: 'Điều lệ, quy định & hồ sơ cá nhân',
+          icon: 'fa-book-bookmark',
+          gradient: 'from-sky-500 to-cyan-600'
+        },
+        {
+          id: 'finance',
+          title: '3. Đoàn phí và Tài chính',
+          subtitle: 'Công khai thu chi quỹ Chi đoàn',
+          icon: 'fa-wallet',
+          gradient: 'from-emerald-500 to-teal-600'
+        },
+        {
+          id: 'proofs',
+          title: '4. Minh chứng hoạt động',
+          subtitle: `${pendingProofsCount} hồ sơ đang chờ duyệt`,
+          icon: 'fa-file-circle-check',
+          gradient: 'from-indigo-500 to-blue-600'
+        },
+        {
+          id: 'qr',
+          title: '5. QR Điểm danh',
+          subtitle: 'Mã động làm mới sau mỗi 15 giây',
+          icon: 'fa-qrcode',
+          gradient: 'from-rose-500 to-red-600',
+          badge: '15s LIVE'
+        }
+      ];
+
+      if (owner) {
+        quickActions.push({
+          id: 'accounts',
+          title: '6. Quản lý & Cấp tài khoản',
+          subtitle: `Đã cấp ${memberCount} tài khoản MSSV`,
+          icon: 'fa-user-shield',
+          gradient: 'from-amber-500 to-orange-600',
+          badge: 'CHỦ WEB'
+        });
+      }
+
+      return `
+        <div class="space-y-6 tab-fade-in">
+          <!-- Hero Welcome Banner -->
+          <section class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#003B80] via-[#0056B3] to-[#0284C7] text-white p-5 sm:p-8 shadow-xl shadow-blue-900/15">
+            <div class="absolute -right-10 -top-10 w-56 h-56 rounded-full bg-white/10 blur-xl pointer-events-none"></div>
+            <div class="absolute right-6 bottom-4 opacity-10 text-[120px] pointer-events-none hidden sm:block">
+              <i class="fa-solid fa-fire-flame-curved"></i>
+            </div>
+
+            <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div class="space-y-3 max-w-2xl">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-xs border border-white/20 text-xs font-bold tracking-wide">
+                  <span class="w-5 h-5 rounded-full bg-red-600 border border-amber-300 flex items-center justify-center text-amber-300 text-[10px]">
+                    <i class="fa-solid fa-star"></i>
+                  </span>
+                  <span>Đoàn TNCS Hồ Chí Minh • Chi đoàn ĐHSVAN26A</span>
+                </div>
+
+                <h2 class="text-xl sm:text-3xl font-extrabold tracking-tight leading-snug">
+                  Cổng Quản lý Đoàn viên & Điểm danh Số
+                </h2>
+
+                <p class="text-sm sm:text-base text-blue-100 italic font-medium border-l-4 border-amber-400 pl-3.5 py-0.5">
+                  "Đâu cần thanh niên có, việc gì khó có thanh niên"
+                </p>
+
+                <div class="pt-1 flex flex-wrap items-center gap-2.5 text-xs">
+                  <span class="px-3 py-1.5 rounded-xl bg-white/15 font-semibold">
+                    <i class="fa-solid fa-user-check mr-1.5 text-amber-300"></i>Xin chào, <strong>${user.name}</strong>
+                  </span>
+                  ${owner ? `
+                    <button onclick="navigateTo('accounts')" class="px-3 py-1.5 rounded-xl bg-amber-400 text-slate-900 font-extrabold hover:bg-amber-300 transition">
+                      <i class="fa-solid fa-user-plus mr-1"></i> Cấp tài khoản MSSV mới
+                    </button>
+                  ` : `
+                    <span class="px-3 py-1.5 rounded-xl bg-white/15 font-semibold">
+                      <i class="fa-solid fa-id-card mr-1.5 text-amber-300"></i>MSSV: <strong>${user.mssv}</strong>
+                    </span>
+                  `}
+                </div>
+              </div>
+
+              <!-- Quick Summary Box -->
+              <div class="grid grid-cols-3 md:grid-cols-1 gap-2.5 shrink-0 bg-white/12 backdrop-blur-md p-3.5 rounded-2xl border border-white/20">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-xl bg-amber-400/20 text-amber-300 flex items-center justify-center text-sm shrink-0">
+                    <i class="fa-solid fa-users"></i>
+                  </div>
+                  <div>
+                    <div class="text-base sm:text-lg font-extrabold leading-none">${memberCount}</div>
+                    <div class="text-[11px] text-blue-100 mt-0.5">Tài khoản ĐV</div>
+                  </div>
+                </div>
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-xl bg-emerald-400/20 text-emerald-300 flex items-center justify-center text-sm shrink-0">
+                    <i class="fa-solid fa-calendar-check"></i>
+                  </div>
+                  <div>
+                    <div class="text-base sm:text-lg font-extrabold leading-none">${state.activities.length}</div>
+                    <div class="text-[11px] text-blue-100 mt-0.5">Hoạt động</div>
+                  </div>
+                </div>
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-xl bg-sky-300/20 text-sky-200 flex items-center justify-center text-sm shrink-0">
+                    <i class="fa-solid fa-qrcode"></i>
+                  </div>
+                  <div>
+                    <div class="text-base sm:text-lg font-extrabold leading-none">${state.attendanceSession.records.length}</div>
+                    <div class="text-[11px] text-blue-100 mt-0.5">Đã điểm danh</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Quick Actions Grid ("Thao tác nhanh") -->
+          <section class="bg-white rounded-3xl p-4 sm:p-6 border border-slate-200/80 shadow-card">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-base sm:text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                  <span class="w-2 h-6 rounded-full bg-[#0056B3]"></span>
+                  Thao tác nhanh
+                </h3>
+                <p class="text-xs text-slate-500 mt-0.5">Chạm vào từng mục chức năng để mở trang quản lý tương ứng</p>
+              </div>
+              <span class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-blue-50 text-[#0056B3]">
+                ${quickActions.length} phân hệ
+              </span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+              ${quickActions.map(item => `
+                <button onclick="navigateTo('${item.id}')" class="group relative flex items-center gap-4 p-4 rounded-2xl bg-slate-50/80 hover:bg-white border border-slate-200/80 hover:border-[#0056B3]/40 hover:shadow-soft transition-all text-left active:scale-[0.99]">
+                  <div class="w-12 h-12 rounded-2xl bg-gradient-to-br ${item.gradient} text-white flex items-center justify-center text-lg shadow-sm group-hover:scale-105 transition-transform shrink-0">
+                    <i class="fa-solid ${item.icon}"></i>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-2">
+                      <h4 class="font-bold text-sm text-slate-900 group-hover:text-[#0056B3] transition-colors truncate">${item.title}</h4>
+                      ${item.badge ? `<span class="px-1.5 py-0.5 rounded-md ${item.badge === 'CHỦ WEB' ? 'bg-amber-500 text-white' : 'bg-rose-500 text-white'} text-[9px] font-extrabold shrink-0">${item.badge}</span>` : ''}
+                    </div>
+                    <p class="text-xs text-slate-500 mt-0.5 truncate">${item.subtitle}</p>
+                  </div>
+                  <i class="fa-solid fa-chevron-right text-xs text-slate-300 group-hover:text-[#0056B3] group-hover:translate-x-0.5 transition-all"></i>
+                </button>
+              `).join('')}
+            </div>
+          </section>
+        </div>
+      `;
+    }
+
+    // ----- TAB 1: HOẠT ĐỘNG VÀ PHONG TRÀO -----
+    function renderActivitiesView() {
+      const user = getCurrentUser();
+      const owner = isOwnerUser(user);
+
+      return `
+        <div class="space-y-5 tab-fade-in">
+          <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-card flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 class="text-lg font-extrabold text-slate-900">1. Hoạt động & Phong trào Thanh niên</h2>
+              <p class="text-xs text-slate-500 mt-0.5">Đăng ký tham gia phong trào để tích lũy điểm rèn luyện Đoàn viên Chi đoàn ĐHSVAN26A</p>
+            </div>
+            ${owner ? `
+              <button onclick="openActivityModal()" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-[#0056B3] to-[#0284C7] text-white text-xs font-bold shadow-md shadow-blue-500/20 hover:opacity-95 transition active:scale-95 shrink-0">
+                <i class="fa-solid fa-plus"></i> Thêm hoạt động mới
+              </button>
+            ` : `
+              <div class="px-3 py-1.5 rounded-xl bg-blue-50 text-[#0056B3] text-xs font-bold self-start sm:self-auto">
+                Đã đăng ký: ${state.activities.filter(a => a.participants.includes(user.id)).length}/${state.activities.length} hoạt động
+              </div>
+            `}
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            ${state.activities.map(act => {
+              const isJoined = act.participants.includes(user.id);
+              return `
+                <article class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-card flex flex-col justify-between hover:border-blue-200 transition">
+                  <div>
+                    <div class="flex items-center justify-between gap-2 mb-3">
+                      <span class="px-2.5 py-1 rounded-xl bg-blue-50 text-[#0056B3] text-[11px] font-bold">
+                        ${act.category}
+                      </span>
+                      <span class="px-2.5 py-1 rounded-xl bg-amber-50 text-amber-700 border border-amber-200/70 text-[11px] font-extrabold">
+                        +${act.points} điểm RL
+                      </span>
+                    </div>
+
+                    <h3 class="font-extrabold text-base text-slate-900 leading-snug">${act.title}</h3>
+                    <p class="text-xs text-slate-600 mt-2 leading-relaxed">${act.desc}</p>
+
+                    <div class="mt-4 space-y-1.5 text-xs text-slate-500 bg-slate-50 p-3 rounded-2xl">
+                      <div class="flex items-center gap-2">
+                        <i class="fa-regular fa-calendar text-[#0056B3] w-4 text-center"></i>
+                        <span class="font-medium text-slate-700">${act.date}</span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-location-dot text-rose-500 w-4 text-center"></i>
+                        <span class="font-medium text-slate-700">${act.location}</span>
+                      </div>
+                      <div class="flex items-center justify-between pt-1">
+                        <span class="flex items-center gap-2">
+                          <i class="fa-solid fa-users text-emerald-600 w-4 text-center"></i>
+                          <span>Đã đăng ký: <strong class="text-slate-900">${act.participants.length}</strong> đoàn viên</span>
+                        </span>
+                        <button onclick="openParticipantsModal('${act.id}')" class="text-[#0056B3] font-bold hover:underline">
+                          Xem danh sách
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="mt-4 pt-3 border-t border-slate-100 flex items-center gap-2">
+                    <button onclick="toggleJoinActivity('${act.id}')" class="flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 ${
+                      isJoined
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
+                        : 'bg-[#0056B3] text-white hover:bg-[#004494] shadow-sm'
+                    }">
+                      ${isJoined
+                        ? '<i class="fa-solid fa-circle-check"></i> Đã đăng ký tham gia'
+                        : '<i class="fa-solid fa-hand-pointer"></i> Đăng ký tham gia'}
+                    </button>
+                    ${owner ? `
+                      <button onclick="deleteActivity('${act.id}')" title="Xóa hoạt động" class="p-2.5 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-100 transition">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                      </button>
+                    ` : ''}
+                  </div>
+                </article>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // ----- TAB 2: SỔ TAY ĐOÀN VIÊN -----
+    let handbookSearchQuery = '';
+
+    function renderHandbookView() {
+      const user = getCurrentUser();
+      const filteredArticles = HANDBOOK_ARTICLES.filter(art =>
+        art.title.toLowerCase().includes(handbookSearchQuery.toLowerCase()) ||
+        art.tag.toLowerCase().includes(handbookSearchQuery.toLowerCase()) ||
+        art.summary.toLowerCase().includes(handbookSearchQuery.toLowerCase())
+      );
+
+      return `
+        <div class="space-y-5 tab-fade-in">
+          <!-- Thẻ Đoàn viên điện tử cá nhân -->
+          <section class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-card">
+            <div class="flex flex-col md:flex-row gap-5 items-start md:items-center justify-between pb-5 border-b border-slate-100">
+              <div class="flex items-center gap-4">
+                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br ${user.avatarBg || 'from-[#0056B3] to-[#0284C7]'} text-white font-extrabold text-xl flex items-center justify-center shadow-md shrink-0">
+                  ${getInitials(user.name)}
+                </div>
+                <div>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <h2 class="text-lg sm:text-xl font-extrabold text-slate-900">${user.name}</h2>
+                    <span class="px-2.5 py-0.5 rounded-full bg-blue-100 text-[#0056B3] text-xs font-bold">${user.mssv}</span>
+                  </div>
+                  <p class="text-xs sm:text-sm font-semibold text-slate-600 mt-0.5">${user.position} • ${user.branch}</p>
+                </div>
+              </div>
+
+              <div class="w-full md:w-auto flex items-center justify-between md:justify-end gap-4 bg-blue-50/70 px-4 py-3 rounded-2xl border border-blue-100">
+                <div>
+                  <div class="text-[11px] font-semibold text-slate-500">Điểm rèn luyện Đoàn</div>
+                  <div class="text-2xl font-extrabold text-[#0056B3]">${user.points}<span class="text-xs font-bold text-slate-400">/100</span></div>
+                </div>
+                <div class="h-10 w-px bg-blue-200/70"></div>
+                <div>
+                  <div class="text-[11px] font-semibold text-slate-500">Đoàn phí</div>
+                  <div class="text-sm font-extrabold ${user.feePaid ? 'text-emerald-600' : 'text-rose-600'}">
+                    ${user.feePaid ? 'Đã đóng' : 'Chưa đóng'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Cẩm nang Sổ tay Đoàn viên -->
+          <section class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-card">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+              <div>
+                <h3 class="text-base font-extrabold text-slate-900">2. Cẩm nang & Quy định Sổ tay Đoàn viên</h3>
+                <p class="text-xs text-slate-500">Tra cứu nhanh Điều lệ Đoàn, quy tắc rèn luyện và sinh hoạt Chi đoàn ĐHSVAN26A</p>
+              </div>
+              <div class="relative w-full sm:w-64">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <input
+                  type="text"
+                  value="${handbookSearchQuery}"
+                  oninput="handleHandbookSearch(this.value)"
+                  placeholder="Tìm nội dung sổ tay..."
+                  class="w-full pl-9 pr-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#0056B3]"
+                />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+              ${filteredArticles.map(art => `
+                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-2">
+                  <span class="inline-block px-2.5 py-0.5 rounded-lg bg-blue-100 text-[#0056B3] text-[11px] font-bold">
+                    ${art.tag}
+                  </span>
+                  <h4 class="font-extrabold text-sm text-slate-900">${art.title}</h4>
+                  <p class="text-xs text-slate-600 leading-relaxed">${art.summary}</p>
+                </div>
+              `).join('')}
+            </div>
+          </section>
+        </div>
+      `;
+    }
+
+    // ----- TAB 3: ĐOÀN PHÍ VÀ TÀI CHÍNH -----
+    function renderFinanceView() {
+      const owner = isOwnerUser();
+      const totalIn = state.financeTransactions.filter(t => t.type === 'in').reduce((s, t) => s + t.amount, 0);
+      const totalOut = state.financeTransactions.filter(t => t.type === 'out').reduce((s, t) => s + t.amount, 0);
+      const balance = totalIn - totalOut;
+
+      return `
+        <div class="space-y-5 tab-fade-in">
+          <!-- Financial Summary -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+            <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-card">
+              <span class="text-xs font-bold text-slate-500">Tổng thu quỹ Chi đoàn</span>
+              <div class="text-xl sm:text-2xl font-extrabold text-emerald-600 mt-1.5">${formatCurrency(totalIn)}</div>
+            </div>
+            <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-card">
+              <span class="text-xs font-bold text-slate-500">Tổng chi hoạt động</span>
+              <div class="text-xl sm:text-2xl font-extrabold text-rose-600 mt-1.5">${formatCurrency(totalOut)}</div>
+            </div>
+            <div class="bg-gradient-to-br from-[#0056B3] to-[#0284C7] text-white rounded-3xl p-5 shadow-md">
+              <span class="text-xs font-bold text-blue-100">Tồn quỹ hiện tại</span>
+              <div class="text-xl sm:text-2xl font-extrabold mt-1.5">${formatCurrency(balance)}</div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+            <!-- Member Fee Status -->
+            <div class="lg:col-span-7 bg-white rounded-3xl p-5 border border-slate-200/80 shadow-card">
+              <h3 class="font-extrabold text-base text-slate-900">Tình hình đóng Đoàn phí (120.000đ/năm)</h3>
+              <p class="text-xs text-slate-500 mb-4">
+                ${owner ? 'Chủ web có thể nhấn nút xác nhận thu đoàn phí cho từng tài khoản MSSV' : 'Danh sách cập nhật trạng thái đoàn phí chi đoàn'}
+              </p>
+
+              <div class="divide-y divide-slate-100">
+                ${state.accounts.map(u => `
+                  <div class="py-3 flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-3 min-w-0">
+                      <div class="w-9 h-9 rounded-xl bg-gradient-to-br ${u.avatarBg || 'from-[#0056B3] to-[#0284C7]'} text-white font-bold text-xs flex items-center justify-center shrink-0">
+                        ${getInitials(u.name)}
+                      </div>
+                      <div class="min-w-0">
+                        <div class="font-bold text-xs sm:text-sm text-slate-900 truncate">${u.name}</div>
+                        <div class="text-[11px] text-slate-500">${u.mssv} • ${u.position}</div>
+                      </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 shrink-0">
+                      ${u.feePaid ? `
+                        <span class="px-2.5 py-1 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold">
+                          <i class="fa-solid fa-check mr-1"></i>Đã đóng
+                        </span>
+                      ` : `
+                        <span class="px-2.5 py-1 rounded-xl bg-rose-50 text-rose-600 border border-rose-200 text-[11px] font-bold">
+                          Chưa đóng
+                        </span>
+                      `}
+                      ${owner ? `
+                        <button onclick="toggleMemberFee('${u.id}')" class="px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-[#0056B3] hover:text-white text-slate-700 text-[11px] font-bold transition">
+                          ${u.feePaid ? 'Hoàn tác' : 'Xác nhận thu'}
+                        </button>
+                      ` : ''}
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <!-- Ledger -->
+            <div class="lg:col-span-5 bg-white rounded-3xl p-5 border border-slate-200/80 shadow-card flex flex-col justify-between">
+              <div>
+                <h3 class="font-extrabold text-base text-slate-900 mb-1">Sổ thu chi minh bạch</h3>
+                <p class="text-xs text-slate-500 mb-4">Lịch sử thu chi quỹ Chi đoàn ĐHSVAN26A</p>
+
+                <div class="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+                  ${state.financeTransactions.map(tx => `
+                    <div class="p-3 rounded-2xl bg-slate-50 border border-slate-100 flex items-start justify-between gap-2">
+                      <div class="min-w-0">
+                        <div class="font-bold text-xs text-slate-900">${tx.title}</div>
+                        <div class="text-[11px] text-slate-500 mt-0.5">${tx.date} • ${tx.note}</div>
+                      </div>
+                      <span class="font-extrabold text-xs shrink-0 ${tx.type === 'in' ? 'text-emerald-600' : 'text-rose-600'}">
+                        ${tx.type === 'in' ? '+' : '-'}${formatCurrency(tx.amount)}
+                      </span>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+
+              ${owner ? `
+                <form onsubmit="handleAddTransaction(event)" class="mt-4 pt-4 border-t border-slate-100 space-y-2.5">
+                  <div class="text-xs font-extrabold text-[#0056B3]"><i class="fa-solid fa-plus-circle mr-1"></i>Ghi nhận khoản thu / chi mới</div>
+                  <div class="grid grid-cols-3 gap-2">
+                    <select id="tx-type" class="px-2.5 py-2 rounded-xl border border-slate-200 text-xs font-bold bg-white">
+                      <option value="in">+ Khoản Thu</option>
+                      <option value="out">- Khoản Chi</option>
+                    </select>
+                    <input type="number" id="tx-amount" required min="1000" step="1000" placeholder="Số tiền (VNĐ)" class="col-span-2 px-3 py-2 rounded-xl border border-slate-200 text-xs" />
+                  </div>
+                  <input type="text" id="tx-title" required placeholder="Nội dung khoản thu/chi..." class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs" />
+                  <button type="submit" class="w-full py-2.5 rounded-xl bg-[#0056B3] text-white text-xs font-bold hover:bg-[#004494] transition">
+                    Lưu vào sổ quỹ
+                  </button>
+                </form>
+              ` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ----- TAB 4: MINH CHỨNG HOẠT ĐỘNG -----
+    function getProofBannerIllustration(type) {
+      const map = {
+        volunteer: { bg: 'from-blue-500 to-sky-600', icon: 'fa-hands-holding-heart', label: 'Ảnh hiện trường Tình nguyện' },
+        green: { bg: 'from-emerald-500 to-teal-600', icon: 'fa-seedling', label: 'Ảnh Chủ Nhật Xanh' },
+        study: { bg: 'from-amber-500 to-orange-600', icon: 'fa-book-open-reader', label: 'Ảnh Hội thi Học thuật' }
+      };
+      const item = map[type] || map.volunteer;
+      return `
+        <div class="w-full h-24 rounded-2xl bg-gradient-to-br ${item.bg} text-white flex flex-col items-center justify-center p-3 text-center">
+          <i class="fa-solid ${item.icon} text-xl mb-1 opacity-95"></i>
+          <span class="text-[11px] font-bold tracking-wide">${item.label}</span>
+        </div>
+      `;
+    }
+
+    function renderProofsView() {
+      const user = getCurrentUser();
+      const owner = isOwnerUser(user);
+
+      return `
+        <div class="space-y-5 tab-fade-in">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+            <!-- Submit Proof Form -->
+            <div class="lg:col-span-5 bg-white rounded-3xl p-5 border border-slate-200/80 shadow-card h-fit">
+              <h2 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                <i class="fa-solid fa-cloud-arrow-up text-[#0056B3]"></i> Nộp Minh chứng Hoạt động
+              </h2>
+              <p class="text-xs text-slate-500 mt-1 mb-4">Gửi hình ảnh tham gia phong trào để Chủ web xét duyệt điểm rèn luyện.</p>
+
+              <form onsubmit="handleSubmitProof(event)" class="space-y-3.5">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Người nộp minh chứng</label>
+                  <input type="text" disabled value="${user.name} (${user.mssv})" class="w-full px-3.5 py-2 rounded-xl bg-slate-100 border border-slate-200 text-xs font-bold text-slate-600" />
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Chọn hoạt động đã tham gia *</label>
+                  <select id="proof-activity" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-medium bg-white focus:outline-none focus:border-[#0056B3]">
+                    ${state.activities.map(a => `<option value="${a.title}">${a.title}</option>`).join('')}
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Loại hình minh chứng *</label>
+                  <select id="proof-image-type" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-medium bg-white focus:outline-none focus:border-[#0056B3]">
+                    <option value="volunteer">Ảnh check-in Chiến dịch Tình nguyện</option>
+                    <option value="green">Ảnh hoạt động Ngày Chủ Nhật Xanh</option>
+                    <option value="study">Ảnh tham dự Hội thi / Sinh hoạt</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Mô tả chi tiết *</label>
+                  <textarea id="proof-desc" required rows="3" placeholder="VD: Tham gia đầy đủ buổi ra quân..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#0056B3]"></textarea>
+                </div>
+
+                <button type="submit" class="w-full py-3 rounded-2xl bg-gradient-to-r from-[#0056B3] to-[#0284C7] text-white text-xs font-bold shadow-md shadow-blue-500/20 hover:opacity-95 transition active:scale-95">
+                  <i class="fa-solid fa-paper-plane mr-1.5"></i> Gửi minh chứng xét duyệt
+                </button>
+              </form>
+            </div>
+
+            <!-- Proofs List -->
+            <div class="lg:col-span-7 space-y-3.5">
+              <div class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200/80 shadow-card flex items-center justify-between">
+                <div>
+                  <h3 class="font-extrabold text-base text-slate-900">Danh sách Minh chứng đã nộp</h3>
+                  <p class="text-xs text-slate-500">
+                    ${owner ? 'Chủ web có thể Duyệt hoặc Từ chối minh chứng bên dưới' : 'Theo dõi trạng thái xét duyệt minh chứng'}
+                  </p>
+                </div>
+                <span class="px-3 py-1 rounded-full bg-blue-50 text-[#0056B3] text-xs font-bold">
+                  ${state.proofs.length} hồ sơ
+                </span>
+              </div>
+
+              ${state.proofs.map(prf => {
+                const submitter = state.accounts.find(u => u.id === prf.userId) || { name: prf.userId, mssv: prf.userId };
+                const statusBadge = prf.status === 'approved'
+                  ? '<span class="px-2.5 py-1 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold"><i class="fa-solid fa-circle-check mr-1"></i>Đã duyệt</span>'
+                  : prf.status === 'rejected'
+                  ? '<span class="px-2.5 py-1 rounded-xl bg-rose-50 text-rose-600 border border-rose-200 text-[11px] font-bold"><i class="fa-solid fa-circle-xmark mr-1"></i>Từ chối</span>'
+                  : '<span class="px-2.5 py-1 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 text-[11px] font-bold"><i class="fa-solid fa-hourglass-half mr-1"></i>Chờ duyệt</span>';
+
+                return `
+                  <div class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200/80 shadow-card">
+                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
+                      <div class="sm:col-span-4">
+                        ${getProofBannerIllustration(prf.imageType)}
+                      </div>
+                      <div class="sm:col-span-8 space-y-2">
+                        <div class="flex items-center justify-between gap-2">
+                          <span class="text-xs font-extrabold text-[#0056B3]">${submitter.name} (${submitter.mssv})</span>
+                          ${statusBadge}
+                        </div>
+                        <h4 class="font-bold text-sm text-slate-900 leading-snug">${prf.activityTitle}</h4>
+                        <p class="text-xs text-slate-600">${prf.desc}</p>
+                        <div class="text-[11px] text-slate-400">Nộp lúc: ${prf.submittedAt}</div>
+
+                        ${owner ? `
+                          <div class="pt-2 flex items-center gap-2">
+                            <button onclick="updateProofStatus('${prf.id}', 'approved')" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition">
+                              <i class="fa-solid fa-check mr-1"></i> Duyệt (+3 ĐRL)
+                            </button>
+                            <button onclick="updateProofStatus('${prf.id}', 'rejected')" class="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold transition">
+                              <i class="fa-solid fa-xmark mr-1"></i> Từ chối
+                            </button>
+                          </div>
+                        ` : ''}
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ----- TAB 5: QR ĐIỂM DANH 15S ĐỘNG -----
+    function renderQrView() {
+      const user = getCurrentUser();
+      const owner = isOwnerUser(user);
+      const alreadyCheckedIn = state.attendanceSession.records.some(r => r.userId === user.id);
+
+      return `
+        <div class="space-y-5 tab-fade-in">
+          <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-card flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-600 text-[11px] font-extrabold mb-1.5">
+                <span class="w-2 h-2 rounded-full bg-rose-500 live-dot"></span> BẢO MẬT QR ĐỘNG 15 GIÂY
+              </div>
+              <h2 class="text-lg font-extrabold text-slate-900">${state.attendanceSession.title}</h2>
+              <p class="text-xs text-slate-500 mt-0.5"><i class="fa-solid fa-location-dot text-[#0056B3] mr-1"></i>${state.attendanceSession.location}</p>
+            </div>
+            <div class="bg-blue-50 px-4 py-2.5 rounded-2xl border border-blue-100 text-right shrink-0">
+              <div class="text-[11px] font-semibold text-slate-500">Sĩ số có mặt</div>
+              <div class="text-xl font-extrabold text-[#0056B3]">${state.attendanceSession.records.length} / ${state.accounts.length}</div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+            <!-- Left Panel -->
+            <div class="lg:col-span-6 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-card flex flex-col items-center text-center">
+              ${owner ? `
+                <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-extrabold mb-3">
+                  <i class="fa-solid fa-crown mr-1"></i> Mã QR Trình chiếu (Chủ web Võ Quang Vinh)
+                </span>
+                <p class="text-xs text-slate-500 max-w-xs mb-4">
+                  Mã QR và mã xác thực 6 số tự động làm mới sau mỗi <strong>15 giây</strong>.
+                </p>
+
+                <div class="relative w-56 h-56 p-3 rounded-3xl bg-white border-2 border-[#0056B3]/30 shadow-lg">
+                  <div id="dynamic-qr-svg" class="w-full h-full">
+                    ${buildPseudoQrSvg(currentQrToken)}
+                  </div>
+                  <div class="qr-laser absolute left-4 right-4 h-0.5 bg-rose-500/80 shadow-[0_0_8px_#f43f5e]"></div>
+                </div>
+
+                <div class="w-full max-w-xs mt-5 space-y-2">
+                  <div class="flex items-center justify-between text-xs">
+                    <span class="font-semibold text-slate-500">Mã OTP hiện tại:</span>
+                    <span id="qr-live-token" class="font-mono text-lg font-extrabold tracking-widest text-[#0056B3]">
+                      ${currentQrToken.slice(0, 3)} ${currentQrToken.slice(3)}
+                    </span>
+                  </div>
+                  <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div id="qr-progress-bar" class="h-full bg-[#0056B3] transition-all duration-1000 ease-linear" style="width: ${(qrSecondsLeft / 15) * 100}%"></div>
+                  </div>
+                  <div class="flex items-center justify-between text-[11px] font-bold">
+                    <span class="text-slate-400">Tự động đổi mã sau:</span>
+                    <span id="qr-countdown-text" class="text-rose-600 font-extrabold">${qrSecondsLeft}s</span>
+                  </div>
+                </div>
+
+                <button onclick="forceRefreshQr()" class="mt-4 px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition">
+                  <i class="fa-solid fa-rotate mr-1"></i> Làm mới mã ngay
+                </button>
+              ` : `
+                <span class="px-3 py-1 rounded-full bg-blue-100 text-[#0056B3] text-xs font-extrabold mb-3">
+                  <i class="fa-solid fa-mobile-screen-button mr-1"></i> Cổng Điểm danh Đoàn viên
+                </span>
+
+                ${alreadyCheckedIn ? `
+                  <div class="py-6 px-4 w-full rounded-3xl bg-emerald-50 border border-emerald-200 text-center space-y-2">
+                    <div class="w-14 h-14 rounded-full bg-emerald-500 text-white text-2xl flex items-center justify-center mx-auto shadow-md">
+                      <i class="fa-solid fa-check"></i>
+                    </div>
+                    <h3 class="font-extrabold text-base text-emerald-900">Bạn đã điểm danh thành công!</h3>
+                    <p class="text-xs text-emerald-700">Đã ghi nhận có mặt cho <strong>${user.name} (${user.mssv})</strong>.</p>
+                  </div>
+                ` : `
+                  <div class="relative w-52 h-52 rounded-3xl bg-slate-900 text-white flex flex-col items-center justify-center overflow-hidden border-4 border-[#0056B3] shadow-inner">
+                    <i class="fa-solid fa-qrcode text-5xl text-white/25 mb-2"></i>
+                    <span class="text-[11px] text-slate-300 px-4">Quét mã QR từ Chủ web hoặc bấm điểm danh nhanh</span>
+                    <div class="qr-laser absolute left-3 right-3 h-0.5 bg-emerald-400 shadow-[0_0_10px_#34d399]"></div>
+                  </div>
+
+                  <div class="w-full max-w-xs mt-4 space-y-3">
+                    <button onclick="memberQuickCheckIn()" class="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-[#0056B3] to-[#0284C7] text-white text-xs font-extrabold shadow-lg shadow-blue-500/25 hover:opacity-95 transition active:scale-95 flex items-center justify-center gap-2">
+                      <i class="fa-solid fa-fingerprint text-base"></i> Điểm danh ngay (${user.mssv})
+                    </button>
+
+                    <form onsubmit="handleOtpCheckIn(event)" class="flex gap-2">
+                      <input type="text" id="member-otp-input" maxlength="6" placeholder="Nhập 6 số OTP từ màn chiếu..." class="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono text-center tracking-widest focus:outline-none focus:border-[#0056B3]" />
+                      <button type="submit" class="px-3.5 py-2 rounded-xl bg-slate-800 text-white text-xs font-bold hover:bg-slate-900">Gửi</button>
+                    </form>
+                  </div>
+                `}
+              `}
+            </div>
+
+            <!-- Right Panel: Attendance List -->
+            <div class="lg:col-span-6 bg-white rounded-3xl p-5 border border-slate-200/80 shadow-card">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <h3 class="font-extrabold text-base text-slate-900">Danh sách Điểm danh Trực tiếp</h3>
+                  <p class="text-xs text-slate-500">Hiển thị toàn bộ tài khoản trong Chi đoàn</p>
+                </div>
+                ${owner ? `
+                  <button onclick="resetAttendanceRecords()" class="text-xs font-bold text-rose-600 hover:underline">
+                    Làm mới phiên
+                  </button>
+                ` : ''}
+              </div>
+
+              <div class="divide-y divide-slate-100">
+                ${state.accounts.map(u => {
+                  const rec = state.attendanceSession.records.find(r => r.userId === u.id);
+                  return `
+                    <div class="py-3 flex items-center justify-between gap-3">
+                      <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-9 h-9 rounded-xl bg-gradient-to-br ${u.avatarBg || 'from-[#0056B3] to-[#0284C7]'} text-white font-bold text-xs flex items-center justify-center shrink-0">
+                          ${getInitials(u.name)}
+                        </div>
+                        <div class="min-w-0">
+                          <div class="font-bold text-xs sm:text-sm text-slate-900 truncate">${u.name}</div>
+                          <div class="text-[11px] text-slate-500">${u.mssv} • ${u.position}</div>
+                        </div>
+                      </div>
+
+                      ${rec ? `
+                        <div class="text-right shrink-0">
+                          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold">
+                            <i class="fa-solid fa-circle-check"></i> Có mặt
+                          </span>
+                          <div class="text-[10px] text-slate-400 mt-0.5">${rec.time} • ${rec.method}</div>
+                        </div>
+                      ` : `
+                        <div class="flex items-center gap-2 shrink-0">
+                          <span class="px-2.5 py-1 rounded-xl bg-slate-100 text-slate-500 text-[11px] font-semibold">
+                            Chưa điểm danh
+                          </span>
+                          ${owner ? `
+                            <button onclick="secretaryMarkPresent('${u.id}')" class="px-2.5 py-1 rounded-xl bg-blue-50 hover:bg-[#0056B3] text-[#0056B3] hover:text-white text-[11px] font-bold transition">
+                              Điểm danh hộ
+                            </button>
+                          ` : ''}
+                        </div>
+                      `}
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ----- TAB 6: QUẢN LÝ & CẤP TÀI KHOẢN (ĐỘC QUYỀN CHỦ WEB VÕ QUANG VINH) -----
+    let accountSearchQuery = '';
+
+    function renderAccountsManagementView() {
+      const memberAccounts = state.accounts.filter(a => a.role === 'member');
+      const filteredMembers = memberAccounts.filter(m =>
+        m.mssv.toLowerCase().includes(accountSearchQuery.toLowerCase()) ||
+        m.name.toLowerCase().includes(accountSearchQuery.toLowerCase()) ||
+        m.position.toLowerCase().includes(accountSearchQuery.toLowerCase())
+      );
+
+      return `
+        <div class="space-y-5 tab-fade-in">
+          <!-- Top Banner -->
+          <div class="bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-3xl p-5 sm:p-6 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 text-[11px] font-extrabold mb-1.5">
+                <i class="fa-solid fa-crown"></i> ĐẶC QUYỀN CHỦ WEB • VÕ QUANG VINH
+              </div>
+              <h2 class="text-lg sm:text-xl font-extrabold">6. Quản lý & Cấp tài khoản Đoàn viên (MSSV)</h2>
+              <p class="text-xs text-amber-50 mt-1">
+                Nhập Mã số sinh viên để tạo tài khoản mới. Hệ thống tự động đặt <strong>Tên đăng nhập = MSSV</strong> và <strong>Mật khẩu mặc định = MSSV</strong>.
+              </p>
+            </div>
+            <div class="bg-white/15 backdrop-blur-xs px-4 py-3 rounded-2xl border border-white/25 text-center shrink-0">
+              <div class="text-2xl font-extrabold leading-none">${memberAccounts.length}</div>
+              <div class="text-[11px] font-semibold text-amber-100 mt-1">Tài khoản đã cấp</div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+            <!-- Form Cấp Tài Khoản Mới -->
+            <div class="lg:col-span-5 bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-card h-fit">
+              <h3 class="font-extrabold text-base text-slate-900 flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-blue-50 text-[#0056B3] flex items-center justify-center text-sm">
+                  <i class="fa-solid fa-user-plus"></i>
+                </span>
+                Cấp tài khoản Đoàn viên mới
+              </h3>
+              <p class="text-xs text-slate-500 mt-1 mb-4">Tài khoản sau khi cấp có thể đăng nhập ngay lập tức.</p>
+
+              <form onsubmit="handleCreateMemberAccount(event)" class="space-y-3.5">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Mã số sinh viên (MSSV) *</label>
+                  <input
+                    type="text"
+                    id="new-member-mssv"
+                    required
+                    oninput="syncMssvPreview(this.value)"
+                    placeholder="VD: 26A001 hoặc 225101001"
+                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-mono font-bold uppercase focus:outline-none focus:border-[#0056B3] focus:ring-2 focus:ring-blue-100"
+                  />
+                </div>
+
+                <!-- Live Credential Preview Box -->
+                <div class="p-3 rounded-2xl bg-blue-50/80 border border-blue-100 flex items-center justify-between text-xs">
+                  <div>
+                    <span class="text-slate-500 block text-[11px]">Tên đăng nhập tự động:</span>
+                    <strong id="preview-login-id" class="font-mono text-[#0056B3] text-sm">---</strong>
+                  </div>
+                  <div class="h-7 w-px bg-blue-200"></div>
+                  <div class="text-right">
+                    <span class="text-slate-500 block text-[11px]">Mật khẩu mặc định:</span>
+                    <strong id="preview-login-pass" class="font-mono text-emerald-600 text-sm">---</strong>
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Họ và tên Đoàn viên</label>
+                  <input
+                    type="text"
+                    id="new-member-name"
+                    placeholder="VD: Nguyễn Văn An (để trống sẽ tự đặt theo MSSV)"
+                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0056B3]"
+                  />
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Chức vụ trong Chi đoàn</label>
+                  <select id="new-member-position" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:border-[#0056B3]">
+                    <option value="Đoàn viên">Đoàn viên</option>
+                    <option value="Phó Bí thư Chi đoàn">Phó Bí thư Chi đoàn</option>
+                    <option value="Ủy viên BCH Chi đoàn">Ủy viên BCH Chi đoàn</option>
+                    <option value="Đoàn viên ưu tú">Đoàn viên ưu tú</option>
+                  </select>
+                </div>
+
+                <button type="submit" class="w-full py-3 rounded-2xl bg-gradient-to-r from-[#0056B3] to-[#0284C7] text-white text-xs font-extrabold shadow-md shadow-blue-500/20 hover:opacity-95 transition active:scale-95 flex items-center justify-center gap-2">
+                  <i class="fa-solid fa-circle-plus"></i> Tạo & Cấp tài khoản ngay
+                </button>
+              </form>
+            </div>
+
+            <!-- Danh sách Tài khoản đã cấp -->
+            <div class="lg:col-span-7 bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-card">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <div>
+                  <h3 class="font-extrabold text-base text-slate-900">Danh sách Tài khoản Đoàn viên đã cấp</h3>
+                  <p class="text-xs text-slate-500">Quản lý thông tin đăng nhập, đặt lại mật khẩu về MSSV hoặc xóa tài khoản</p>
+                </div>
+                <div class="relative w-full sm:w-56">
+                  <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                  <input
+                    type="text"
+                    value="${accountSearchQuery}"
+                    oninput="handleAccountSearch(this.value)"
+                    placeholder="Tìm MSSV hoặc họ tên..."
+                    class="w-full pl-8 pr-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#0056B3]"
+                  />
+                </div>
+              </div>
+
+              ${filteredMembers.length === 0 ? `
+                <div class="py-12 px-4 text-center rounded-2xl bg-slate-50 border border-dashed border-slate-200 space-y-2">
+                  <div class="w-12 h-12 rounded-2xl bg-blue-50 text-[#0056B3] flex items-center justify-center mx-auto text-lg">
+                    <i class="fa-solid fa-users-slash"></i>
+                  </div>
+                  <h4 class="font-bold text-sm text-slate-800">Chưa có tài khoản đoàn viên nào</h4>
+                  <p class="text-xs text-slate-500 max-w-xs mx-auto">
+                    Vinh hãy nhập <strong>Mã số sinh viên (MSSV)</strong> ở biểu mẫu bên cạnh để bắt đầu cấp tài khoản cho các bạn trong Chi đoàn nhé!
+                  </p>
+                </div>
+              ` : `
+                <div class="overflow-x-auto">
+                  <table class="w-full text-left border-collapse">
+                    <thead>
+                      <tr class="border-b border-slate-200 text-[11px] font-bold uppercase text-slate-400">
+                        <th class="py-3 px-2.5">Đoàn viên</th>
+                        <th class="py-3 px-2.5">Tài khoản (MSSV)</th>
+                        <th class="py-3 px-2.5">Mật khẩu</th>
+                        <th class="py-3 px-2.5 text-right">Thao tác</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-xs">
+                      ${filteredMembers.map(acc => `
+                        <tr class="hover:bg-blue-50/40 transition">
+                          <td class="py-3 px-2.5">
+                            <div class="font-bold text-slate-900">${acc.name}</div>
+                            <div class="text-[11px] text-slate-500">${acc.position}</div>
+                          </td>
+                          <td class="py-3 px-2.5">
+                            <span class="px-2 py-1 rounded-lg bg-blue-50 text-[#0056B3] font-mono font-bold">${acc.mssv}</span>
+                          </td>
+                          <td class="py-3 px-2.5 font-mono font-semibold text-slate-700">
+                            ${acc.password}
+                          </td>
+                          <td class="py-3 px-2.5 text-right">
+                            <div class="inline-flex items-center gap-1.5">
+                              <button onclick="resetMemberPasswordToMssv('${acc.id}')" title="Đặt lại mật khẩu về MSSV" class="px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 text-[11px] font-bold transition">
+                                Reset MK
+                              </button>
+                              <button onclick="deleteMemberAccount('${acc.id}')" title="Xóa tài khoản" class="p-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 transition">
+                                <i class="fa-solid fa-trash-can"></i>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      `).join('')}
+                    </tbody>
+                  </table>
+                </div>
+              `}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ==================== 7. ACTION HANDLERS ====================
+
+    // Account Provisioning (Võ Quang Vinh)
+    function syncMssvPreview(val) {
+      const clean = (val || '').trim().toUpperCase();
+      const idEl = document.getElementById('preview-login-id');
+      const passEl = document.getElementById('preview-login-pass');
+      if (idEl) idEl.textContent = clean || '---';
+      if (passEl) passEl.textContent = clean || '---';
+    }
+
+    function handleCreateMemberAccount(e) {
+      e.preventDefault();
+      if (!isOwnerUser()) return;
+
+      const mssvInput = document.getElementById('new-member-mssv');
+      const nameInput = document.getElementById('new-member-name');
+      const posInput = document.getElementById('new-member-position');
+
+      const mssv = mssvInput.value.trim().toUpperCase();
+      if (!mssv) return;
+
+      const duplicate = state.accounts.some(a => a.mssv.toUpperCase() === mssv || a.username.toUpperCase() === mssv);
+      if (duplicate) {
+        showToast(`Mã số sinh viên ${mssv} đã tồn tại trong hệ thống!`, 'error');
+        return;
+      }
+
+      const fullName = nameInput.value.trim() || `Đoàn viên ${mssv}`;
+      const position = posInput.value;
+      const colors = [
+        'from-[#0056B3] to-[#0284C7]',
+        'from-emerald-500 to-teal-600',
+        'from-indigo-500 to-blue-600',
+        'from-sky-500 to-cyan-600',
+        'from-violet-500 to-purple-600'
+      ];
+      const randomBg = colors[state.accounts.length % colors.length];
+
+      state.accounts.push({
+        id: 'MEM_' + mssv + '_' + Date.now(),
+        username: mssv,
+        password: mssv, // Mật khẩu mặc định chính là MSSV
+        mssv: mssv,
+        name: fullName,
+        position: position,
+        role: 'member',
+        joinDate: '26/03/2023',
+        branch: 'Chi đoàn ĐHSVAN26A',
+        points: 85,
+        feePaid: false,
+        avatarBg: randomBg
+      });
+
+      saveState();
+      e.target.reset();
+      renderAll();
+      showToast(`Đã cấp tài khoản ${mssv} (Mật khẩu: ${mssv}) thành công!`, 'success');
+    }
+
+    function handleAccountSearch(val) {
+      accountSearchQuery = val;
+      renderContent();
+    }
+
+    function resetMemberPasswordToMssv(accId) {
+      const acc = state.accounts.find(a => a.id === accId);
+      if (!acc) return;
+      acc.password = acc.mssv;
+      saveState();
+      renderAll();
+      showToast(`Đã đặt lại mật khẩu của ${acc.mssv} về mặc định (${acc.mssv})!`, 'info');
+    }
+
+    function deleteMemberAccount(accId) {
+      const acc = state.accounts.find(a => a.id === accId);
+      if (!acc || acc.role === 'owner') return;
+      state.accounts = state.accounts.filter(a => a.id !== accId);
+      saveState();
+      renderAll();
+      showToast(`Đã xóa tài khoản ${acc.mssv}.`, 'info');
+    }
+
+    // Activities
+    function toggleJoinActivity(actId) {
+      const user = getCurrentUser();
+      const act = state.activities.find(a => a.id === actId);
+      if (!act || !user) return;
+
+      const idx = act.participants.indexOf(user.id);
+      if (idx > -1) {
+        act.participants.splice(idx, 1);
+        showToast(`Đã hủy đăng ký "${act.title}"`, 'info');
+      } else {
+        act.participants.push(user.id);
+        showToast(`Đăng ký thành công "${act.title}"!`, 'success');
+      }
+      saveState();
+      renderAll();
+    }
+
+    function openActivityModal() {
+      const m = document.getElementById('activity-modal');
+      m.classList.remove('hidden');
+      m.classList.add('flex');
+    }
+
+    function closeActivityModal() {
+      const m = document.getElementById('activity-modal');
+      m.classList.add('hidden');
+      m.classList.remove('flex');
+    }
+
+    function handleAddActivity(e) {
+      e.preventDefault();
+      const title = document.getElementById('act-title').value.trim();
+      const date = document.getElementById('act-date').value.trim();
+      const points = parseInt(document.getElementById('act-points').value, 10) || 5;
+      const location = document.getElementById('act-location').value.trim();
+      const desc = document.getElementById('act-desc').value.trim() || 'Hoạt động phong trào Chi đoàn ĐHSVAN26A.';
+
+      state.activities.unshift({
+        id: 'act-' + Date.now(),
+        title,
+        category: 'Phong trào Chi đoàn',
+        date,
+        location,
+        points,
+        desc,
+        participants: [state.loggedInUserId]
+      });
+
+      saveState();
+      closeActivityModal();
+      e.target.reset();
+      renderAll();
+      showToast('Đã tạo hoạt động mới thành công!', 'success');
+    }
+
+    function deleteActivity(actId) {
+      state.activities = state.activities.filter(a => a.id !== actId);
+      saveState();
+      renderAll();
+      showToast('Đã xóa hoạt động khỏi danh sách.', 'info');
+    }
+
+    function openParticipantsModal(actId) {
+      const act = state.activities.find(a => a.id === actId);
+      if (!act) return;
+      document.getElementById('part-modal-title').textContent = act.title;
+      document.getElementById('part-modal-sub').textContent = `Tổng cộng ${act.participants.length} đoàn viên đã đăng ký`;
+
+      const listEl = document.getElementById('part-modal-list');
+      if (act.participants.length === 0) {
+        listEl.innerHTML = `<p class="py-6 text-center text-xs text-slate-400">Chưa có đoàn viên nào đăng ký hoạt động này.</p>`;
+      } else {
+        listEl.innerHTML = act.participants.map((uid, i) => {
+          const u = state.accounts.find(x => x.id === uid) || { name: uid, mssv: uid, position: 'Đoàn viên' };
+          return `
+            <div class="py-2.5 flex items-center justify-between text-xs">
+              <div class="flex items-center gap-2.5">
+                <span class="w-6 h-6 rounded-lg bg-blue-50 text-[#0056B3] font-bold flex items-center justify-center">${i + 1}</span>
+                <div>
+                  <div class="font-bold text-slate-900">${u.name}</div>
+                  <div class="text-[11px] text-slate-400">${u.mssv} • ${u.position}</div>
+                </div>
+              </div>
+              <span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-bold text-[10px]">Đã ĐK</span>
+            </div>
+          `;
+        }).join('');
+      }
+
+      const m = document.getElementById('participants-modal');
+      m.classList.remove('hidden');
+      m.classList.add('flex');
+    }
+
+    function closeParticipantsModal() {
+      const m = document.getElementById('participants-modal');
+      m.classList.add('hidden');
+      m.classList.remove('flex');
+    }
+
+    function handleHandbookSearch(val) {
+      handbookSearchQuery = val;
+      renderContent();
+    }
+
+    function toggleMemberFee(userId) {
+      const u = state.accounts.find(x => x.id === userId);
+      if (!u) return;
+      u.feePaid = !u.feePaid;
+
+      if (u.feePaid) {
+        state.financeTransactions.unshift({
+          id: 'tx-' + Date.now(),
+          type: 'in',
+          title: `Thu Đoàn phí năm học (${u.name})`,
+          amount: 120000,
+          date: new Date().toLocaleDateString('vi-VN'),
+          note: `MSSV: ${u.mssv}`
+        });
+        showToast(`Đã xác nhận thu đoàn phí của ${u.name}`, 'success');
+      } else {
+        showToast(`Đã cập nhật trạng thái chưa đóng cho ${u.name}`, 'info');
+      }
+      saveState();
+      renderAll();
+    }
+
+    function handleAddTransaction(e) {
+      e.preventDefault();
+      const type = document.getElementById('tx-type').value;
+      const amount = parseInt(document.getElementById('tx-amount').value, 10);
+      const title = document.getElementById('tx-title').value.trim();
+      if (!amount || !title) return;
+
+      state.financeTransactions.unshift({
+        id: 'tx-' + Date.now(),
+        type,
+        title,
+        amount,
+        date: new Date().toLocaleDateString('vi-VN'),
+        note: 'Chủ web cập nhật'
+      });
+
+      saveState();
+      renderAll();
+      showToast('Đã ghi nhận giao dịch vào sổ quỹ Chi đoàn!', 'success');
+    }
+
+    function handleSubmitProof(e) {
+      e.preventDefault();
+      const user = getCurrentUser();
+      if (!user) return;
+      const activityTitle = document.getElementById('proof-activity').value;
+      const imageType = document.getElementById('proof-image-type').value;
+      const desc = document.getElementById('proof-desc').value.trim();
+
+      const now = new Date();
+      const timeStr = `${now.toLocaleDateString('vi-VN')} ${now.toTimeString().slice(0, 5)}`;
+
+      state.proofs.unshift({
+        id: 'prf-' + Date.now(),
+        userId: user.id,
+        activityTitle,
+        desc,
+        imageType,
+        submittedAt: timeStr,
+        status: 'pending'
+      });
+
+      saveState();
+      renderAll();
+      showToast('Đã nộp minh chứng! Đang chờ Chủ web duyệt.', 'success');
+    }
+
+    function updateProofStatus(proofId, newStatus) {
+      const prf = state.proofs.find(p => p.id === proofId);
+      if (!prf) return;
+      const wasApproved = prf.status === 'approved';
+      prf.status = newStatus;
+
+      const ownerAcc = state.accounts.find(u => u.id === prf.userId);
+      if (ownerAcc && newStatus === 'approved' && !wasApproved) {
+        ownerAcc.points = Math.min(100, ownerAcc.points + 3);
+      }
+
+      saveState();
+      renderAll();
+      showToast(
+        newStatus === 'approved' ? 'Đã duyệt minh chứng & cộng điểm rèn luyện!' : 'Đã từ chối minh chứng.',
+        newStatus === 'approved' ? 'success' : 'info'
+      );
+    }
+
+    function forceRefreshQr() {
+      qrSecondsLeft = 15;
+      currentQrToken = generateOtpToken();
+      const svgContainer = document.getElementById('dynamic-qr-svg');
+      if (svgContainer) svgContainer.innerHTML = buildPseudoQrSvg(currentQrToken);
+      updateQrLiveDom();
+      showToast('Đã sinh mã QR động 15s mới!', 'info');
+    }
+
+    function recordUserAttendance(userId, method) {
+      const exists = state.attendanceSession.records.some(r => r.userId === userId);
+      if (exists) {
+        showToast('Tài khoản này đã điểm danh trước đó!', 'info');
+        return;
+      }
+      const nowTime = new Date().toTimeString().slice(0, 8);
+      state.attendanceSession.records.push({
+        userId,
+        time: nowTime,
+        method
+      });
+      saveState();
+      renderAll();
+      const u = state.accounts.find(x => x.id === userId);
+      showToast(`Điểm danh thành công: ${u ? u.name : userId}`, 'success');
+    }
+
+    function memberQuickCheckIn() {
+      recordUserAttendance(state.loggedInUserId, 'Quét QR 15s');
+    }
+
+    function handleOtpCheckIn(e) {
+      e.preventDefault();
+      const input = document.getElementById('member-otp-input');
+      const val = (input.value || '').replace(/\s+/g, '');
+      if (val === currentQrToken) {
+        recordUserAttendance(state.loggedInUserId, 'Nhập mã OTP 15s');
+      } else {
+        showToast('Mã OTP không khớp hoặc đã hết hạn 15s! Vui lòng thử lại.', 'error');
+      }
+    }
+
+    function secretaryMarkPresent(userId) {
+      recordUserAttendance(userId, 'Chủ web xác nhận');
+    }
+
+    function resetAttendanceRecords() {
+      state.attendanceSession.records = [
+        { userId: 'ADMIN_VINH', time: new Date().toTimeString().slice(0, 8), method: 'Chủ web khởi tạo' }
+      ];
+      saveState();
+      renderAll();
+      showToast('Đã làm mới phiên điểm danh!', 'info');
+    }
+
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+
+      const styles = {
+        success: 'bg-slate-900 text-white border-emerald-500',
+        info: 'bg-slate-900 text-white border-sky-400',
+        error: 'bg-rose-600 text-white border-rose-300'
+      };
+      const icons = {
+        success: 'fa-circle-check text-emerald-400',
+        info: 'fa-circle-info text-sky-400',
+        error: 'fa-triangle-exclamation text-white'
+      };
+
+      toast.className = `pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-2xl shadow-xl border-l-4 text-xs font-semibold tab-fade-in ${styles[type] || styles.info}`;
+      toast.innerHTML = `
+        <i class="fa-solid ${icons[type] || icons.info} text-sm shrink-0"></i>
+        <span class="leading-snug">${message}</span>
+      `;
+
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-6px)';
+        toast.style.transition = 'all 0.25s ease';
+        setTimeout(() => toast.remove(), 250);
+      }, 2800);
+    }
+
+    // ==================== 8. MASTER RENDER & BOOTSTRAP ====================
+    function renderContent() {
+      if (!getCurrentUser()) return;
+      const container = document.getElementById('app-content');
+      switch (state.currentTab) {
+        case 'activities':
+          container.innerHTML = renderActivitiesView();
+          break;
+        case 'handbook':
+          container.innerHTML = renderHandbookView();
+          break;
+        case 'finance':
+          container.innerHTML = renderFinanceView();
+          break;
+        case 'proofs':
+          container.innerHTML = renderProofsView();
+          break;
+        case 'qr':
+          container.innerHTML = renderQrView();
+          break;
+        case 'accounts':
+          container.innerHTML = isOwnerUser() ? renderAccountsManagementView() : renderHomeView();
+          break;
+        case 'home':
+        default:
+          container.innerHTML = renderHomeView();
+          break;
+      }
+    }
+
+    function renderAll() {
+      renderShell();
+      renderContent();
+    }
+
+    ['password-modal', 'activity-modal', 'participants-modal'].forEach(id => {
+      document.getElementById(id).addEventListener('click', (e) => {
+        if (e.target.id === id) {
+          e.target.classList.add('hidden');
+          e.target.classList.remove('flex');
+        }
+      });
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      renderAll();
+      startQrTicker();
+    });
+  </script>
+</body>
+</html>
