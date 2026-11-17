@@ -205,10 +205,10 @@
       <!-- Menu điều hướng -->
       <nav id="desktop-menu" class="flex-1 px-3 py-4 space-y-1 overflow-y-auto"></nav>
 
-      <div class="p-4 border-t border-slate-100 text-center">
-        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 text-[11px] font-semibold text-slate-500">
-          <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Đoàn TNCS Hồ Chí Minh • 26A
-        </span>
+      <div class="p-4 border-t border-slate-100 text-center space-y-1.5">
+        <div id="sync-status-pill" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-[11px] font-semibold text-slate-600">
+          <span class="w-2 h-2 rounded-full bg-slate-400"></span> Chế độ cục bộ
+        </div>
       </div>
     </aside>
 
@@ -232,6 +232,9 @@
         </div>
 
         <div class="flex items-center gap-1.5 shrink-0">
+          <button onclick="manualCloudPull(true)" title="Làm mới dữ liệu từ Google Sheet" class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs">
+            <i class="fa-solid fa-arrows-rotate"></i>
+          </button>
           <button onclick="openProfileModal()" title="Cập nhật hồ sơ" class="w-8 h-8 rounded-xl bg-blue-50 text-[#0056B3] flex items-center justify-center text-xs">
             <i class="fa-solid fa-user-pen"></i>
           </button>
@@ -258,7 +261,11 @@
           <h2 id="topbar-title" class="text-lg font-extrabold text-slate-900 mt-0.5">Trang chủ Chi đoàn ĐHSVAN26A</h2>
         </div>
 
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2.5">
+          <button onclick="manualCloudPull(true)" title="Đồng bộ dữ liệu mới nhất" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-xs font-bold text-emerald-700 transition">
+            <i class="fa-solid fa-arrows-rotate"></i>
+            <span>Đồng bộ</span>
+          </button>
           <div id="topbar-role-badge" class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-xs font-bold text-amber-800">
             <i class="fa-solid fa-star text-amber-500"></i>
             <span>Bí Thư: Võ Quang Vinh</span>
@@ -280,7 +287,7 @@
     </nav>
   </div>
 
-  <!-- ==================== MODAL: CẬP NHẬT HỒ SƠ (ẢNH ĐẠI DIỆN, MSSV, SĐT, GMAIL) ==================== -->
+  <!-- ==================== MODAL: CẬP NHẬT HỒ SƠ ==================== -->
   <div id="profile-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
     <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-100 overflow-hidden view-enter">
       <div class="px-6 py-4 bg-gradient-to-r from-[#0056B3] to-[#0284C7] text-white flex items-center justify-between">
@@ -361,6 +368,44 @@
         <div class="flex justify-end gap-2 pt-2">
           <button type="button" onclick="closePassModal()" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold">Hủy</button>
           <button type="submit" class="px-4 py-2 rounded-xl bg-[#0056B3] text-white text-xs font-bold">Cập nhật</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: SỬA GIAO DỊCH QUỸ (ĐIỀU CHỈNH SỐ TIỀN) ==================== -->
+  <div id="ledger-edit-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-100 overflow-hidden view-enter">
+      <div class="px-6 py-4 bg-gradient-to-r from-[#0056B3] to-[#0284C7] text-white flex items-center justify-between">
+        <h3 class="font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-pen-to-square"></i> Điều chỉnh Giao dịch Quỹ</h3>
+        <button onclick="closeLedgerEditModal()" class="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form onsubmit="onSaveEditedLedger(event)" class="p-5 space-y-3.5">
+        <input type="hidden" id="edit-lg-id" />
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Loại giao dịch *</label>
+            <select id="edit-lg-kind" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold bg-white">
+              <option value="in">+ Khoản Thu</option>
+              <option value="out">- Khoản Chi</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Số tiền (VNĐ) *</label>
+            <input type="number" id="edit-lg-amount" required min="0" step="1000" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-extrabold text-[#0056B3]" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Nội dung giao dịch *</label>
+          <input type="text" id="edit-lg-title" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Ghi chú</label>
+          <input type="text" id="edit-lg-note" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs" />
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeLedgerEditModal()" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold">Hủy</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-[#0056B3] text-white text-xs font-bold">Lưu điều chỉnh</button>
         </div>
       </form>
     </div>
@@ -447,7 +492,10 @@
   <script>
     const DB_KEY = 'dhsvan26a_bithu_system_v5';
 
-    // NẾU MUỐN LƯU CỐ ĐỊNH DANH SÁCH LỚP VÀO LINK GỐC GITHUB, BÍ THƯ BẤM "COPY MÃ LƯU CỐ ĐỊNH GITHUB" TRÊN WEB RỒI DÁN ĐÈ DÒNG NÀY:
+    // DÁN LINK GOOGLE APPS SCRIPT (/exec) VÀO DÒNG DƯỚI ĐỂ CẢ LỚP TỰ ĐỘNG KẾT NỐI CHUNG DỮ LIỆU:
+    const PRESET_API_URL = '';
+
+    // DÁN MÃ DANH SÁCH LỚP CỐ ĐỊNH VÀO DÒNG DƯỚI NẾU MUỐN:
     const PRESET_MEMBERS = [];
 
     const SEED_USERS = [
@@ -483,7 +531,7 @@
       {
         tag: 'Đoàn phí & Quỹ lớp',
         title: 'Công khai thu chi Đoàn phí năm học 2026 - 2027',
-        body: 'Mức đóng đoàn phí theo quy định hiện hành, được cập nhật minh bạch tại mục Đoàn phí & Tài chính phục vụ phong trào chung của Chi đoàn.'
+        body: 'Mức đóng đoàn phí được cập nhật minh bạch tại mục Đoàn phí & Tài chính phục vụ phong trào chung của Chi đoàn.'
       },
       {
         tag: 'Trang phục Đoàn',
@@ -495,6 +543,8 @@
     const INITIAL_DB = {
       activeUserId: null,
       activeTab: 'home',
+      apiUrl: '',
+      feeAmount: 120000,
       users: SEED_USERS,
       activities: [
         {
@@ -545,6 +595,7 @@
       ],
       attendance: {
         sessionId: 'SESS-26A',
+        round: 1,
         title: 'Sinh hoạt Chi đoàn định kỳ Tháng 11/2026',
         location: 'Phòng B.304 - Giảng đường B',
         isOpen: false,
@@ -552,15 +603,200 @@
         openedAtSec: 0,
         qrNonce: '2601',
         logs: [
-          { userId: 'BITHU_VINH', time: '19:00:00 17/11/2026', method: 'Bí Thư chủ trì' }
+          { userId: 'BITHU_VINH', time: '19:00:00 17/11/2026', method: 'Bí Thư chủ trì', round: 1 }
         ]
       }
     };
 
     let db = loadDatabase();
     let latestCompactLinkCache = '';
+    let cloudSyncStatus = 'offline'; // 'offline' | 'syncing' | 'online' | 'error'
+    let cloudPollHandle = null;
+    let isCloudBusy = false;
 
-    // ==================== NÉN SIÊU GỌN LINK LỚP HỌC (RÚT GỌN TIỀN TỐ + DEFLATE/LZW + BASE64URL) ====================
+    function getActiveApiUrl() {
+      return (db.apiUrl || PRESET_API_URL || '').trim();
+    }
+
+    function updateSyncStatusBadge() {
+      const el = document.getElementById('sync-status-pill');
+      if (!el) return;
+      const url = getActiveApiUrl();
+      if (!url) {
+        el.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-[11px] font-semibold text-slate-500';
+        el.innerHTML = '<span class="w-2 h-2 rounded-full bg-slate-400"></span> Lưu cục bộ (Chưa gắn Sheet)';
+        return;
+      }
+      if (cloudSyncStatus === 'syncing') {
+        el.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-[#0056B3] text-[11px] font-bold';
+        el.innerHTML = '<span class="w-2 h-2 rounded-full bg-[#0056B3] beacon-dot"></span> Đang đồng bộ Sheet...';
+      } else if (cloudSyncStatus === 'error') {
+        el.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 text-rose-600 text-[11px] font-bold';
+        el.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500"></span> Lỗi kết nối Google Sheet';
+      } else {
+        el.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold';
+        el.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Đã nối Google Sheet';
+      }
+    }
+
+    // ==================== ĐỒNG BỘ DỮ LIỆU CHUNG QUA GOOGLE SHEETS ====================
+    function applyRemoteSharedState(remote) {
+      if (!remote || typeof remote !== 'object') return false;
+      let changed = false;
+
+      if (Array.isArray(remote.users) && remote.users.length > 0) {
+        // Giữ ảnh đại diện cục bộ nếu remote chưa có ảnh
+        const localAvatarMap = new Map(db.users.map(u => [u.id, u.avatar]));
+        remote.users.forEach(ru => {
+          if (!ru.avatar && localAvatarMap.get(ru.id)) {
+            ru.avatar = localAvatarMap.get(ru.id);
+          }
+        });
+        if (!remote.users.some(u => u.id === 'BITHU_VINH')) {
+          remote.users.unshift(SEED_USERS[0]);
+        }
+        db.users = remote.users;
+        changed = true;
+      }
+
+      if (Array.isArray(remote.activities)) {
+        db.activities = remote.activities;
+        changed = true;
+      }
+      if (Array.isArray(remote.ledger)) {
+        db.ledger = remote.ledger;
+        changed = true;
+      }
+      if (Array.isArray(remote.evidences)) {
+        db.evidences = remote.evidences;
+        changed = true;
+      }
+      if (remote.feeAmount) {
+        db.feeAmount = Number(remote.feeAmount);
+      }
+      if (remote.attendance && typeof remote.attendance === 'object') {
+        db.attendance = { ...db.attendance, ...remote.attendance };
+        changed = true;
+      }
+
+      if (changed) {
+        persistLocalOnly();
+      }
+      return changed;
+    }
+
+    function getSharedPayloadSnapshot() {
+      // Lược bớt ảnh base64 quá nặng trước khi gửi lên Google Sheet (giới hạn 50.000 ký tự/ô của Google Sheet)
+      const safeUsers = db.users.map(u => {
+        const copy = { ...u };
+        if (copy.avatar && copy.avatar.length > 1500) {
+          copy.avatar = '';
+        }
+        return copy;
+      });
+      return {
+        feeAmount: Number(db.feeAmount || 120000),
+        users: safeUsers,
+        activities: db.activities,
+        ledger: db.ledger,
+        evidences: db.evidences,
+        attendance: db.attendance
+      };
+    }
+
+    async function cloudApiRequest(payloadOrNull) {
+      const apiUrl = getActiveApiUrl();
+      if (!apiUrl) return null;
+
+      cloudSyncStatus = 'syncing';
+      updateSyncStatusBadge();
+
+      try {
+        let res;
+        if (!payloadOrNull) {
+          const sep = apiUrl.includes('?') ? '&' : '?';
+          res = await fetch(`${apiUrl}${sep}t=${Date.now()}`, { method: 'GET' });
+        } else {
+          res = await fetch(apiUrl, {
+            method: 'POST',
+            body: JSON.stringify(payloadOrNull)
+          });
+        }
+        const json = await res.json();
+        cloudSyncStatus = 'online';
+        updateSyncStatusBadge();
+        return json;
+      } catch (err) {
+        cloudSyncStatus = 'error';
+        updateSyncStatusBadge();
+        console.warn('Lỗi đồng bộ Google Sheet:', err);
+        return null;
+      }
+    }
+
+    async function pushFullStateToCloud() {
+      if (!getActiveApiUrl()) return;
+      await cloudApiRequest({
+        action: 'SYNC_PUSH',
+        state: getSharedPayloadSnapshot()
+      });
+    }
+
+    async function pushAtomicActionToCloud(actionName, dataObj) {
+      if (!getActiveApiUrl()) return;
+      const resp = await cloudApiRequest({
+        action: actionName,
+        data: dataObj,
+        fallbackState: getSharedPayloadSnapshot()
+      });
+      if (resp && resp.ok && resp.state) {
+        applyRemoteSharedState(resp.state);
+        renderApp();
+      }
+    }
+
+    async function manualCloudPull(showNotice = false) {
+      const apiUrl = getActiveApiUrl();
+      if (!apiUrl) {
+        if (showNotice) showToast('Chưa cấu hình link Google Sheet! Vào mục 6 để dán link.', 'info');
+        return;
+      }
+      if (isCloudBusy) return;
+      isCloudBusy = true;
+      try {
+        const resp = await cloudApiRequest(null);
+        if (resp && resp.ok && resp.state) {
+          const oldJson = JSON.stringify(getSharedPayloadSnapshot());
+          applyRemoteSharedState(resp.state);
+          const newJson = JSON.stringify(getSharedPayloadSnapshot());
+          if (oldJson !== newJson) {
+            renderApp();
+          }
+          if (showNotice) showToast('Đã đồng bộ dữ liệu mới nhất từ Google Sheet!', 'success');
+        } else if (resp && resp.ok && !resp.state && isSecretary()) {
+          // Sheet mới tạo chưa có dữ liệu -> Bí Thư đẩy dữ liệu khởi tạo lên
+          await pushFullStateToCloud();
+          if (showNotice) showToast('Đã khởi tạo dữ liệu lên Google Sheet thành công!', 'success');
+        } else if (showNotice) {
+          showToast('Không tải được dữ liệu từ Google Sheet. Kiểm tra lại quyền truy cập Web App!', 'error');
+        }
+      } finally {
+        isCloudBusy = false;
+      }
+    }
+
+    function startCloudAutoSync() {
+      if (cloudPollHandle) clearInterval(cloudPollHandle);
+      cloudPollHandle = setInterval(() => {
+        if (!getActiveApiUrl()) return;
+        // Không tự render đè khi người dùng đang gõ chữ trong ô nhập liệu
+        const activeTag = document.activeElement ? document.activeElement.tagName : '';
+        if (activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT') return;
+        manualCloudPull(false);
+      }, 6000);
+    }
+
+    // ==================== NÉN SIÊU GỌN LINK LỚP HỌC ====================
     function bytesToBase64Url(uint8) {
       let binary = '';
       const chunk = 0x8000;
@@ -581,7 +817,6 @@
       return bytes;
     }
 
-    // Nén LZW thuần JS dự phòng (không cần mạng / thư viện ngoài)
     function lzwCompressString(str) {
       const inputBytes = new TextEncoder().encode(str);
       const dict = new Map();
@@ -658,7 +893,6 @@
       return new TextDecoder().decode(buf);
     }
 
-    // Rút gọn tiền tố MSSV + lược bỏ giá trị mặc định để giảm ~65% kích thước trước khi nén
     function packMembersCompactText(members) {
       let prefix = '';
       if (members.length >= 2) {
@@ -669,7 +903,6 @@
             prefix = prefix.slice(0, -1);
           }
         }
-        // Chừa lại ít nhất 2 ký tự cuối cho mỗi MSSV
         const minLen = Math.min(...members.map(m => m.mssv.length));
         if (prefix.length > minLen - 2) {
           prefix = prefix.slice(0, Math.max(0, minLen - 2));
@@ -677,7 +910,11 @@
         if (prefix.length < 3) prefix = '';
       }
 
-      const lines = [`P:${prefix}`];
+      const lines = [];
+      const api = getActiveApiUrl();
+      if (api) lines.push(`A:${api}`);
+      lines.push(`P:${prefix}`);
+
       members.forEach(m => {
         const suffix = prefix ? m.mssv.slice(prefix.length) : m.mssv;
         const name = (m.name || '').replace(/[\n\r~]/g, ' ').trim();
@@ -705,9 +942,18 @@
       if (lines.length === 0) return [];
       let prefix = '';
       let startIdx = 0;
-      if (lines[0].startsWith('P:')) {
-        prefix = lines[0].slice(2).trim();
-        startIdx = 1;
+
+      while (startIdx < lines.length) {
+        if (lines[startIdx].startsWith('A:')) {
+          const url = lines[startIdx].slice(2).trim();
+          if (url) db.apiUrl = url;
+          startIdx++;
+        } else if (lines[startIdx].startsWith('P:')) {
+          prefix = lines[startIdx].slice(2).trim();
+          startIdx++;
+        } else {
+          break;
+        }
       }
 
       const list = [];
@@ -857,14 +1103,14 @@
       try {
         document.execCommand('copy');
       } catch (e) {
-        prompt('Copy đường link bên dưới và gửi vào nhóm Zalo lớp:', text);
+        prompt('Copy nội dung bên dưới:', text);
       }
       document.body.removeChild(ta);
     }
 
     async function copyClassInviteLink() {
       const members = db.users.filter(u => u.role === 'member');
-      if (members.length === 0) {
+      if (members.length === 0 && !getActiveApiUrl()) {
         showToast('Bạn chưa cấp tài khoản nào! Hãy nhập MSSV cho lớp trước nhé.', 'error');
         return;
       }
@@ -881,7 +1127,7 @@
       }
 
       copyTextSafely(link);
-      showToast(`Đã copy Link Lớp học nén gọn (${link.length} ký tự) cho ${members.length} bạn! Dán gửi 1 tin nhắn Zalo là xong.`, 'success');
+      showToast(`Đã copy Link Lớp học nén gọn (${link.length} ký tự)! Dán gửi 1 tin nhắn Zalo là xong.`, 'success');
     }
 
     function copyGithubPresetCode() {
@@ -894,9 +1140,98 @@
         m.points,
         m.feePaid ? 1 : 0
       ]);
-      const codeLine = `const PRESET_MEMBERS = ${JSON.stringify(compact)};`;
-      copyTextSafely(codeLine);
-      showToast('Đã copy đoạn mã! Mở file index.html trên GitHub và dán đè dòng const PRESET_MEMBERS = [];', 'success');
+      const api = getActiveApiUrl();
+      const codeBlock = `const PRESET_API_URL = ${JSON.stringify(api)};\n    const PRESET_MEMBERS = ${JSON.stringify(compact)};`;
+      copyTextSafely(codeBlock);
+      showToast('Đã copy mã cố định (gồm Link Google Sheet + Danh sách lớp)! Dán đè vào index.html trên GitHub.', 'success');
+    }
+
+    function onSaveApiUrlConfig(e) {
+      e.preventDefault();
+      if (!isSecretary()) return;
+      const val = document.getElementById('sheet-api-url-input').value.trim();
+      if (val && !val.startsWith('https://script.google.com/')) {
+        showToast('Link Google Apps Script phải bắt đầu bằng https://script.google.com/...', 'error');
+        return;
+      }
+      db.apiUrl = val;
+      latestCompactLinkCache = '';
+      persistLocalOnly();
+      updateSyncStatusBadge();
+      if (val) {
+        manualCloudPull(true);
+      } else {
+        showToast('Đã ngắt kết nối Google Sheet (chuyển về lưu cục bộ).', 'info');
+      }
+      renderMainBody();
+    }
+
+    function copyAppsScriptSource() {
+      const scriptCode = `function doGet(e) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('DB_STATE') || ss.insertSheet('DB_STATE');
+  var raw = sheet.getRange('A1').getValue();
+  var state = raw ? JSON.parse(raw) : null;
+  return ContentService.createTextOutput(JSON.stringify({ ok: true, state: state }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  var lock = LockService.getScriptLock();
+  lock.waitLock(15000);
+  try {
+    var req = JSON.parse(e.postData.contents);
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName('DB_STATE') || ss.insertSheet('DB_STATE');
+    var raw = sheet.getRange('A1').getValue();
+    var state = raw ? JSON.parse(raw) : (req.fallbackState || {});
+
+    if (req.action === 'SYNC_PUSH' && req.state) {
+      state = req.state;
+    } else if (req.action === 'SCAN_QR' && req.data) {
+      state.attendance = state.attendance || { logs: [] };
+      state.attendance.logs = state.attendance.logs || [];
+      var exists = state.attendance.logs.some(function(l) { return l.userId === req.data.userId; });
+      if (!exists) {
+        state.attendance.logs.push(req.data);
+        var logSheet = ss.getSheetByName('DIEM_DANH_LOG') || ss.insertSheet('DIEM_DANH_LOG');
+        if (logSheet.getLastRow() === 0) {
+          logSheet.appendRow(['Thoi gian', 'MSSV / ID', 'Ho va ten', 'Phuong thuc', 'Dot']);
+        }
+        logSheet.appendRow([req.data.time, req.data.mssv || req.data.userId, req.data.name || '', req.data.method || 'QR', req.data.round || 1]);
+      }
+    } else if (req.action === 'TOGGLE_ACTIVITY' && req.data) {
+      var act = (state.activities || []).filter(function(a) { return a.id === req.data.actId; })[0];
+      if (act) {
+        act.joinedIds = act.joinedIds || [];
+        var idx = act.joinedIds.indexOf(req.data.userId);
+        if (idx > -1) act.joinedIds.splice(idx, 1);
+        else act.joinedIds.push(req.data.userId);
+      }
+    } else if (req.action === 'SUBMIT_EVIDENCE' && req.data) {
+      state.evidences = state.evidences || [];
+      state.evidences.unshift(req.data);
+    } else if (req.action === 'UPDATE_USER' && req.data) {
+      var u = (state.users || []).filter(function(x) { return x.id === req.data.id; })[0];
+      if (u) {
+        for (var k in req.data) {
+          if (k !== 'avatar' || (req.data[k] && req.data[k].length < 1500)) {
+            u[k] = req.data[k];
+          }
+        }
+      }
+    }
+
+    sheet.getRange('A1').setValue(JSON.stringify(state));
+    sheet.getRange('B1').setValue(new Date().toLocaleString('vi-VN'));
+    return ContentService.createTextOutput(JSON.stringify({ ok: true, state: state }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } finally {
+    lock.releaseLock();
+  }
+}`;
+      copyTextSafely(scriptCode);
+      showToast('Đã copy mã Google Apps Script! Dán vào Apps Script của Google Sheet và Triển khai Web App.', 'success');
     }
 
     // ==================== LƯU TRỮ LOCAL & GIỮ PHIÊN ĐĂNG NHẬP KHI F5 ====================
@@ -913,7 +1248,8 @@
           baseData = {
             ...baseData,
             ...parsed,
-            attendance: { ...baseData.attendance, ...(parsed.attendance || {}) }
+            feeAmount: Number(parsed.feeAmount || 120000),
+            attendance: { round: 1, ...baseData.attendance, ...(parsed.attendance || {}) }
           };
           if (baseData.activeUserId && !baseData.users.some(u => u.id === baseData.activeUserId)) {
             baseData.activeUserId = null;
@@ -921,6 +1257,9 @@
         }
       } catch (err) {
         console.warn('Lỗi đọc dữ liệu:', err);
+      }
+      if (!baseData.apiUrl && PRESET_API_URL) {
+        baseData.apiUrl = PRESET_API_URL;
       }
       return baseData;
     }
@@ -956,7 +1295,7 @@
     }
 
     function formatVND(val) {
-      return new Intl.NumberFormat('vi-VN').format(val) + 'đ';
+      return new Intl.NumberFormat('vi-VN').format(Number(val) || 0) + 'đ';
     }
 
     function formatSecondsMMSS(totalSec) {
@@ -988,17 +1327,27 @@
       }
     }
 
-    function onLoginSubmit(e) {
+    async function onLoginSubmit(e) {
       e.preventDefault();
       const userInp = document.getElementById('auth-user').value.trim();
       const passInp = document.getElementById('auth-pass').value.trim();
       const norm = normalizeInput(userInp);
 
-      const matched = db.users.find(u => {
+      let matched = db.users.find(u => {
         const directMatch = u.username.toLowerCase() === userInp.toLowerCase() || u.mssv.toLowerCase() === userInp.toLowerCase();
         const fuzzyMatch = normalizeInput(u.username) === norm || normalizeInput(u.mssv) === norm || normalizeInput(u.name) === norm;
         return (directMatch || fuzzyMatch) && u.password === passInp;
       });
+
+      // Nếu chưa thấy ở máy và có Google Sheet -> kéo danh sách mới nhất về thử lại
+      if (!matched && getActiveApiUrl()) {
+        await manualCloudPull(false);
+        matched = db.users.find(u => {
+          const directMatch = u.username.toLowerCase() === userInp.toLowerCase() || u.mssv.toLowerCase() === userInp.toLowerCase();
+          const fuzzyMatch = normalizeInput(u.username) === norm || normalizeInput(u.mssv) === norm || normalizeInput(u.name) === norm;
+          return (directMatch || fuzzyMatch) && u.password === passInp;
+        });
+      }
 
       if (!matched) {
         showToast('Tài khoản hoặc mật khẩu không đúng! Nếu chưa có tài khoản, hãy mở đúng Link Lớp học Bí Thư gửi.', 'error');
@@ -1029,6 +1378,8 @@
         version: 5,
         exportedAt: new Date().toISOString(),
         data: {
+          apiUrl: db.apiUrl,
+          feeAmount: db.feeAmount,
           users: db.users,
           activities: db.activities,
           ledger: db.ledger,
@@ -1050,7 +1401,7 @@
       const file = event.target.files && event.target.files[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = function (ev) {
+      reader.onload = async function (ev) {
         try {
           const parsed = JSON.parse(ev.target.result);
           const imported = parsed.data || parsed;
@@ -1060,6 +1411,8 @@
           if (!imported.users.some(u => u.id === 'BITHU_VINH')) {
             imported.users.unshift(SEED_USERS[0]);
           }
+          if (imported.apiUrl) db.apiUrl = imported.apiUrl;
+          if (imported.feeAmount) db.feeAmount = Number(imported.feeAmount);
           db.users = imported.users;
           db.activities = imported.activities || db.activities;
           db.ledger = imported.ledger || db.ledger;
@@ -1067,6 +1420,7 @@
           db.attendance = { ...db.attendance, ...(imported.attendance || {}) };
 
           persistLocalOnly();
+          await pushFullStateToCloud();
           renderApp();
           showToast('Khôi phục dữ liệu từ file sao lưu thành công!', 'success');
         } catch (err) {
@@ -1158,7 +1512,7 @@
       modal.classList.remove('flex');
     }
 
-    function onSaveProfile(e) {
+    async function onSaveProfile(e) {
       e.preventDefault();
       const u = currentUser();
       if (!u) return;
@@ -1189,9 +1543,10 @@
       closeProfileModal();
       renderApp();
       showToast('Đã cập nhật thông tin hồ sơ thành công!', 'success');
+      await pushAtomicActionToCloud('UPDATE_USER', { id: u.id, name: u.name, mssv: u.mssv, username: u.username, phone: u.phone, email: u.email });
     }
 
-    function onSaveInlineProfile(e) {
+    async function onSaveInlineProfile(e) {
       e.preventDefault();
       const u = currentUser();
       if (!u) return;
@@ -1224,6 +1579,7 @@
       persistLocalOnly();
       renderApp();
       showToast('Đã lưu cập nhật hồ sơ cá nhân!', 'success');
+      await pushAtomicActionToCloud('UPDATE_USER', { id: u.id, name: u.name, mssv: u.mssv, username: u.username, phone: u.phone, email: u.email });
     }
 
     function openPassModal() {
@@ -1238,7 +1594,7 @@
       m.classList.remove('flex');
     }
 
-    function onSavePassword(e) {
+    async function onSavePassword(e) {
       e.preventDefault();
       const u = currentUser();
       if (!u) return;
@@ -1253,9 +1609,10 @@
       e.target.reset();
       closePassModal();
       showToast('Đổi mật khẩu thành công!', 'success');
+      await pushAtomicActionToCloud('UPDATE_USER', { id: u.id, password: u.password });
     }
 
-    // ==================== HỆ THỐNG QR CODE & CAMERA QUÉT CHUẨN ====================
+    // ==================== HỆ THỐNG QR CODE & RESET ĐỂ QUÉT LẠI ====================
     let qrTickerHandle = null;
     let html5ScannerInstance = null;
     let isCameraRunning = false;
@@ -1270,7 +1627,8 @@
     }
 
     function getQrEncodedText() {
-      return `DHSVAN26A|${db.attendance.openedAtSec}|${db.attendance.durationSec}|${db.attendance.qrNonce}`;
+      const round = Number(db.attendance.round || 1);
+      return `DHSVAN26A|${db.attendance.openedAtSec}|${db.attendance.durationSec}|${db.attendance.qrNonce}|${round}`;
     }
 
     function renderCrispQrCanvas(canvasId, sizePx) {
@@ -1326,7 +1684,7 @@
       }
     }
 
-    function onSetQrDuration(seconds) {
+    async function onSetQrDuration(seconds) {
       if (!isSecretary()) return;
       const secVal = Math.max(10, Math.min(3600, parseInt(seconds, 10) || 120));
       db.attendance.durationSec = secVal;
@@ -1337,6 +1695,7 @@
       persistLocalOnly();
       renderMainBody();
       showToast(`Đã đặt thời gian QR code: ${formatSecondsMMSS(secVal)} (${secVal} giây)!`, 'success');
+      await pushFullStateToCloud();
     }
 
     function onCustomDurationSubmit(e) {
@@ -1351,7 +1710,7 @@
       onSetQrDuration(totalSeconds);
     }
 
-    function onToggleOpenQrCode() {
+    async function onToggleOpenQrCode() {
       if (!isSecretary()) return;
       if (db.attendance.isOpen) {
         db.attendance.isOpen = false;
@@ -1364,8 +1723,42 @@
         db.attendance.qrNonce = Math.floor(1000 + Math.random() * 9000).toString();
         persistLocalOnly();
         renderMainBody();
-        showToast(`Đã mở mã QR điểm danh (${formatSecondsMMSS(db.attendance.durationSec)})!`, 'success');
+        showToast(`Đã mở mã QR điểm danh Đợt #${db.attendance.round || 1} (${formatSecondsMMSS(db.attendance.durationSec)})!`, 'success');
       }
+      await pushFullStateToCloud();
+    }
+
+    // Reset điểm danh để cả lớp có thể quét lại từ đầu
+    async function onResetAttendanceSession() {
+      if (!isSecretary()) return;
+      const now = new Date();
+      db.attendance.round = Number(db.attendance.round || 1) + 1;
+      db.attendance.qrNonce = Math.floor(1000 + Math.random() * 9000).toString();
+      if (db.attendance.isOpen) {
+        db.attendance.openedAtSec = Math.floor(Date.now() / 1000);
+      }
+      db.attendance.logs = [
+        {
+          userId: 'BITHU_VINH',
+          time: `${now.toTimeString().slice(0, 8)} ${now.toLocaleDateString('vi-VN')}`,
+          method: 'Bí Thư chủ trì',
+          round: db.attendance.round
+        }
+      ];
+      persistLocalOnly();
+      renderApp();
+      showToast(`Đã Reset danh sách điểm danh sang Đợt #${db.attendance.round}! Tất cả đoàn viên có thể quét QR lại.`, 'success');
+      await pushFullStateToCloud();
+    }
+
+    // Cho phép Đoàn viên mở lại máy quét nếu Bí Thư vừa mở đợt QR mới
+    function resetMyLocalScanForRescan() {
+      const u = currentUser();
+      if (!u) return;
+      db.attendance.logs = db.attendance.logs.filter(l => l.userId !== u.id);
+      persistLocalOnly();
+      renderMainBody();
+      showToast('Đã mở lại máy quét! Hãy quét mã QR mới của Bí Thư.', 'info');
     }
 
     function downloadQrPng() {
@@ -1375,7 +1768,7 @@
         return;
       }
       const link = document.createElement('a');
-      link.download = `QR_DiemDanh_DHSVAN26A_${db.attendance.qrNonce}.png`;
+      link.download = `QR_DiemDanh_DHSVAN26A_Dot${db.attendance.round || 1}.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
       showToast('Đã tải ảnh mã QR! Bạn có thể gửi ảnh này cho các thành viên quét.', 'success');
@@ -1383,7 +1776,7 @@
 
     function openZoomQrModal() {
       if (!db.attendance.isOpen) return;
-      document.getElementById('zoom-session-title').textContent = db.attendance.title;
+      document.getElementById('zoom-session-title').textContent = `${db.attendance.title} (Đợt #${db.attendance.round || 1})`;
       const m = document.getElementById('qr-zoom-modal');
       m.classList.remove('hidden');
       m.classList.add('flex');
@@ -1571,6 +1964,7 @@
 
       const openedAtSec = parseInt(parts[1], 10);
       const durationSec = parseInt(parts[2], 10);
+      const scannedRound = parseInt(parts[4] || '1', 10);
       const nowSec = Math.floor(Date.now() / 1000);
 
       if (!openedAtSec || !durationSec || nowSec > openedAtSec + durationSec + 20) {
@@ -1581,7 +1975,7 @@
 
       await stopCameraScanner();
       playSuccessBeep();
-      commitAttendance(db.activeUserId, 'Quét QR Bí Thư');
+      await commitAttendance(db.activeUserId, 'Quét QR Bí Thư', scannedRound);
     }
 
     function copyAttendanceReceipt() {
@@ -1736,6 +2130,7 @@
       const activeItem = menu.find(m => m.id === db.activeTab) || menu[0];
       document.getElementById('topbar-crumb').textContent = activeItem.title;
       document.getElementById('topbar-title').textContent = activeItem.id === 'home' ? 'Trang chủ Chi đoàn ĐHSVAN26A' : activeItem.title;
+      updateSyncStatusBadge();
     }
 
     // ==================== CÁC MÀN HÌNH CHỨC NĂNG ====================
@@ -1750,12 +2145,12 @@
       const cards = [
         { id: 'activities', title: '1. Hoạt động và phong trào', sub: `${db.activities.length} hoạt động đang mở`, icon: 'fa-fire-flame-curved', bg: 'from-blue-600 to-[#0056B3]' },
         { id: 'handbook', title: '2. Sổ tay Đoàn viên & Hồ sơ', sub: 'Cập nhật ảnh, SĐT, Gmail & MSSV', icon: 'fa-book-bookmark', bg: 'from-sky-500 to-cyan-600' },
-        { id: 'finance', title: '3. Đoàn phí và Tài chính', sub: 'Minh bạch thu chi quỹ Chi đoàn', icon: 'fa-wallet', bg: 'from-emerald-500 to-teal-600' },
+        { id: 'finance', title: '3. Đoàn phí và Tài chính', sub: 'Minh bạch & điều chỉnh quỹ Chi đoàn', icon: 'fa-wallet', bg: 'from-emerald-500 to-teal-600' },
         { id: 'proofs', title: '4. Minh chứng hoạt động', sub: `${pendingEv} hồ sơ đang chờ duyệt`, icon: 'fa-file-circle-check', bg: 'from-indigo-500 to-blue-600' },
         {
           id: 'qr',
           title: '5. QR Điểm danh',
-          sub: sec ? 'Bí Thư mở QR & đặt thời gian' : 'Bật máy quét QR code điểm danh',
+          sub: sec ? 'Mở QR, đặt thời gian & reset quét lại' : 'Bật máy quét QR code điểm danh',
           icon: 'fa-qrcode',
           bg: 'from-rose-500 to-red-600',
           tag: sec ? 'MỞ QR' : 'QUÉT QR'
@@ -1766,7 +2161,7 @@
         cards.push({
           id: 'accounts',
           title: '6. Quản lý & Cấp tài khoản',
-          sub: `${memberTotal} TK • Link nén Zalo & Sao lưu`,
+          sub: `${memberTotal} TK • Nối Google Sheet & Link Zalo`,
           icon: 'fa-user-shield',
           bg: 'from-amber-500 to-orange-600',
           tag: 'BÍ THƯ'
@@ -2060,11 +2455,13 @@
       `;
     }
 
-    // 3. ĐOÀN PHÍ VÀ TÀI CHÍNH
+    // 3. ĐOÀN PHÍ VÀ TÀI CHÍNH (ĐÃ SỬA HOÀN TÁC TRỪ TIỀN & BỔ SUNG ĐIỀU CHỈNH SỐ TIỀN)
     function buildFinanceHtml() {
       const sec = isSecretary();
-      const sumIn = db.ledger.filter(x => x.kind === 'in').reduce((a, b) => a + b.amount, 0);
-      const sumOut = db.ledger.filter(x => x.kind === 'out').reduce((a, b) => a + b.amount, 0);
+      const feeRate = Number(db.feeAmount || 120000);
+      const sumIn = db.ledger.filter(x => x.kind === 'in').reduce((a, b) => a + Number(b.amount || 0), 0);
+      const sumOut = db.ledger.filter(x => x.kind === 'out').reduce((a, b) => a + Number(b.amount || 0), 0);
+      const balance = sumIn - sumOut;
 
       return `
         <div class="space-y-5 view-enter">
@@ -2079,16 +2476,24 @@
             </div>
             <div class="bg-gradient-to-br from-[#0056B3] to-[#0284C7] text-white rounded-3xl p-5 shadow-md">
               <span class="text-xs font-bold text-blue-100">Tồn quỹ hiện tại</span>
-              <div class="text-xl sm:text-2xl font-extrabold mt-1">${formatVND(sumIn - sumOut)}</div>
+              <div class="text-xl sm:text-2xl font-extrabold mt-1">${formatVND(balance)}</div>
             </div>
           </div>
 
           <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
-            <div class="lg:col-span-7 bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs">
-              <h3 class="font-extrabold text-base text-slate-900">Tình hình đóng Đoàn phí (120.000đ/năm)</h3>
-              <p class="text-xs text-slate-500 mb-4">${sec ? 'Bí Thư xác nhận thu đoàn phí cho từng thành viên' : 'Danh sách cập nhật trạng thái đoàn phí'}</p>
+            <!-- CỘT ĐOÀN PHÍ THÀNH VIÊN -->
+            <div class="lg:col-span-6 bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs">
+              <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+                <h3 class="font-extrabold text-base text-slate-900">Đóng Đoàn phí (${formatVND(feeRate)}/năm)</h3>
+                ${sec ? `
+                  <button onclick="onChangeFeeAmount()" class="px-2.5 py-1 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-[11px] font-bold">
+                    <i class="fa-solid fa-sliders mr-1"></i>Đổi mức thu
+                  </button>
+                ` : ''}
+              </div>
+              <p class="text-xs text-slate-500 mb-4">${sec ? 'Bấm Xác nhận thu để cộng quỹ, hoặc Hoàn tác để trừ lại đúng số tiền' : 'Danh sách cập nhật trạng thái đoàn phí'}</p>
 
-              <div class="divide-y divide-slate-100">
+              <div class="divide-y divide-slate-100 max-h-[460px] overflow-y-auto pr-1">
                 ${db.users.map(u => `
                   <div class="py-3 flex items-center justify-between gap-3">
                     <div class="flex items-center gap-3 min-w-0">
@@ -2108,7 +2513,11 @@
                         ${u.feePaid ? 'Đã đóng' : 'Chưa đóng'}
                       </span>
                       ${sec ? `
-                        <button onclick="toggleFeePaid('${u.id}')" class="px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-[#0056B3] hover:text-white text-slate-700 text-[11px] font-bold transition">
+                        <button onclick="toggleFeePaid('${u.id}')" class="px-2.5 py-1 rounded-xl text-[11px] font-bold transition ${
+                          u.feePaid
+                            ? 'bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200'
+                            : 'bg-slate-100 hover:bg-[#0056B3] hover:text-white text-slate-700'
+                        }">
                           ${u.feePaid ? 'Hoàn tác' : 'Xác nhận thu'}
                         </button>
                       ` : ''}
@@ -2118,20 +2527,35 @@
               </div>
             </div>
 
-            <div class="lg:col-span-5 bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+            <!-- CỘT SỔ THU CHI & ĐIỀU CHỈNH SỐ TIỀN -->
+            <div class="lg:col-span-6 bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between">
               <div>
-                <h3 class="font-extrabold text-base text-slate-900 mb-1">Sổ thu chi minh bạch</h3>
-                <p class="text-xs text-slate-500 mb-4">Lịch sử giao dịch quỹ Chi đoàn ĐHSVAN26A</p>
-                <div class="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+                <div class="flex items-center justify-between gap-2 mb-1">
+                  <h3 class="font-extrabold text-base text-slate-900">Sổ thu chi minh bạch</h3>
+                  <span class="text-[11px] font-semibold text-slate-400">${db.ledger.length} giao dịch</span>
+                </div>
+                <p class="text-xs text-slate-500 mb-4">${sec ? 'Bí Thư có thể bấm biểu tượng bút để điều chỉnh số tiền hoặc xóa giao dịch' : 'Lịch sử giao dịch quỹ Chi đoàn ĐHSVAN26A'}</p>
+
+                <div class="space-y-2.5 max-h-80 overflow-y-auto pr-1">
                   ${db.ledger.map(item => `
-                    <div class="p-3 rounded-2xl bg-slate-50 border border-slate-100 flex items-start justify-between gap-2">
-                      <div>
-                        <div class="font-bold text-xs text-slate-900">${item.title}</div>
-                        <div class="text-[11px] text-slate-500 mt-0.5">${item.date} • ${item.note}</div>
+                    <div class="p-3 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between gap-2">
+                      <div class="min-w-0 flex-1">
+                        <div class="font-bold text-xs text-slate-900 truncate">${item.title}</div>
+                        <div class="text-[11px] text-slate-500 mt-0.5">${item.date} • ${item.note || ''}</div>
                       </div>
-                      <span class="font-extrabold text-xs shrink-0 ${item.kind === 'in' ? 'text-emerald-600' : 'text-rose-600'}">
-                        ${item.kind === 'in' ? '+' : '-'}${formatVND(item.amount)}
-                      </span>
+                      <div class="flex items-center gap-2 shrink-0">
+                        <span class="font-extrabold text-xs ${item.kind === 'in' ? 'text-emerald-600' : 'text-rose-600'}">
+                          ${item.kind === 'in' ? '+' : '-'}${formatVND(item.amount)}
+                        </span>
+                        ${sec ? `
+                          <button onclick="openLedgerEditModal('${item.id}')" title="Điều chỉnh số tiền / nội dung" class="w-7 h-7 rounded-lg bg-white hover:bg-blue-50 text-[#0056B3] border border-slate-200 flex items-center justify-center text-[11px]">
+                            <i class="fa-solid fa-pen"></i>
+                          </button>
+                          <button onclick="deleteLedgerEntry('${item.id}')" title="Xóa giao dịch" class="w-7 h-7 rounded-lg bg-white hover:bg-rose-50 text-rose-600 border border-slate-200 flex items-center justify-center text-[11px]">
+                            <i class="fa-solid fa-trash-can"></i>
+                          </button>
+                        ` : ''}
+                      </div>
                     </div>
                   `).join('')}
                 </div>
@@ -2145,9 +2569,9 @@
                       <option value="in">+ Khoản Thu</option>
                       <option value="out">- Khoản Chi</option>
                     </select>
-                    <input type="number" id="lg-amount" required min="1000" step="1000" placeholder="Số tiền (VNĐ)" class="col-span-2 px-3 py-2 rounded-xl border border-slate-200 text-xs" />
+                    <input type="number" id="lg-amount" required min="1000" step="1000" placeholder="Số tiền (VNĐ)" class="col-span-2 px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold" />
                   </div>
-                  <input type="text" id="lg-title" required placeholder="Nội dung giao dịch..." class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs" />
+                  <input type="text" id="lg-title" required placeholder="Nội dung giao dịch (VD: Thu quỹ lớp, Mua nước...)" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs" />
                   <button type="submit" class="w-full py-2.5 rounded-xl bg-[#0056B3] text-white text-xs font-bold hover:bg-[#004494]">Lưu vào sổ quỹ</button>
                 </form>
               ` : ''}
@@ -2266,7 +2690,7 @@
       `;
     }
 
-    // ==================== 5. PHẦN ĐIỂM DANH QR CODE ====================
+    // ==================== 5. PHẦN ĐIỂM DANH QR CODE (HỖ TRỢ RESET & QUÉT LẠI NHIỀU ĐỢT) ====================
     function buildQrAttendanceHtml() {
       const user = currentUser();
       const sec = isSecretary(user);
@@ -2276,6 +2700,7 @@
       const percentPresent = totalUsers > 0 ? Math.round((presentCount / totalUsers) * 100) : 0;
       const leftSec = getQrRemainingSeconds();
       const currentDur = Number(db.attendance.durationSec || 120);
+      const currentRound = Number(db.attendance.round || 1);
 
       return `
         <div class="space-y-5 view-enter">
@@ -2286,12 +2711,15 @@
                   <span class="w-2 h-2 rounded-full ${db.attendance.isOpen ? 'bg-emerald-500 beacon-dot' : 'bg-slate-400'}"></span>
                   ${db.attendance.isOpen ? 'MÃ QR ĐIỂM DANH ĐANG MỞ' : 'MÃ QR ĐANG ĐÓNG'}
                 </span>
+                <span class="px-2.5 py-0.5 rounded-full bg-blue-50 text-[#0056B3] text-[11px] font-extrabold">
+                  Đợt điểm danh #${currentRound}
+                </span>
               </div>
               <h2 class="text-lg font-extrabold text-slate-900">${db.attendance.title}</h2>
               <p class="text-xs text-slate-500"><i class="fa-solid fa-location-dot text-[#0056B3] mr-1"></i>${db.attendance.location}</p>
             </div>
 
-            <div class="flex items-center gap-3 shrink-0">
+            <div class="flex items-center gap-2.5 shrink-0">
               <div class="bg-blue-50 px-4 py-2.5 rounded-2xl border border-blue-100 text-right">
                 <div class="text-[11px] font-semibold text-slate-500">Có mặt (${percentPresent}%)</div>
                 <div class="text-xl font-extrabold text-[#0056B3]">${presentCount} / ${totalUsers}</div>
@@ -2306,22 +2734,29 @@
           </div>
 
           ${sec ? `
-            <!-- BẢNG ĐIỀU KHIỂN BÍ THƯ: CÀI ĐẶT THỜI GIAN & NÚT MỞ QR CODE -->
+            <!-- BẢNG ĐIỀU KHIỂN BÍ THƯ: CÀI ĐẶT THỜI GIAN, MỞ QR & RESET QUÉT LẠI -->
             <div class="bg-white rounded-3xl p-5 border border-amber-200/80 shadow-xs space-y-4">
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
                 <div>
                   <span class="text-[11px] font-extrabold uppercase tracking-wider text-amber-700"><i class="fa-solid fa-star mr-1"></i>Bảng điều khiển Bí Thư</span>
-                  <h3 class="text-base font-extrabold text-slate-900">Cài đặt Thời gian & Mở QR Code Điểm danh</h3>
+                  <h3 class="text-base font-extrabold text-slate-900">Cài đặt Thời gian, Mở QR & Reset Quét lại</h3>
                 </div>
 
-                <button onclick="onToggleOpenQrCode()" class="px-5 py-3 rounded-2xl text-xs sm:text-sm font-extrabold shadow-md transition flex items-center justify-center gap-2 ${
-                  db.attendance.isOpen
-                    ? 'bg-rose-600 hover:bg-rose-700 text-white shadow-rose-500/20'
-                    : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:opacity-95 text-white shadow-emerald-500/25'
-                }">
-                  <i class="fa-solid ${db.attendance.isOpen ? 'fa-lock' : 'fa-qrcode'} text-base"></i>
-                  <span>${db.attendance.isOpen ? 'Đóng QR Code' : 'Mở QR Code Điểm danh'}</span>
-                </button>
+                <div class="flex flex-wrap items-center gap-2">
+                  <button onclick="onResetAttendanceSession()" class="px-4 py-3 rounded-2xl bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 text-xs font-extrabold transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    <span>Reset để quét lại</span>
+                  </button>
+
+                  <button onclick="onToggleOpenQrCode()" class="px-5 py-3 rounded-2xl text-xs sm:text-sm font-extrabold shadow-md transition flex items-center justify-center gap-2 ${
+                    db.attendance.isOpen
+                      ? 'bg-rose-600 hover:bg-rose-700 text-white shadow-rose-500/20'
+                      : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:opacity-95 text-white shadow-emerald-500/25'
+                  }">
+                    <i class="fa-solid ${db.attendance.isOpen ? 'fa-lock' : 'fa-qrcode'} text-base"></i>
+                    <span>${db.attendance.isOpen ? 'Đóng QR Code' : 'Mở QR Code Điểm danh'}</span>
+                  </button>
+                </div>
               </div>
 
               <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
@@ -2389,7 +2824,7 @@
             <div class="lg:col-span-6 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs flex flex-col items-center text-center">
               ${sec ? `
                 <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200 text-xs font-extrabold mb-3">
-                  <i class="fa-solid fa-qrcode mr-1"></i> Mã QR Điểm danh của Bí Thư
+                  <i class="fa-solid fa-qrcode mr-1"></i> Mã QR Điểm danh (Đợt #${currentRound})
                 </span>
 
                 ${db.attendance.isOpen ? `
@@ -2445,13 +2880,18 @@
                     <div class="w-16 h-16 rounded-full bg-emerald-500 text-white text-2xl flex items-center justify-center mx-auto shadow-md">
                       <i class="fa-solid fa-check"></i>
                     </div>
-                    <h3 class="font-extrabold text-base text-emerald-900">Đã điểm danh Có mặt!</h3>
+                    <h3 class="font-extrabold text-base text-emerald-900">Đã điểm danh Có mặt (Đợt #${currentRound})!</h3>
                     <p class="text-xs text-emerald-700">
                       Hệ thống đã ghi nhận <strong>${user.name} (${user.mssv})</strong> có mặt thành công.
                     </p>
-                    <button type="button" onclick="copyAttendanceReceipt()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs inline-flex items-center gap-1.5">
-                      <i class="fa-solid fa-copy"></i> Copy phiếu xác nhận gửi Zalo Bí Thư
-                    </button>
+                    <div class="flex flex-col sm:flex-row items-center justify-center gap-2 pt-1">
+                      <button type="button" onclick="copyAttendanceReceipt()" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs inline-flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-copy"></i> Copy phiếu xác nhận
+                      </button>
+                      <button type="button" onclick="resetMyLocalScanForRescan()" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-white hover:bg-blue-50 text-[#0056B3] border border-blue-200 text-xs font-bold inline-flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-qrcode"></i> Quét lại mã QR mới
+                      </button>
+                    </div>
                   </div>
                 ` : `
                   <p id="scanner-status-text" class="text-xs text-slate-500 max-w-sm mb-3">
@@ -2496,12 +2936,12 @@
             <div class="lg:col-span-6 bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs">
               <div class="flex items-center justify-between mb-4">
                 <div>
-                  <h3 class="font-extrabold text-base text-slate-900">Danh sách Điểm danh</h3>
+                  <h3 class="font-extrabold text-base text-slate-900">Danh sách Điểm danh (Đợt #${currentRound})</h3>
                   <p class="text-xs text-slate-500">Trạng thái Có mặt / Vắng của toàn Chi đoàn</p>
                 </div>
                 ${sec ? `
                   <button onclick="onResetAttendanceSession()" class="text-xs font-bold text-rose-600 hover:underline">
-                    Làm mới danh sách
+                    Reset danh sách
                   </button>
                 ` : ''}
               </div>
@@ -2548,7 +2988,7 @@
       `;
     }
 
-    // ==================== 6. QUẢN LÝ TÀI KHOẢN, LINK LỚP NÉN ZALO & SAO LƯU FILE (BÍ THƯ) ====================
+    // ==================== 6. QUẢN LÝ TÀI KHOẢN & KẾT NỐI GOOGLE SHEET (BÍ THƯ) ====================
     let memberSearchTerm = '';
 
     function buildAccountsAdminHtml() {
@@ -2558,6 +2998,7 @@
         m.name.toLowerCase().includes(memberSearchTerm.toLowerCase()) ||
         (m.phone || '').includes(memberSearchTerm)
       );
+      const activeApi = getActiveApiUrl();
 
       return `
         <div class="space-y-5 view-enter">
@@ -2567,9 +3008,9 @@
               <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 text-[11px] font-extrabold mb-1.5">
                 <i class="fa-solid fa-star"></i> ĐẶC QUYỀN BÍ THƯ • VÕ QUANG VINH
               </div>
-              <h2 class="text-lg sm:text-xl font-extrabold">6. Quản lý & Cấp tài khoản Đoàn viên (Link Nén Siêu Gọn)</h2>
+              <h2 class="text-lg sm:text-xl font-extrabold">6. Quản lý Tài khoản & Đồng bộ Google Sheet</h2>
               <p class="text-xs text-amber-50 mt-1">
-                Cấp tài khoản MSSV cho cả lớp, bấm <strong>Copy Link Lớp học nén gửi Zalo</strong> — link gọn trong 1 tin nhắn duy nhất, không bị cắt!
+                Kết nối Google Sheet miễn phí để điểm danh QR, đăng ký hoạt động và quỹ lớp đồng bộ trực tiếp giữa toàn bộ điện thoại của cả lớp.
               </p>
             </div>
             <div class="bg-white/15 px-4 py-3 rounded-2xl border border-white/25 text-center shrink-0">
@@ -2578,67 +3019,57 @@
             </div>
           </div>
 
-          <!-- KHỐI 1: GỬI LINK LỚP HỌC NÉN GỌN QUA ZALO & SAO LƯU DỮ LIỆU -->
-          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
-            <div class="lg:col-span-7 bg-white rounded-3xl p-5 border border-emerald-200/80 shadow-xs space-y-3.5">
-              <div class="flex items-center gap-2 text-emerald-700 font-extrabold text-sm">
-                <i class="fa-solid fa-compress"></i>
-                <span>Bước 2 sau khi cấp MSSV: Gửi Link nén gọn vào nhóm Zalo lớp</span>
+          <!-- KHỐI 1: KẾT NỐI GOOGLE SHEET ĐỂ ĐỒNG BỘ TOÀN LỚP -->
+          <div class="bg-white rounded-3xl p-5 sm:p-6 border border-emerald-200/90 shadow-xs space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-extrabold mb-1">
+                  <i class="fa-solid fa-table"></i> CƠ SỞ DỮ LIỆU CHUNG MIỄN PHÍ (THAY FIREBASE)
+                </span>
+                <h3 class="font-extrabold text-base text-slate-900">Kết nối Google Sheets để đồng bộ giữa Bí Thư & Đoàn viên</h3>
               </div>
-              <p class="text-xs text-slate-600 leading-relaxed">
-                Hệ thống tự động rút gọn tiền tố MSSV và nén nhị phân để đường link <strong>nằm gọn trong 1 tin nhắn Zalo</strong> (không bao giờ bị Zalo cắt đôi).
-              </p>
-
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-                <button type="button" onclick="copyClassInviteLink()" class="py-3 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:opacity-95 text-white text-xs font-extrabold shadow-sm transition flex items-center justify-center gap-2">
-                  <i class="fa-solid fa-link"></i> Copy Link Lớp học nén gửi Zalo
-                </button>
-
-                <button type="button" onclick="copyGithubPresetCode()" class="py-3 px-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-extrabold shadow-sm transition flex items-center justify-center gap-2">
-                  <i class="fa-solid fa-code"></i> Copy mã lưu cố định GitHub
-                </button>
-              </div>
-
-              <!-- Ô hiển thị link đã nén để Bí Thư kiểm tra độ dài hoặc copy tay nếu cần -->
-              <div id="generated-link-box" class="${latestCompactLinkCache ? '' : 'hidden'} p-3 rounded-2xl bg-emerald-50/70 border border-emerald-200 space-y-1.5">
-                <div class="flex items-center justify-between text-[11px]">
-                  <span class="font-bold text-emerald-800"><i class="fa-solid fa-check-circle mr-1"></i>Link lớp học đã nén sẵn sàng:</span>
-                  <span id="generated-link-len" class="font-mono font-bold text-emerald-700">${latestCompactLinkCache ? latestCompactLinkCache.length + ' ký tự' : ''}</span>
-                </div>
-                <div class="flex gap-1.5">
-                  <input id="generated-link-input" type="text" readonly value="${latestCompactLinkCache}" onclick="this.select()" class="flex-1 px-2.5 py-1.5 rounded-xl bg-white border border-emerald-200 text-[11px] font-mono text-slate-700" />
-                  <button type="button" onclick="copyTextSafely(document.getElementById('generated-link-input').value); showToast('Đã copy link!', 'success');" class="px-3 py-1.5 rounded-xl bg-emerald-600 text-white text-[11px] font-bold shrink-0">
-                    Copy
-                  </button>
-                </div>
-              </div>
+              <button type="button" onclick="copyAppsScriptSource()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-xs transition inline-flex items-center gap-1.5 shrink-0">
+                <i class="fa-solid fa-copy"></i> Copy mã Google Apps Script
+              </button>
             </div>
 
-            <div class="lg:col-span-5 bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between space-y-3.5">
-              <div>
-                <div class="flex items-center gap-2 text-[#0056B3] font-extrabold text-sm">
-                  <i class="fa-solid fa-floppy-disk"></i>
-                  <span>Sao lưu & Khôi phục Dữ liệu (.JSON)</span>
-                </div>
-                <p class="text-xs text-slate-500 mt-1">
-                  Tải file dự phòng toàn bộ điểm rèn luyện, tài khoản và quỹ lớp về máy trước khi sửa code.
-                </p>
+            <form onsubmit="onSaveApiUrlConfig(event)" class="flex flex-col sm:flex-row gap-2">
+              <input
+                type="url"
+                id="sheet-api-url-input"
+                value="${activeApi}"
+                placeholder="Dán link Web App Google Apps Script (https://script.google.com/macros/s/.../exec)"
+                class="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-mono focus:outline-none focus:border-[#0056B3]"
+              />
+              <button type="submit" class="px-5 py-2.5 rounded-xl bg-[#0056B3] hover:bg-[#004494] text-white text-xs font-extrabold shrink-0">
+                <i class="fa-solid fa-plug mr-1"></i> Lưu & Kết nối
+              </button>
+            </form>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+              <button type="button" onclick="copyClassInviteLink()" class="py-3 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:opacity-95 text-white text-xs font-extrabold shadow-sm transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-link"></i> Copy Link Lớp học nén gửi Zalo
+              </button>
+              <button type="button" onclick="copyGithubPresetCode()" class="py-3 px-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-extrabold shadow-sm transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-code"></i> Copy mã cố định dán vào GitHub
+              </button>
+            </div>
+
+            <div id="generated-link-box" class="${latestCompactLinkCache ? '' : 'hidden'} p-3 rounded-2xl bg-emerald-50/70 border border-emerald-200 space-y-1.5">
+              <div class="flex items-center justify-between text-[11px]">
+                <span class="font-bold text-emerald-800"><i class="fa-solid fa-check-circle mr-1"></i>Link lớp học đã nén sẵn sàng:</span>
+                <span id="generated-link-len" class="font-mono font-bold text-emerald-700">${latestCompactLinkCache ? latestCompactLinkCache.length + ' ký tự' : ''}</span>
               </div>
-
-              <div class="grid grid-cols-2 gap-2">
-                <button type="button" onclick="exportBackupJsonFile()" class="py-2.5 px-3 rounded-xl bg-[#0056B3] hover:bg-[#004494] text-white text-xs font-bold transition flex items-center justify-center gap-1.5">
-                  <i class="fa-solid fa-download"></i> Tải sao lưu
+              <div class="flex gap-1.5">
+                <input id="generated-link-input" type="text" readonly value="${latestCompactLinkCache}" onclick="this.select()" class="flex-1 px-2.5 py-1.5 rounded-xl bg-white border border-emerald-200 text-[11px] font-mono text-slate-700" />
+                <button type="button" onclick="copyTextSafely(document.getElementById('generated-link-input').value); showToast('Đã copy link!', 'success');" class="px-3 py-1.5 rounded-xl bg-emerald-600 text-white text-[11px] font-bold shrink-0">
+                  Copy
                 </button>
-
-                <label class="cursor-pointer py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 text-xs font-bold transition flex items-center justify-center gap-1.5">
-                  <i class="fa-solid fa-upload text-emerald-600"></i> Khôi phục
-                  <input type="file" accept=".json,application/json" onchange="importBackupJsonFile(event)" class="hidden" />
-                </label>
               </div>
             </div>
           </div>
 
-          <!-- KHỐI 2: CẤP TÀI KHOẢN (LẺ HOẶC HÀNG LOẠT) & DANH SÁCH ĐOÀN VIÊN -->
+          <!-- KHỐI 2: CẤP TÀI KHOẢN & DANH SÁCH ĐOÀN VIÊN -->
           <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
             <div class="lg:col-span-5 space-y-5">
               <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-xs">
@@ -2711,6 +3142,20 @@
                   </button>
                 </form>
               </div>
+
+              <!-- Sao lưu JSON -->
+              <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs space-y-2.5">
+                <div class="text-xs font-extrabold text-slate-800"><i class="fa-solid fa-floppy-disk text-[#0056B3] mr-1"></i>Sao lưu & Khôi phục File dự phòng (.JSON)</div>
+                <div class="grid grid-cols-2 gap-2">
+                  <button type="button" onclick="exportBackupJsonFile()" class="py-2 px-3 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0056B3] text-xs font-bold flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-download"></i> Tải sao lưu
+                  </button>
+                  <label class="cursor-pointer py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-upload text-emerald-600"></i> Khôi phục
+                    <input type="file" accept=".json,application/json" onchange="importBackupJsonFile(event)" class="hidden" />
+                  </label>
+                </div>
+              </div>
             </div>
 
             <div class="lg:col-span-7 bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-xs h-fit">
@@ -2729,7 +3174,7 @@
                   <p class="text-xs text-slate-500">Bí Thư hãy nhập MSSV lẻ hoặc dán danh sách cả lớp ở cột bên trái.</p>
                 </div>
               ` : `
-                <div class="overflow-x-auto max-h-[600px] overflow-y-auto">
+                <div class="overflow-x-auto max-h-[640px] overflow-y-auto">
                   <table class="w-full text-left border-collapse">
                     <thead class="sticky top-0 bg-white">
                       <tr class="border-b border-slate-200 text-[11px] font-bold uppercase text-slate-400">
@@ -2775,7 +3220,7 @@
       if (pEl) pEl.textContent = clean || '---';
     }
 
-    function onCreateMemberUser(e) {
+    async function onCreateMemberUser(e) {
       e.preventDefault();
       if (!isSecretary()) return;
       const mssv = document.getElementById('add-mem-mssv').value.trim().toUpperCase();
@@ -2809,10 +3254,11 @@
       persistLocalOnly();
       e.target.reset();
       renderApp();
-      showToast(`Đã cấp tài khoản ${mssv}! Hãy bấm "Copy Link Lớp học nén gửi Zalo" để gửi cho bạn ấy.`, 'success');
+      showToast(`Đã cấp tài khoản ${mssv}!`, 'success');
+      await pushFullStateToCloud();
     }
 
-    function onBulkCreateMembers(e) {
+    async function onBulkCreateMembers(e) {
       e.preventDefault();
       if (!isSecretary()) return;
       const rawText = document.getElementById('bulk-members-input').value.trim();
@@ -2854,7 +3300,8 @@
       persistLocalOnly();
       e.target.reset();
       renderApp();
-      showToast(`Đã cấp thành công ${createdCount} tài khoản mới! Bấm "Copy Link Lớp học nén gửi Zalo" để gửi cả lớp.`, 'success');
+      showToast(`Đã cấp thành công ${createdCount} tài khoản mới!`, 'success');
+      await pushFullStateToCloud();
     }
 
     function onSearchMembers(v) {
@@ -2862,7 +3309,7 @@
       renderMainBody();
     }
 
-    function resetPasswordToMssv(id) {
+    async function resetPasswordToMssv(id) {
       const u = db.users.find(x => x.id === id);
       if (!u) return;
       u.password = u.mssv;
@@ -2870,9 +3317,10 @@
       persistLocalOnly();
       renderApp();
       showToast(`Đã đặt lại mật khẩu của ${u.mssv} về mặc định (${u.mssv}).`, 'info');
+      await pushFullStateToCloud();
     }
 
-    function deleteMemberUser(id) {
+    async function deleteMemberUser(id) {
       const u = db.users.find(x => x.id === id);
       if (!u || u.role === 'secretary') return;
       db.users = db.users.filter(x => x.id !== id);
@@ -2880,9 +3328,10 @@
       persistLocalOnly();
       renderApp();
       showToast(`Đã xóa tài khoản ${u.mssv}.`, 'info');
+      await pushFullStateToCloud();
     }
 
-    function toggleActivityJoin(actId) {
+    async function toggleActivityJoin(actId) {
       const u = currentUser();
       const act = db.activities.find(a => a.id === actId);
       if (!u || !act) return;
@@ -2896,6 +3345,7 @@
       }
       persistLocalOnly();
       renderApp();
+      await pushAtomicActionToCloud('TOGGLE_ACTIVITY', { actId, userId: u.id });
     }
 
     function openActivityModal() {
@@ -2910,7 +3360,7 @@
       m.classList.remove('flex');
     }
 
-    function onCreateActivity(e) {
+    async function onCreateActivity(e) {
       e.preventDefault();
       db.activities.unshift({
         id: 'act-' + Date.now(),
@@ -2927,13 +3377,15 @@
       e.target.reset();
       renderApp();
       showToast('Đã đăng hoạt động mới!', 'success');
+      await pushFullStateToCloud();
     }
 
-    function removeActivity(actId) {
+    async function removeActivity(actId) {
       db.activities = db.activities.filter(a => a.id !== actId);
       persistLocalOnly();
       renderApp();
       showToast('Đã xóa hoạt động.', 'info');
+      await pushFullStateToCloud();
     }
 
     function openRegListModal(actId) {
@@ -2977,26 +3429,119 @@
       renderMainBody();
     }
 
-    function toggleFeePaid(uid) {
+    // ==================== ĐOÀN PHÍ & ĐIỀU CHỈNH TIỀN QUỸ ====================
+    async function onChangeFeeAmount() {
+      if (!isSecretary()) return;
+      const cur = Number(db.feeAmount || 120000);
+      const ans = prompt('Nhập mức thu Đoàn phí mới (VNĐ):', String(cur));
+      if (ans === null) return;
+      const num = parseInt(ans.replace(/\D/g, ''), 10);
+      if (isNaN(num) || num < 0) {
+        showToast('Số tiền không hợp lệ!', 'error');
+        return;
+      }
+      db.feeAmount = num;
+      persistLocalOnly();
+      renderApp();
+      showToast(`Đã cập nhật mức thu Đoàn phí: ${formatVND(num)}/năm`, 'success');
+      await pushFullStateToCloud();
+    }
+
+    async function toggleFeePaid(uid) {
+      if (!isSecretary()) return;
       const u = db.users.find(x => x.id === uid);
       if (!u) return;
-      u.feePaid = !u.feePaid;
-      if (u.feePaid) {
+      const feeRate = Number(db.feeAmount || 120000);
+
+      if (!u.feePaid) {
+        // Xác nhận thu: cộng vào sổ quỹ (đảm bảo không trùng)
+        u.feePaid = true;
+        db.ledger = db.ledger.filter(x => x.feeUserId !== u.id && x.title !== `Thu Đoàn phí (${u.name})`);
         db.ledger.unshift({
-          id: 'lg-' + Date.now(),
+          id: 'lg-fee-' + u.id + '-' + Date.now(),
+          feeUserId: u.id,
           kind: 'in',
           title: `Thu Đoàn phí (${u.name})`,
-          amount: 120000,
+          amount: feeRate,
           date: new Date().toLocaleDateString('vi-VN'),
           note: `MSSV: ${u.mssv}`
         });
-        showToast(`Đã xác nhận thu đoàn phí của ${u.name}`, 'success');
+        showToast(`Đã xác nhận thu ${formatVND(feeRate)} của ${u.name}`, 'success');
+      } else {
+        // Hoàn tác: đặt lại chưa đóng VÀ trừ khỏi sổ quỹ
+        u.feePaid = false;
+        let removedAmount = 0;
+        db.ledger = db.ledger.filter(x => {
+          const isMatch = x.feeUserId === u.id || (x.kind === 'in' && x.title === `Thu Đoàn phí (${u.name})`);
+          if (isMatch) removedAmount += Number(x.amount || 0);
+          return !isMatch;
+        });
+        showToast(`Đã hoàn tác & trừ ${formatVND(removedAmount || feeRate)} khỏi quỹ!`, 'info');
       }
+
       persistLocalOnly();
       renderApp();
+      await pushFullStateToCloud();
     }
 
-    function onAddLedgerEntry(e) {
+    function openLedgerEditModal(lgId) {
+      if (!isSecretary()) return;
+      const item = db.ledger.find(x => x.id === lgId);
+      if (!item) return;
+      document.getElementById('edit-lg-id').value = item.id;
+      document.getElementById('edit-lg-kind').value = item.kind;
+      document.getElementById('edit-lg-amount').value = item.amount;
+      document.getElementById('edit-lg-title').value = item.title;
+      document.getElementById('edit-lg-note').value = item.note || '';
+
+      const m = document.getElementById('ledger-edit-modal');
+      m.classList.remove('hidden');
+      m.classList.add('flex');
+    }
+
+    function closeLedgerEditModal() {
+      const m = document.getElementById('ledger-edit-modal');
+      m.classList.add('hidden');
+      m.classList.remove('flex');
+    }
+
+    async function onSaveEditedLedger(e) {
+      e.preventDefault();
+      if (!isSecretary()) return;
+      const id = document.getElementById('edit-lg-id').value;
+      const item = db.ledger.find(x => x.id === id);
+      if (!item) return;
+
+      item.kind = document.getElementById('edit-lg-kind').value;
+      item.amount = Math.max(0, parseInt(document.getElementById('edit-lg-amount').value, 10) || 0);
+      item.title = document.getElementById('edit-lg-title').value.trim();
+      item.note = document.getElementById('edit-lg-note').value.trim();
+
+      persistLocalOnly();
+      closeLedgerEditModal();
+      renderApp();
+      showToast('Đã lưu điều chỉnh số tiền giao dịch!', 'success');
+      await pushFullStateToCloud();
+    }
+
+    async function deleteLedgerEntry(lgId) {
+      if (!isSecretary()) return;
+      const item = db.ledger.find(x => x.id === lgId);
+      if (!item) return;
+
+      if (item.feeUserId) {
+        const u = db.users.find(x => x.id === item.feeUserId);
+        if (u) u.feePaid = false;
+      }
+      db.ledger = db.ledger.filter(x => x.id !== lgId);
+
+      persistLocalOnly();
+      renderApp();
+      showToast(`Đã xóa giao dịch "${item.title}" và cập nhật lại số dư quỹ!`, 'info');
+      await pushFullStateToCloud();
+    }
+
+    async function onAddLedgerEntry(e) {
       e.preventDefault();
       const kind = document.getElementById('lg-kind').value;
       const amount = parseInt(document.getElementById('lg-amount').value, 10);
@@ -3013,14 +3558,15 @@
       persistLocalOnly();
       renderApp();
       showToast('Đã lưu vào sổ quỹ!', 'success');
+      await pushFullStateToCloud();
     }
 
-    function onSubmitEvidence(e) {
+    async function onSubmitEvidence(e) {
       e.preventDefault();
       const u = currentUser();
       if (!u) return;
       const now = new Date();
-      db.evidences.unshift({
+      const newEv = {
         id: 'ev-' + Date.now(),
         userId: u.id,
         actTitle: document.getElementById('ev-act').value,
@@ -3028,13 +3574,15 @@
         note: document.getElementById('ev-note').value.trim(),
         createdAt: `${now.toLocaleDateString('vi-VN')} ${now.toTimeString().slice(0, 5)}`,
         status: 'pending'
-      });
+      };
+      db.evidences.unshift(newEv);
       persistLocalOnly();
       renderApp();
       showToast('Đã gửi minh chứng chờ Bí Thư duyệt!', 'success');
+      await pushAtomicActionToCloud('SUBMIT_EVIDENCE', newEv);
     }
 
-    function setEvidenceStatus(evId, status) {
+    async function setEvidenceStatus(evId, status) {
       const ev = db.evidences.find(x => x.id === evId);
       if (!ev) return;
       const wasOk = ev.status === 'approved';
@@ -3047,44 +3595,52 @@
       persistLocalOnly();
       renderApp();
       showToast(status === 'approved' ? 'Bí Thư đã duyệt minh chứng (+3 ĐRL)!' : 'Đã từ chối minh chứng.', status === 'approved' ? 'success' : 'info');
+      await pushFullStateToCloud();
     }
 
     // Điểm danh
-    function onUpdateAttendanceSession(e) {
+    async function onUpdateAttendanceSession(e) {
       e.preventDefault();
       db.attendance.title = document.getElementById('sess-title-input').value.trim();
       db.attendance.location = document.getElementById('sess-loc-input').value.trim();
       persistLocalOnly();
       renderApp();
       showToast('Đã cập nhật thông tin buổi điểm danh!', 'success');
+      await pushFullStateToCloud();
     }
 
-    function commitAttendance(uid, method) {
-      if (db.attendance.logs.some(l => l.userId === uid)) {
-        showToast('Tài khoản này đã điểm danh Có mặt trước đó!', 'info');
-        return;
-      }
+    async function commitAttendance(uid, method, roundNum = Number(db.attendance.round || 1)) {
+      const u = db.users.find(x => x.id === uid);
       const now = new Date();
       const stamp = `${now.toTimeString().slice(0, 8)} ${now.toLocaleDateString('vi-VN')}`;
-      db.attendance.logs.push({ userId: uid, time: stamp, method });
+
+      const existingIdx = db.attendance.logs.findIndex(l => l.userId === uid);
+      if (existingIdx > -1) {
+        const oldRound = Number(db.attendance.logs[existingIdx].round || 1);
+        if (roundNum <= oldRound) {
+          showToast('Tài khoản này đã điểm danh Có mặt ở đợt hiện tại rồi!', 'info');
+          return;
+        }
+        db.attendance.logs.splice(existingIdx, 1);
+      }
+
+      const logEntry = {
+        userId: uid,
+        mssv: u ? u.mssv : uid,
+        name: u ? u.name : uid,
+        time: stamp,
+        method,
+        round: roundNum
+      };
+      db.attendance.logs.push(logEntry);
       persistLocalOnly();
       renderApp();
-      const u = db.users.find(x => x.id === uid);
       showToast(`Điểm danh Có mặt thành công: ${u ? u.name : uid}`, 'success');
+      await pushAtomicActionToCloud('SCAN_QR', logEntry);
     }
 
     function secretaryCheckInUser(uid) {
       commitAttendance(uid, 'Bí Thư xác nhận');
-    }
-
-    function onResetAttendanceSession() {
-      const now = new Date();
-      db.attendance.logs = [
-        { userId: 'BITHU_VINH', time: `${now.toTimeString().slice(0, 8)} ${now.toLocaleDateString('vi-VN')}`, method: 'Bí Thư chủ trì' }
-      ];
-      persistLocalOnly();
-      renderApp();
-      showToast('Đã làm mới danh sách điểm danh!', 'info');
     }
 
     function exportAttendanceCsv() {
@@ -3168,7 +3724,7 @@
       renderMainBody();
     }
 
-    ['profile-modal', 'pass-modal', 'activity-modal', 'qr-zoom-modal', 'reg-list-modal'].forEach(id => {
+    ['profile-modal', 'pass-modal', 'ledger-edit-modal', 'activity-modal', 'qr-zoom-modal', 'reg-list-modal'].forEach(id => {
       document.getElementById(id).addEventListener('click', (e) => {
         if (e.target.id === id) {
           e.target.classList.add('hidden');
@@ -3195,6 +3751,12 @@
 
       renderApp();
       startQrCountdownLoop();
+      startCloudAutoSync();
+
+      // Kéo dữ liệu chung mới nhất từ Google Sheet ngay khi mở trang
+      if (getActiveApiUrl()) {
+        await manualCloudPull(false);
+      }
     });
   </script>
 </body>
