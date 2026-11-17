@@ -4552,26 +4552,26 @@ function onFilterGuide(v) {
       showToast('Đã xuất danh sách điểm danh ra file Excel (.csv)!', 'success');
     }
 
-    function showToast(msg, type = 'success') {
-      const box = document.getElementById('toast-box');
-      const el = document.createElement('div');
-      const styleMap = {
-        success: 'bg-slate-900 text-white border-emerald-500',
-        info: 'bg-slate-900 text-white border-sky-400',
-        error: 'bg-rose-600 text-white border-rose-200'
-      };
-      const iconMap = {
-        success: 'fa-circle-check text-emerald-400',
-        info: 'fa-circle-info text-sky-400',
-        error: 'fa-triangle-exclamation text-white'
-      };
-      el.className = `pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-2xl shadow-xl border-l-4 text-xs font-semibold ${styleMap[type] || styleMap.info}`;
-      el.innerHTML = `<i class="fa-solid ${iconMap[type] || iconMap.info} text-sm shrink-0"></i><span>${esc(msg)}</span>`;
-      box.appendChild(el);
-      setTimeout(() => {
-        el.remove();
-      }, 3600);
-    }
+    let toastTimerHandle = null;
+ function showToast(msg, type = 'success') {
+   const box = document.getElementById('toast-box');
+   if (!box) return;
+   if (toastTimerHandle) clearTimeout(toastTimerHandle);
+   const isErr = type === 'error';
+   const isCopyOrDownload = /^Đã (copy|tải)/i.test(String(msg || ''));
+   const displayMsg = isErr || isCopyOrDownload ? msg : 'Đã thay đổi thành công';
+   box.innerHTML = `
+     <div class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full shadow-lg text-[11px] font-bold ${
+       isErr ? 'bg-rose-600 text-white' : 'bg-slate-900 text-white border border-emerald-500/40'
+     }">
+       <i class="fa-solid ${isErr ? 'fa-circle-exclamation' : 'fa-circle-check text-emerald-400'}"></i>
+       <span>${esc(displayMsg)}</span>
+     </div>
+   `;
+   toastTimerHandle = setTimeout(() => {
+     if (box) box.innerHTML = '';
+   }, 1600);
+ }
 
     // ==================== MASTER RENDER ====================
    function renderMainBody() {
@@ -4621,7 +4621,7 @@ function onFilterGuide(v) {
       renderMainBody();
     }
 
-    ['pass-modal', 'ledger-edit-modal', 'activity-modal', 'qr-zoom-modal', 'reg-list-modal'].forEach(id => {
+   ['pass-modal', 'ledger-edit-modal', 'activity-modal', 'qr-zoom-modal', 'reg-list-modal', 'member-drl-modal'].forEach(id => {
       document.getElementById(id).addEventListener('click', (e) => {
         if (e.target.id === id) closeModal(id);
       });
