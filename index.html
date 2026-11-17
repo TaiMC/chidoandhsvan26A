@@ -398,28 +398,68 @@
       }
     ];
 
-    const GUIDE_DOCS = [
-      {
-        tag: 'Điều lệ Đoàn',
-        title: 'Nhiệm vụ và Quyền hạn của Đoàn viên TNCS Hồ Chí Minh',
-        body: 'Phấn đấu vì lý tưởng của Đảng và Bác Hồ; tích cực học tập, rèn luyện đạo đức, tác phong; chấp hành Điều lệ Đoàn và đóng đoàn phí đầy đủ.'
-      },
-      {
-        tag: 'Quy chế Điểm danh',
-        title: 'Quy định điểm danh bằng mã QR tại Chi đoàn ĐHSVAN26A',
-        body: 'Khi Bí Thư mở mã QR điểm danh trong thời gian quy định, Đoàn viên vào mục 5 để bật máy quét QR (hoặc chọn ảnh mã QR Bí Thư gửi) để xác nhận có mặt.'
-      },
-      {
-        tag: 'Đoàn phí & Quỹ lớp',
-        title: 'Công khai thu chi Đoàn phí năm học 2026 - 2027',
-        body: 'Mức đóng đoàn phí được cập nhật minh bạch tại mục Đoàn phí & Tài chính phục vụ phong trào chung của Chi đoàn.'
-      },
-      {
-        tag: 'Trang phục Đoàn',
-        title: 'Quy định mặc Áo Thanh niên Việt Nam',
-        body: 'Đoàn viên mặc Áo Thanh niên Việt Nam và đeo huy hiệu Đoàn trong các buổi sinh hoạt chi đoàn, đại hội và hoạt động tình nguyện.'
-      }
-    ];
+const GUIDE_DOCS = [
+  {
+    cat: 'Điểm rèn luyện',
+    tag: 'Khung điểm ĐRL',
+    title: 'Cách tính & Xếp loại Điểm Rèn Luyện (Thang 100 điểm)',
+    items: [
+      'Mỗi Đoàn viên có điểm nền đầu kỳ là 85 điểm khi chấp hành đầy đủ nội quy Chi đoàn.',
+      '90 – 100 điểm: Xuất sắc (đủ điều kiện xét Đoàn viên ưu tú & học bổng khuyến khích).',
+      '80 – 89 điểm: Tốt • 65 – 79 điểm: Khá • 50 – 64 điểm: Trung bình • Dưới 50 điểm: Yếu.'
+    ]
+  },
+  {
+    cat: 'Điểm rèn luyện',
+    tag: 'Quy tắc Cộng / Trừ',
+    title: 'Các trường hợp được Cộng điểm (+) và bị Trừ điểm (-)',
+    items: [
+      'Cộng +10đ: Tham gia chiến dịch tình nguyện lớn (Mùa Hè Xanh, Xuân Tình Nguyện).',
+      'Cộng +5đ đến +8đ: Tham gia Ngày Chủ Nhật Xanh, hội thi học thuật, hiến máu nhân đạo.',
+      'Cộng +3đ/hồ sơ: Nộp minh chứng hoạt động hợp lệ và được Bí Thư duyệt ở Mục 4.',
+      'Trừ -5đ/lần: Vắng sinh hoạt Chi đoàn hoặc đại hội triệu tập không có lý do chính đáng.',
+      'Trừ -3đ: Đăng ký hoạt động nhưng tự ý bỏ không tham gia hoặc trễ hạn đóng Đoàn phí.'
+    ]
+  },
+  {
+    cat: 'Sinh hoạt & QR',
+    tag: 'Quy chế Điểm danh',
+    title: 'Quy trình điểm danh QR Code & Xin phép vắng',
+    items: [
+      'Khi Bí Thư mở mã QR ở Mục 5, Đoàn viên mở camera quét trực tiếp hoặc chọn ảnh QR Bí Thư gửi.',
+      'Trường hợp trùng lịch thi hoặc ốm đau phải nhắn tin xin phép Bí Thư trước buổi sinh hoạt ít nhất 2 tiếng.',
+      'Vắng có phép hợp lệ không bị trừ điểm rèn luyện; vắng không phép 2 buổi/kỳ sẽ bị nhắc nhở trước Chi đoàn.'
+    ]
+  },
+  {
+    cat: 'Đoàn phí & Quỹ',
+    tag: 'Tài chính Chi đoàn',
+    title: 'Quy định thu chi Đoàn phí & Quỹ phong trào ĐHSVAN26A',
+    items: [
+      'Đoàn phí thu theo năm học (mức thu hiện hành hiển thị trực tiếp tại Mục 3).',
+      'Toàn bộ khoản thu – chi mua dụng cụ phong trào, nước uống, khen thưởng đều công khai hóa đơn tại Sổ thu chi.',
+      'Đoàn viên hoàn cảnh khó khăn liên hệ trực tiếp Bí Thư để được hỗ trợ giãn thời hạn đóng.'
+    ]
+  },
+  {
+    cat: 'Quy chế & Kỷ luật',
+    tag: 'Tác phong Đoàn viên',
+    title: 'Quy định Trang phục & Lễ nghi trong các buổi sinh hoạt',
+    items: [
+      'Bắt buộc mặc Áo Thanh niên Việt Nam (áo xanh Đoàn) và đeo huy hiệu Đoàn trong các buổi sinh hoạt chủ điểm, đại hội và tình nguyện.',
+      'Trang phục gọn gàng, lịch sự, đeo thẻ sinh viên khi tham dự hội nghị cấp Khoa và Trường.'
+    ]
+  },
+  {
+    cat: 'Quy chế & Kỷ luật',
+    tag: 'Minh chứng ĐRL',
+    title: 'Hướng dẫn nộp Minh chứng hợp lệ để tránh bị từ chối',
+    items: [
+      'Vào Mục 4 -> chọn đúng tên hoạt động đã tham gia -> ghi rõ thời gian, vị trí hoặc nhiệm vụ đảm nhận.',
+      'Mỗi hoạt động chỉ nộp 1 minh chứng; hồ sơ gian lận hoặc nộp sai hoạt động sẽ bị từ chối và trừ 3 điểm ý thức.'
+    ]
+  }
+];
 
     const INITIAL_DB = {
       activeUserId: null,
@@ -497,7 +537,7 @@
     let lastLocalMutationAt = 0;
     let localForceRescan = false;
     let tempInlineAvatar = null;
-    let guideFilter = '';
+    let guideCategory = 'Tất cả';
     let memberSearchTerm = '';
 
     function esc(str) {
@@ -2220,117 +2260,313 @@ function doPost(e) {
       `;
     }
 
-    function buildHandbookHtml() {
-      const user = currentUser();
-      const filtered = GUIDE_DOCS.filter(d =>
-        d.title.toLowerCase().includes(guideFilter.toLowerCase()) ||
-        d.tag.toLowerCase().includes(guideFilter.toLowerCase()) ||
-        d.body.toLowerCase().includes(guideFilter.toLowerCase())
-      );
+function onSelectGuideCategory(cat) {
+  guideCategory = cat;
+  renderMainBody();
+}
 
-      return `
-        <div class="space-y-5">
-          <section class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-xs">
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-100">
-              <div class="flex items-center gap-4">
-                <div id="inline-avatar-preview" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-gradient-to-br ${getUserAvatarGradient(user)} text-white font-extrabold text-2xl flex items-center justify-center shadow-md shrink-0">
-                  ${renderAvatarContent(user)}
-                </div>
-                <div>
-                  <div class="flex flex-wrap items-center gap-2">
-                    <h2 class="text-lg sm:text-xl font-extrabold text-slate-900">${esc(user.name)}</h2>
-                    ${getPositionBadgeHtml(user)}
-                  </div>
-                  <div class="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600">
-                    <span><i class="fa-solid fa-id-card text-[#0056B3] mr-1"></i>MSSV: <strong class="font-mono text-slate-900">${esc(user.mssv)}</strong></span>
-                    <span><i class="fa-solid fa-phone text-emerald-600 mr-1"></i>SĐT: <strong>${esc(user.phone) || 'Chưa cập nhật'}</strong></span>
-                    <span><i class="fa-solid fa-envelope text-rose-500 mr-1"></i>Gmail: <strong>${esc(user.email) || 'Chưa cập nhật'}</strong></span>
-                  </div>
-                </div>
+function getDrLClassification(pts) {
+  if (pts >= 90) return { label: 'Xuất sắc', color: 'text-emerald-700 bg-emerald-50 border-emerald-200' };
+  if (pts >= 80) return { label: 'Tốt', color: 'text-[#0056B3] bg-blue-50 border-blue-200' };
+  if (pts >= 65) return { label: 'Khá', color: 'text-sky-700 bg-sky-50 border-sky-200' };
+  if (pts >= 50) return { label: 'Trung bình', color: 'text-amber-700 bg-amber-50 border-amber-200' };
+  return { label: 'Yếu', color: 'text-rose-700 bg-rose-50 border-rose-200' };
+}
+
+function buildHandbookHtml() {
+  const user = currentUser();
+  const basePoints = 85;
+  const myEvidences = db.evidences.filter(e => e.userId === user.id);
+  const approvedEvs = myEvidences.filter(e => e.status === 'approved');
+  const pendingEvs = myEvidences.filter(e => e.status === 'pending');
+  const rejectedEvs = myEvidences.filter(e => e.status === 'rejected');
+  const joinedActs = db.activities.filter(a => a.joinedIds.includes(user.id));
+  const myAttLog = db.attendance.logs.find(l => l.userId === user.id);
+
+  const autoEarnedFromEv = approvedEvs.length * 3;
+  const manualDiff = Number(user.points || 85) - (basePoints + autoEarnedFromEv);
+  const rank = getDrLClassification(Number(user.points || 85));
+
+  const bchList = db.users.filter(u =>
+    u.role === 'secretary' ||
+    u.position === 'Phó Bí thư Chi đoàn' ||
+    u.position === 'Ủy viên BCH Chi đoàn'
+  );
+
+  const categories = ['Tất cả', 'Điểm rèn luyện', 'Sinh hoạt & QR', 'Đoàn phí & Quỹ', 'Quy chế & Kỷ luật'];
+  const filtered = GUIDE_DOCS.filter(d => {
+    const matchCat = guideCategory === 'Tất cả' || d.cat === guideCategory;
+    const kw = guideFilter.toLowerCase();
+    const matchKw = !kw ||
+      d.title.toLowerCase().includes(kw) ||
+      d.tag.toLowerCase().includes(kw) ||
+      d.items.some(it => it.toLowerCase().includes(kw));
+    return matchCat && matchKw;
+  });
+
+  return `
+    <div class="space-y-5">
+      <!-- 1. HỒ SƠ ĐOÀN VIÊN -->
+      <section class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-xs">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-100">
+          <div class="flex items-center gap-4">
+            <div id="inline-avatar-preview" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-gradient-to-br ${getUserAvatarGradient(user)} text-white font-extrabold text-2xl flex items-center justify-center shadow-md shrink-0">
+              ${renderAvatarContent(user)}
+            </div>
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <h2 class="text-lg sm:text-xl font-extrabold text-slate-900">${esc(user.name)}</h2>
+                ${getPositionBadgeHtml(user)}
               </div>
-
-              <div class="flex items-center gap-4 bg-blue-50/70 px-4 py-3 rounded-2xl border border-blue-100 shrink-0">
-                <div>
-                  <div class="text-[11px] text-slate-500 font-semibold">Điểm rèn luyện</div>
-                  <div class="text-xl font-extrabold text-[#0056B3]">${user.points}<span class="text-xs text-slate-400">/100</span></div>
-                </div>
-                <div class="h-9 w-px bg-blue-200"></div>
-                <div>
-                  <div class="text-[11px] text-slate-500 font-semibold">Đoàn phí</div>
-                  <div class="text-xs font-extrabold ${user.feePaid ? 'text-emerald-600' : 'text-rose-600'}">
-                    ${user.feePaid ? 'Đã hoàn thành' : 'Chưa đóng'}
-                  </div>
-                </div>
+              <div class="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600">
+                <span><i class="fa-solid fa-id-card text-[#0056B3] mr-1"></i>MSSV: <strong class="font-mono text-slate-900">${esc(user.mssv)}</strong></span>
+                <span><i class="fa-solid fa-phone text-emerald-600 mr-1"></i>SĐT: <strong>${esc(user.phone) || 'Chưa cập nhật'}</strong></span>
+                <span><i class="fa-solid fa-envelope text-rose-500 mr-1"></i>Gmail: <strong>${esc(user.email) || 'Chưa cập nhật'}</strong></span>
               </div>
             </div>
+          </div>
 
-            <form onsubmit="onSaveInlineProfile(event)" class="mt-5 space-y-4">
-              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                  <i class="fa-solid fa-user-pen text-[#0056B3]"></i> Cập nhật Ảnh đại diện, MSSV, Số điện thoại & Gmail
-                </h3>
-                <div class="flex items-center gap-2">
-                  <label class="cursor-pointer px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0056B3] border border-blue-200 text-xs font-bold transition inline-flex items-center gap-1.5">
-                    <i class="fa-solid fa-camera"></i> Tải ảnh đại diện
-                    <input type="file" accept="image/*" onchange="onAvatarFileSelected(event)" class="hidden" />
-                  </label>
-                  <button type="button" onclick="clearTempAvatar()" class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold">Gỡ ảnh</button>
-                </div>
-              </div>
-
-              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                <div>
-                  <label class="block text-[11px] font-bold text-slate-600 mb-1">Họ và tên *</label>
-                  <input type="text" id="in-prof-name" required value="${esc(user.name)}" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:border-[#0056B3]" />
-                </div>
-                <div>
-                  <label class="block text-[11px] font-bold text-slate-600 mb-1">Mã số sinh viên (MSSV) *</label>
-                  <input type="text" id="in-prof-mssv" required value="${esc(user.mssv)}" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-mono font-bold focus:outline-none focus:border-[#0056B3]" />
-                </div>
-                <div>
-                  <label class="block text-[11px] font-bold text-slate-600 mb-1">Số điện thoại</label>
-                  <input type="tel" id="in-prof-phone" value="${esc(user.phone)}" placeholder="VD: 0912345678" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#0056B3]" />
-                </div>
-                <div>
-                  <label class="block text-[11px] font-bold text-slate-600 mb-1">Địa chỉ Gmail</label>
-                  <input type="email" id="in-prof-email" value="${esc(user.email)}" placeholder="VD: voquangvinh@gmail.com" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#0056B3]" />
-                </div>
-              </div>
-
-              <div class="flex justify-end">
-                <button type="submit" class="px-5 py-2.5 rounded-xl bg-[#0056B3] hover:bg-[#004494] text-white text-xs font-bold shadow-sm transition inline-flex items-center gap-1.5">
-                  <i class="fa-solid fa-floppy-disk"></i> Lưu cập nhật thông tin
-                </button>
-              </div>
-            </form>
-          </section>
-
-          <section class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-              <div>
-                <h3 class="text-base font-extrabold text-slate-900">2. Cẩm nang & Quy định Sổ tay Đoàn viên</h3>
-                <p class="text-xs text-slate-500">Tra cứu quy định sinh hoạt, điểm danh và điều lệ Đoàn</p>
-              </div>
-              <div class="relative w-full sm:w-64">
-                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                <input type="text" value="${esc(guideFilter)}" oninput="onFilterGuide(this.value)" placeholder="Tìm quy định..." class="w-full pl-9 pr-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#0056B3]" />
+          <div class="flex items-center gap-4 bg-blue-50/70 px-4 py-3 rounded-2xl border border-blue-100 shrink-0">
+            <div>
+              <div class="text-[11px] text-slate-500 font-semibold">Điểm rèn luyện</div>
+              <div class="flex items-center gap-1.5">
+                <span class="text-xl font-extrabold text-[#0056B3]">${user.points}<span class="text-xs text-slate-400">/100</span></span>
+                <span class="px-2 py-0.5 rounded-lg border text-[10px] font-extrabold ${rank.color}">${rank.label}</span>
               </div>
             </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-              ${filtered.map(doc => `
-                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-2">
-                  <span class="inline-block px-2.5 py-0.5 rounded-lg bg-blue-100 text-[#0056B3] text-[11px] font-bold">${doc.tag}</span>
-                  <h4 class="font-extrabold text-sm text-slate-900">${doc.title}</h4>
-                  <p class="text-xs text-slate-600 leading-relaxed">${doc.body}</p>
-                </div>
-              `).join('')}
+            <div class="h-9 w-px bg-blue-200"></div>
+            <div>
+              <div class="text-[11px] text-slate-500 font-semibold">Đoàn phí</div>
+              <div class="text-xs font-extrabold ${user.feePaid ? 'text-emerald-600' : 'text-rose-600'}">
+                ${user.feePaid ? 'Đã hoàn thành' : 'Chưa đóng'}
+              </div>
             </div>
-          </section>
+          </div>
         </div>
-      `;
-    }
 
+        <form onsubmit="onSaveInlineProfile(event)" class="mt-5 space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-user-pen text-[#0056B3]"></i> Cập nhật Ảnh đại diện, MSSV, Số điện thoại & Gmail
+            </h3>
+            <div class="flex items-center gap-2">
+              <label class="cursor-pointer px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0056B3] border border-blue-200 text-xs font-bold transition inline-flex items-center gap-1.5">
+                <i class="fa-solid fa-camera"></i> Tải ảnh đại diện
+                <input type="file" accept="image/*" onchange="onAvatarFileSelected(event)" class="hidden" />
+              </label>
+              <button type="button" onclick="clearTempAvatar()" class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold">Gỡ ảnh</button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div>
+              <label class="block text-[11px] font-bold text-slate-600 mb-1">Họ và tên *</label>
+              <input type="text" id="in-prof-name" required value="${esc(user.name)}" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:border-[#0056B3]" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-600 mb-1">Mã số sinh viên (MSSV) *</label>
+              <input type="text" id="in-prof-mssv" required value="${esc(user.mssv)}" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-mono font-bold focus:outline-none focus:border-[#0056B3]" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-600 mb-1">Số điện thoại</label>
+              <input type="tel" id="in-prof-phone" value="${esc(user.phone)}" placeholder="VD: 0912345678" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#0056B3]" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-600 mb-1">Địa chỉ Gmail</label>
+              <input type="email" id="in-prof-email" value="${esc(user.email)}" placeholder="VD: doanvien@gmail.com" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#0056B3]" />
+            </div>
+          </div>
+
+          <div class="flex justify-end">
+            <button type="submit" class="px-5 py-2.5 rounded-xl bg-[#0056B3] hover:bg-[#004494] text-white text-xs font-bold shadow-sm transition inline-flex items-center gap-1.5">
+              <i class="fa-solid fa-floppy-disk"></i> Lưu cập nhật thông tin
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- 2. TÓM TẮT ĐIỂM RÈN LUYỆN (CỘNG / TRỪ CHI TIẾT) -->
+      <section class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-xs space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-chart-simple text-[#0056B3]"></i> Tóm tắt Điểm Rèn Luyện & Chi tiết Cộng / Trừ
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">Tổng hợp tự động từ minh chứng, hoạt động phong trào, điểm danh và đoàn phí của bạn</p>
+          </div>
+          <div class="flex items-center gap-2 px-3.5 py-2 rounded-2xl border ${rank.color}">
+            <span class="text-xs font-bold">Tổng hiện tại:</span>
+            <span class="text-base font-extrabold">${user.points}/100 (${rank.label})</span>
+          </div>
+        </div>
+
+        <!-- Thanh tiến độ ĐRL -->
+        <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+          <div class="h-full bg-gradient-to-r from-[#0056B3] to-emerald-500 rounded-full" style="width: ${Math.min(100, Math.max(0, Number(user.points || 0)))}%"></div>
+        </div>
+
+        <!-- Bảng kê chi tiết cộng/trừ của cá nhân -->
+        <div class="divide-y divide-slate-100 rounded-2xl border border-slate-200/80 bg-slate-50/50 px-4">
+          <div class="py-3 flex items-center justify-between gap-3 text-xs">
+            <div>
+              <div class="font-bold text-slate-900">1. Điểm sàn rèn luyện cơ bản đầu học kỳ</div>
+              <div class="text-[11px] text-slate-500">Mức điểm khởi điểm của Đoàn viên Chi đoàn ĐHSVAN26A</div>
+            </div>
+            <span class="px-2.5 py-1 rounded-xl bg-blue-50 text-[#0056B3] font-extrabold shrink-0">+${basePoints} điểm</span>
+          </div>
+
+          <div class="py-3 flex items-start justify-between gap-3 text-xs">
+            <div class="space-y-1">
+              <div class="font-bold text-slate-900">2. Minh chứng hoạt động đã được Bí Thư duyệt (${approvedEvs.length} hồ sơ)</div>
+              ${approvedEvs.length > 0
+                ? approvedEvs.map(e => `<div class="text-[11px] text-emerald-700"><i class="fa-solid fa-check mr-1"></i>${esc(e.actTitle)} (+3đ)</div>`).join('')
+                : `<div class="text-[11px] text-slate-500">Chưa có minh chứng nào được duyệt (+3đ/minh chứng hợp lệ)</div>`
+              }
+              ${pendingEvs.length > 0 ? `<div class="text-[11px] text-amber-600"><i class="fa-solid fa-hourglass-half mr-1"></i>Đang chờ duyệt: ${pendingEvs.length} hồ sơ (dự kiến +${pendingEvs.length * 3}đ)</div>` : ''}
+              ${rejectedEvs.length > 0 ? `<div class="text-[11px] text-rose-600"><i class="fa-solid fa-circle-xmark mr-1"></i>Bị từ chối: ${rejectedEvs.length} hồ sơ (0đ)</div>` : ''}
+            </div>
+            <span class="px-2.5 py-1 rounded-xl ${autoEarnedFromEv > 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-600'} font-extrabold shrink-0">
+              +${autoEarnedFromEv} điểm
+            </span>
+          </div>
+
+          ${manualDiff !== 0 ? `
+            <div class="py-3 flex items-center justify-between gap-3 text-xs">
+              <div>
+                <div class="font-bold text-slate-900">3. Điểm cộng / điều chỉnh của Ban Chấp hành & Bí Thư</div>
+                <div class="text-[11px] text-slate-500">Ghi nhận thành tích công tác Đoàn hoặc điều chỉnh theo quy chế</div>
+              </div>
+              <span class="px-2.5 py-1 rounded-xl ${manualDiff > 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-600 border border-rose-200'} font-extrabold shrink-0">
+                ${manualDiff > 0 ? '+' + manualDiff : manualDiff} điểm
+              </span>
+            </div>
+          ` : ''}
+
+          <div class="py-3 flex items-start justify-between gap-3 text-xs">
+            <div class="space-y-1">
+              <div class="font-bold text-slate-900">Hoạt động phong trào đã đăng ký (${joinedActs.length}/${db.activities.length})</div>
+              ${joinedActs.length > 0
+                ? joinedActs.map(a => `<div class="text-[11px] text-slate-600">• ${esc(a.title)} <span class="text-[#0056B3] font-bold">(+${a.points}đ khi nộp minh chứng)</span></div>`).join('')
+                : `<div class="text-[11px] text-slate-500">Bạn chưa đăng ký hoạt động nào ở Mục 1</div>`
+              }
+            </div>
+            <span class="px-2.5 py-1 rounded-xl bg-blue-50 text-[#0056B3] font-bold shrink-0">Theo dõi</span>
+          </div>
+
+          <div class="py-3 flex items-center justify-between gap-3 text-xs">
+            <div>
+              <div class="font-bold text-slate-900">Chuyên cần Điểm danh QR (Đợt #${db.attendance.round || 1})</div>
+              <div class="text-[11px] text-slate-500">${myAttLog ? `Đã quét QR có mặt lúc ${esc(myAttLog.time)}` : 'Chưa ghi nhận điểm danh (vắng không phép bị trừ -5đ)'}</div>
+            </div>
+            <span class="px-2.5 py-1 rounded-xl font-extrabold shrink-0 ${myAttLog ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}">
+              ${myAttLog ? 'Đạt (0đ trừ)' : 'Chưa điểm danh'}
+            </span>
+          </div>
+
+          <div class="py-3 flex items-center justify-between gap-3 text-xs">
+            <div>
+              <div class="font-bold text-slate-900">Trách nhiệm đóng Đoàn phí</div>
+              <div class="text-[11px] text-slate-500">${user.feePaid ? 'Đã hoàn thành nghĩa vụ đoàn phí năm học' : 'Chưa hoàn thành (trễ hạn bị trừ -3đ rèn luyện)'}</div>
+            </div>
+            <span class="px-2.5 py-1 rounded-xl font-extrabold shrink-0 ${user.feePaid ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-600'}">
+              ${user.feePaid ? 'Đạt (0đ trừ)' : 'Cảnh báo -3đ'}
+            </span>
+          </div>
+        </div>
+
+        <!-- Khung quy tắc cộng / trừ nhanh -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          <div class="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 space-y-2">
+            <div class="text-xs font-extrabold text-emerald-800 flex items-center gap-1.5">
+              <i class="fa-solid fa-circle-plus"></i> CÁC MỤC ĐƯỢC CỘNG ĐIỂM (+)
+            </div>
+            <ul class="text-xs text-emerald-950 space-y-1.5 list-disc pl-4">
+              <li><strong>+10 điểm:</strong> Tham gia Chiến dịch Tình nguyện Mùa Hè Xanh / Xuân Tình Nguyện.</li>
+              <li><strong>+8 điểm:</strong> Tham gia Hội thi Học thuật, Nghiên cứu khoa học cấp Khoa/Trường.</li>
+              <li><strong>+5 điểm:</strong> Tham gia Ngày Chủ Nhật Xanh, hiến máu nhân đạo, cổ vũ phong trào.</li>
+              <li><strong>+3 điểm:</strong> Nộp minh chứng hoạt động hợp lệ và được Bí Thư duyệt ở Mục 4.</li>
+            </ul>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-rose-50/70 border border-rose-200/80 space-y-2">
+            <div class="text-xs font-extrabold text-rose-800 flex items-center gap-1.5">
+              <i class="fa-solid fa-circle-minus"></i> CÁC MỤC BỊ TRỪ ĐIỂM (-)
+            </div>
+            <ul class="text-xs text-rose-950 space-y-1.5 list-disc pl-4">
+              <li><strong>-5 điểm/lần:</strong> Vắng sinh hoạt Chi đoàn hoặc đại hội triệu tập không xin phép.</li>
+              <li><strong>-5 điểm:</strong> Không mặc Áo Thanh niên Việt Nam trong các buổi lễ bắt buộc.</li>
+              <li><strong>-3 điểm:</strong> Đăng ký tham gia hoạt động nhưng tự ý bỏ ngang không báo Bí Thư.</li>
+              <li><strong>-3 điểm:</strong> Chưa hoàn thành nghĩa vụ đóng Đoàn phí đúng thời hạn quy định.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. SỔ TAY SINH VIÊN & CẨM NANG ĐOÀN VIÊN -->
+      <section class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-xs space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h3 class="text-base font-extrabold text-slate-900">Sổ tay Sinh viên & Cẩm nang Chi đoàn ĐHSVAN26A</h3>
+            <p class="text-xs text-slate-500">Tra cứu quy chế học vụ, sinh hoạt Đoàn, quyền lợi và đầu mối Ban Chấp hành</p>
+          </div>
+          <div class="relative w-full sm:w-64">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+            <input type="text" value="${esc(guideFilter)}" oninput="onFilterGuide(this.value)" placeholder="Tìm nội dung sổ tay..." class="w-full pl-9 pr-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#0056B3]" />
+          </div>
+        </div>
+
+        <!-- Danh bạ Ban Chấp hành Chi đoàn -->
+        <div class="p-4 rounded-2xl bg-gradient-to-r from-blue-50 to-sky-50 border border-blue-100 space-y-2.5">
+          <div class="text-xs font-extrabold text-[#0056B3] flex items-center gap-1.5">
+            <i class="fa-solid fa-address-book"></i> Đầu mối Liên hệ Ban Chấp hành Chi đoàn ĐHSVAN26A
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+            ${bchList.map(b => `
+              <div class="p-3 rounded-xl bg-white border border-blue-100 flex items-center justify-between gap-2 text-xs">
+                <div class="min-w-0">
+                  <div class="font-extrabold text-slate-900 truncate">${esc(b.name)}</div>
+                  <div class="mt-0.5">${getPositionBadgeHtml(b, true)}</div>
+                </div>
+                <div class="text-right text-[11px] text-slate-500 shrink-0">
+                  <div>${b.phone ? `<i class="fa-solid fa-phone text-emerald-600 mr-1"></i>${esc(b.phone)}` : 'Chưa cập nhật SĐT'}</div>
+                  <div class="font-mono text-[10px]">${esc(b.mssv)}</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- Bộ lọc chuyên mục -->
+        <div class="flex flex-wrap gap-1.5">
+          ${categories.map(cat => `
+            <button type="button" onclick="onSelectGuideCategory('${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-bold border transition ${
+              guideCategory === cat
+                ? 'bg-[#0056B3] text-white border-[#0056B3]'
+                : 'bg-slate-50 hover:bg-blue-50 text-slate-600 border-slate-200'
+            }">${cat}</button>
+          `).join('')}
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          ${filtered.length === 0 ? `
+            <div class="col-span-2 py-8 text-center text-xs text-slate-400">Không tìm thấy mục nào phù hợp từ khóa tìm kiếm.</div>
+          ` : filtered.map(doc => `
+            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-2.5">
+              <div class="flex items-center justify-between gap-2">
+                <span class="inline-block px-2.5 py-0.5 rounded-lg bg-blue-100 text-[#0056B3] text-[11px] font-bold">${doc.tag}</span>
+                <span class="text-[10px] font-semibold text-slate-400">${doc.cat}</span>
+              </div>
+              <h4 class="font-extrabold text-sm text-slate-900">${doc.title}</h4>
+              <ul class="text-xs text-slate-600 space-y-1.5 list-disc pl-4 leading-relaxed">
+                ${doc.items.map(it => `<li>${it}</li>`).join('')}
+              </ul>
+            </div>
+          `).join('')}
+        </div>
+      </section>
+    </div>
+  `;
+}
     function buildFinanceHtml() {
       const sec = isSecretary();
       const feeRate = Number(db.feeAmount || 120000);
@@ -2367,7 +2603,7 @@ function doPost(e) {
               </div>
               <p class="text-xs text-slate-500 mb-4">${sec ? 'Bấm Xác nhận thu để cộng quỹ, hoặc Hoàn tác để trừ lại đúng số tiền' : 'Danh sách cập nhật trạng thái đoàn phí'}</p>
 
-              <div class="divide-y divide-slate-100 max-h-[460px] overflow-y-auto pr-1">
+             <div data-scroll-keep="fee-list" class="divide-y divide-slate-100 max-h-[460px] overflow-y-auto pr-1">
                 ${db.users.map(u => `
                   <div class="py-3 flex items-center justify-between gap-3">
                     <div class="flex items-center gap-3 min-w-0">
@@ -3525,33 +3761,47 @@ function doPost(e) {
     }
 
     // ==================== MASTER RENDER ====================
-    function renderMainBody() {
-      if (!currentUser()) return;
-      const container = document.getElementById('main-container');
-      switch (db.activeTab) {
-        case 'activities': container.innerHTML = buildActivitiesHtml(); break;
-        case 'handbook': container.innerHTML = buildHandbookHtml(); break;
-        case 'finance': container.innerHTML = buildFinanceHtml(); break;
-        case 'proofs': container.innerHTML = buildProofsHtml(); break;
-        case 'qr':
-          if (db.attendance.isOpen && getQrRemainingSeconds() <= 0) {
-            db.attendance.isOpen = false;
-            db.attendance.qrNonce = 'EXPIRED';
-            persistLocalOnly();
-          }
-          container.innerHTML = buildQrAttendanceHtml();
-          if (isSecretary() && db.attendance.isOpen) {
-            renderCrispQrCanvas('secretary-qr-canvas', 240);
-            updateQrCountdownDom(getQrRemainingSeconds());
-          }
-          break;
-        case 'accounts':
-          container.innerHTML = isSecretary() ? buildAccountsAdminHtml() : buildHomeHtml();
-          break;
-        default:
-          container.innerHTML = buildHomeHtml();
+   function renderMainBody() {
+  if (!currentUser()) return;
+  const container = document.getElementById('main-container');
+  const winX = window.scrollX;
+  const winY = window.scrollY;
+  const savedScrolls = {};
+  container.querySelectorAll('[data-scroll-keep]').forEach(el => {
+    savedScrolls[el.getAttribute('data-scroll-keep')] = el.scrollTop;
+  });
+
+  switch (db.activeTab) {
+    case 'activities': container.innerHTML = buildActivitiesHtml(); break;
+    case 'handbook': container.innerHTML = buildHandbookHtml(); break;
+    case 'finance': container.innerHTML = buildFinanceHtml(); break;
+    case 'proofs': container.innerHTML = buildProofsHtml(); break;
+    case 'qr':
+      if (db.attendance.isOpen && getQrRemainingSeconds() <= 0) {
+        db.attendance.isOpen = false;
+        db.attendance.qrNonce = 'EXPIRED';
+        persistLocalOnly();
       }
-    }
+      container.innerHTML = buildQrAttendanceHtml();
+      if (isSecretary() && db.attendance.isOpen) {
+        renderCrispQrCanvas('secretary-qr-canvas', 240);
+        updateQrCountdownDom(getQrRemainingSeconds());
+      }
+      break;
+    case 'accounts':
+      container.innerHTML = isSecretary() ? buildAccountsAdminHtml() : buildHomeHtml();
+      break;
+    default:
+      container.innerHTML = buildHomeHtml();
+  }
+
+  container.querySelectorAll('[data-scroll-keep]').forEach(el => {
+    const key = el.getAttribute('data-scroll-keep');
+    if (savedScrolls[key] !== undefined) el.scrollTop = savedScrolls[key];
+  });
+  window.scrollTo(winX, winY);
+  requestAnimationFrame(() => window.scrollTo(winX, winY));
+}
 
     function renderApp() {
       renderWorkspaceShell();
