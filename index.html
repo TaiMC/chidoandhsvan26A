@@ -35,16 +35,6 @@
 
   <style>
     body { font-family: 'Be Vietnam Pro', sans-serif; background-color: #F8FAFC; color: #0F172A; }
-    .view-enter { animation: slideUpFade 0.22s ease-out forwards; }
-    @keyframes slideUpFade {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes pulseBeacon {
-      0%, 100% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.3); opacity: 0.45; }
-    }
-    .beacon-dot { animation: pulseBeacon 1.4s infinite; }
     #qr-camera-box video { width: 100% !important; height: auto !important; border-radius: 14px; object-fit: cover; }
     #qr-camera-box img { display: none !important; }
   </style>
@@ -53,7 +43,7 @@
 
   <!-- ==================== 1. MÀN HÌNH ĐĂNG NHẬP ==================== -->
   <section id="auth-view" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-[#002B5B] via-[#0056B3] to-[#0284C7] relative overflow-hidden">
-    <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden relative z-10 view-enter">
+    <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden relative z-10">
       <div class="bg-gradient-to-r from-[#004494] to-[#0056B3] px-6 py-7 text-white text-center">
         <div class="w-16 h-16 mx-auto rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center font-extrabold text-2xl shadow-lg relative">
           26A
@@ -162,7 +152,7 @@
     </aside>
 
     <!-- HEADER MOBILE -->
-    <header class="lg:hidden sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80">
+    <header class="lg:hidden sticky top-0 z-30 bg-white border-b border-slate-200/80">
       <div class="px-3.5 py-2.5 flex items-center justify-between gap-2">
         <div class="flex items-center gap-2.5 min-w-0">
           <div id="mb-avatar-wrap" class="w-9 h-9 rounded-xl overflow-hidden bg-gradient-to-br from-[#0056B3] to-[#0284C7] text-white font-extrabold text-xs flex items-center justify-center shrink-0">VV</div>
@@ -197,7 +187,7 @@
 
     <!-- KHU VỰC NỘI DUNG CHÍNH -->
     <main class="flex-1 lg:pl-72 pb-24 lg:pb-10">
-      <div class="hidden lg:flex items-center justify-between px-8 py-4 bg-white/85 backdrop-blur-md border-b border-slate-200/70 sticky top-0 z-20">
+      <div class="hidden lg:flex items-center justify-between px-8 py-4 bg-white border-b border-slate-200/70 sticky top-0 z-20">
         <div>
           <div class="flex items-center gap-2 text-xs text-slate-400 font-medium">
             <span>Đoàn TNCS Hồ Chí Minh • Chi đoàn ĐHSVAN26A</span>
@@ -220,21 +210,21 @@
         </div>
       </div>
 
-      <!-- CẢNH BÁO NẾU CHƯA NỐI GOOGLE SHEET HOẶC APPS SCRIPT BẢN CŨ -->
+      <!-- CẢNH BÁO NẾU CHƯA NỐI GOOGLE SHEET -->
       <div id="global-sync-alert" class="hidden max-w-6xl mx-auto px-3.5 sm:px-6 lg:px-8 pt-4"></div>
 
       <div id="main-container" class="max-w-6xl mx-auto px-3.5 sm:px-6 lg:px-8 pt-4 lg:pt-6"></div>
     </main>
 
     <!-- BOTTOM NAV MOBILE -->
-    <nav class="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200 z-30 px-1 py-1.5 shadow-[0_-4px_16px_rgba(0,0,0,0.05)]">
+    <nav class="lg:hidden fixed bottom-0 inset-x-0 bg-white border-t border-slate-200 z-30 px-1 py-1.5 shadow-[0_-4px_16px_rgba(0,0,0,0.05)]">
       <div id="mobile-menu" class="grid grid-cols-5 gap-0.5"></div>
     </nav>
   </div>
 
   <!-- ==================== MODAL: ĐỔI MẬT KHẨU ==================== -->
-  <div id="pass-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
-    <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl border border-slate-100 overflow-hidden view-enter">
+  <div id="pass-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/50">
+    <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl border border-slate-100 overflow-hidden">
       <div class="px-6 py-4 bg-gradient-to-r from-[#0056B3] to-[#0284C7] text-white flex items-center justify-between">
         <h3 class="font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-key"></i> Đổi mật khẩu</h3>
         <button onclick="closeModal('pass-modal')" class="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
@@ -257,8 +247,8 @@
   </div>
 
   <!-- ==================== MODAL: SỬA GIAO DỊCH QUỸ ==================== -->
-  <div id="ledger-edit-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
-    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-100 overflow-hidden view-enter">
+  <div id="ledger-edit-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/50">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-100 overflow-hidden">
       <div class="px-6 py-4 bg-gradient-to-r from-[#0056B3] to-[#0284C7] text-white flex items-center justify-between">
         <h3 class="font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-pen-to-square"></i> Điều chỉnh Giao dịch Quỹ</h3>
         <button onclick="closeModal('ledger-edit-modal')" class="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
@@ -301,8 +291,8 @@
   </div>
 
   <!-- ==================== MODAL: THÊM HOẠT ĐỘNG ==================== -->
-  <div id="activity-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
-    <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-slate-100 overflow-hidden view-enter">
+  <div id="activity-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/50">
+    <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-slate-100 overflow-hidden">
       <div class="px-6 py-4 bg-gradient-to-r from-[#0056B3] to-[#0284C7] text-white flex items-center justify-between">
         <h3 class="font-bold text-base flex items-center gap-2"><i class="fa-solid fa-calendar-plus"></i> Tạo Hoạt động Phong trào</h3>
         <button onclick="closeModal('activity-modal')" class="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
@@ -339,11 +329,11 @@
   </div>
 
   <!-- ==================== MODAL: PHÓNG TO MÃ QR ==================== -->
-  <div id="qr-zoom-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm">
-    <div class="bg-white w-full max-w-md rounded-3xl p-6 text-center shadow-2xl space-y-4 view-enter">
+  <div id="qr-zoom-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/85">
+    <div class="bg-white w-full max-w-md rounded-3xl p-6 text-center shadow-2xl space-y-4">
       <div class="flex items-center justify-between">
         <span class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-extrabold inline-flex items-center gap-1.5">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 beacon-dot"></span> MÃ QR ĐIỂM DANH ĐANG MỞ
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span> MÃ QR ĐIỂM DANH ĐANG MỞ
         </span>
         <button onclick="closeModal('qr-zoom-modal')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
       </div>
@@ -359,8 +349,8 @@
   </div>
 
   <!-- ==================== MODAL: DANH SÁCH ĐĂNG KÝ HOẠT ĐỘNG ==================== -->
-  <div id="reg-list-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
-    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden view-enter">
+  <div id="reg-list-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/50">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden">
       <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
         <div>
           <h3 id="reg-modal-title" class="font-bold text-sm">Danh sách đăng ký</h3>
@@ -380,9 +370,10 @@
     const DB_KEY = 'dhsvan26a_bithu_system_v6';
 
     // DÁN LINK GOOGLE APPS SCRIPT (/exec) VÀO DÒNG DƯỚI ĐỂ CẢ LỚP DÙNG LINK GỐC BÌNH THƯỜNG:
-    const PRESET_API_URL = "https://script.google.com/macros/s/AKfycbx02-qkvQaxJS9yjX037uB4WOfkHr8SJ4Zjbie1bMSvt3hvDGw_HuGRskAI_FMO8FeI/exec";
-    const PRESET_MEMBERS = [["0026410155","Nguyễn Phạm Quế Anh","Đoàn viên","0026410155",85,0],["0026410494","Nguyễn Kim Ba","Đoàn viên","0026410494",85,0],["0026410584","Phan Ngọc Ánh Bình","Đoàn viên","0026410584",85,0],["0026410872","Dương Thành Đạt","Đoàn viên","0026410872",85,0],["0026410656","Lê Thành Đạt","Đoàn viên","0026410656",85,0],["0026410237","Trịnh Minh Đạt","Đoàn viên","0026410237",85,0],["0026410488","Danh Cẩm Giao","Đoàn viên","0026410488",85,0],["0026410620","Phan Thị Kim Giàu","Đoàn viên","0026410620",85,0],["0026411334","Phạm Thị Hồng Hải","Đoàn viên","0026411334",85,0],["0026410575","Nguyễn Ngọc Hân","Đoàn viên","0026410575",85,0],["0026410146","Võ Cao Phúc Hậu","Đoàn viên","0026410146",85,0],["0026411270","Phạm Thị Mỹ Hoa","Đoàn viên","0026411270",85,0],["0026410564","Nguyễn Thái Hoàng","Đoàn viên","0026410564",85,0],["0026411251","Đặng Hoàng Khang","Đoàn viên","0026411251",85,0],["0026410801","Nguyễn Hồng Khánh","Đoàn viên","0026410801",85,0],["0026411157","Nguyễn Đăng Khôi","Đoàn viên","0026411157",85,0],["0026411252","Nguyễn Đinh Lăng","Đoàn viên","0026411252",85,0],["0026410152","Đào Ái Linh","Đoàn viên","0026410152",85,0],["0026415580","Trần Phúc Lợi","Đoàn viên","0026415580",85,0],["0026410617","Lê Tiến Luân","Đoàn viên","0026410617",85,0],["0026410200","Tô Thị Cẩm Ly","Đoàn viên","0026410200",85,0],["0026411144","Nguyễn Lê Hiền Mai","Đoàn viên","0026411144",85,0],["0026410239","Trịnh Hoài My","Đoàn viên","0026410239",85,0],["0026410264","Huỳnh Thị Kiều My","Đoàn viên","0026410264",85,0],["0026411191","Nguyễn Thị Phương Nghi","Đoàn viên","0026411191",85,0],["0026410771","Trịnh Thị Bích Ngọc","Đoàn viên","0026410771",85,0],["0026410137","Đỗ Thảo Nguyên","Đoàn viên","0026410137",85,0],["0026410080","Nguyễn Ngọc Nguyễn","Đoàn viên","0026410080",85,0],["0026410217","Nguyễn Yến Nhi","Đoàn viên","0026410217",85,0],["0026410472","Võ Nguyễn Xuân Nhi","Đoàn viên","0026410472",85,0],["0026411103","Nguyễn Kim Như","Đoàn viên","0026411103",85,0],["0026410092","Nguyễn Ngọc Quỳnh Như","Đoàn viên","0026410092",85,0],["0026410857","Nguyễn Thị Khánh Ni","Đoàn viên","0026410857",85,0],["0026410203","Đỗ Diệp Cường Phát","Đoàn viên","0026410203",85,0],["0026411149","Võ Thị Kim Phượng","Đoàn viên","0026411149",85,0],["0026410750","Lê Bảo Quốc","Đoàn viên","0026410750",85,0],["0026410864","Trần Ngọc Như Quỳnh","Đoàn viên","0026410864",85,0],["0026410167","Trần Thanh Sang","Đoàn viên","0026410167",85,0],["0026411278","Dương Thành Tài","Đoàn viên","0026411278",85,0],["0026410243","Hồ Đức Thịnh","Đoàn viên","0026410243",85,0],["0026411289","Trương Lê Yến Thơ","Đoàn viên","0026411289",85,0],["0026410408","Trần Thị Hải Thuận","Đoàn viên","0026410408",85,0],["0026411387","Danh Thị Kim Thùy","Đoàn viên","0026411387",85,0],["0026410453","Lê Cẩm Tiên","Đoàn viên","0026410453",85,0],["0026410419","Nguyễn Trần Thùy Trang","Đoàn viên","0026410419",85,0],["0026410727","Phạm Lê Ngọc Tuyền","Đoàn viên","0026410727",85,0],["0026410188","Đinh Trần Yến Vy","Đoàn viên","0026410188",85,0],["0026411216","Trần Phương Vy","Đoàn viên","0026411216",85,0],["0026410814","Phan Như Ý","Đoàn viên","0026410814",85,0],["0026411818","Nguyễn Bình Yên","Đoàn viên","0026411818",85,0],["0026410482","Nguyễn Thị Yến","Đoàn viên","0026410482",85,0]];
+    const PRESET_API_URL = 'https://script.google.com/macros/s/AKfycbxY-TjDX5iwkHHpfP5MxiQRGuHHJmysLUFjeB2BANjEwxz6XpnL-QAKWczvoTO6KcDt/exec';
+
     // DÁN MÃ DANH SÁCH LỚP CỐ ĐỊNH VÀO DÒNG DƯỚI NẾU MUỐN:
+    const PRESET_MEMBERS = [];
 
     const POSITION_OPTIONS = [
       'Đoàn viên',
@@ -502,7 +493,6 @@
     let cloudSyncStatus = 'offline';
     let remoteScriptVersion = '';
     let lastSyncedTimeStr = '';
-    let cloudPollHandle = null;
     let isCloudBusy = false;
     let lastLocalMutationAt = 0;
     let localForceRescan = false;
@@ -610,7 +600,7 @@
       }
       if (cloudSyncStatus === 'syncing') {
         el.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-[#0056B3] text-[11px] font-bold';
-        el.innerHTML = '<span class="w-2 h-2 rounded-full bg-[#0056B3] beacon-dot"></span> Đang đồng bộ Sheet...';
+        el.innerHTML = '<span class="w-2 h-2 rounded-full bg-[#0056B3]"></span> Đang đồng bộ Sheet...';
       } else if (cloudSyncStatus === 'error') {
         el.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 text-rose-600 border border-rose-200 text-[11px] font-bold';
         el.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500"></span> Lỗi kết nối Google Sheet';
@@ -682,7 +672,6 @@
       };
     }
 
-    // Gửi lệnh qua GET (cho các thao tác nhỏ như Quét QR, Đăng ký hoạt động, Mở/Đóng QR -> 100% không bị lỗi CORS/Redirect)
     async function cloudGetAction(actionName, dataObjOrNull) {
       const apiUrl = getActiveApiUrl();
       if (!apiUrl) return null;
@@ -711,7 +700,6 @@
       }
     }
 
-    // Gửi dữ liệu lớn qua POST (dùng text/plain để tránh preflight OPTIONS)
     async function cloudPostAction(actionName, dataObj) {
       const apiUrl = getActiveApiUrl();
       if (!apiUrl) return null;
@@ -744,7 +732,6 @@
       }
     }
 
-    // Hàm gửi đồng bộ thông minh: ưu tiên GET cho gói nhỏ, POST cho gói lớn, và tự fallback nếu Apps Script còn bản cũ
     async function sendCloudMutation(actionName, dataObj, usePost = false) {
       const apiUrl = getActiveApiUrl();
       if (!apiUrl) return { ok: false, reason: 'NO_URL' };
@@ -754,7 +741,6 @@
         ? await cloudPostAction(actionName, dataObj)
         : await cloudGetAction(actionName, dataObj);
 
-      // Nếu Apps Script vẫn đang chạy bản cũ (chưa có scriptVersion === 'v6'), tự động gửi SYNC_PUSH để vẫn lưu được
       if (resp && resp.ok && resp.scriptVersion !== 'v6' && actionName !== 'SYNC_PUSH') {
         resp = await cloudPostAction('SYNC_PUSH', getSharedPayloadSnapshot());
       }
@@ -784,12 +770,8 @@
         if (lastLocalMutationAt > pullStartedAt) return;
 
         if (resp && resp.ok && resp.state) {
-          const oldJson = JSON.stringify(getSharedPayloadSnapshot());
           applyRemoteSharedState(resp.state);
-          const newJson = JSON.stringify(getSharedPayloadSnapshot());
-          if (oldJson !== newJson && !isCameraRunning) {
-            renderApp();
-          }
+          if (!isCameraRunning) renderApp();
           if (showNotice) showToast('Đã đồng bộ dữ liệu mới nhất từ Google Sheet!', 'success');
         } else if (resp && resp.ok && !resp.state && isSecretary()) {
           await sendCloudMutation('SYNC_FULL', getSharedPayloadSnapshot(), true);
@@ -820,22 +802,6 @@
         showToast('Đã nối Sheet nhưng Apps Script đang chạy bản cũ! Hãy dán mã v6 và triển khai Phiên bản mới.', 'error');
       }
       renderMainBody();
-    }
-
-    function startCloudAutoSync() {
-      if (cloudPollHandle) clearInterval(cloudPollHandle);
-      cloudPollHandle = setInterval(() => {
-        if (!getActiveApiUrl()) return;
-        const activeTag = document.activeElement ? document.activeElement.tagName : '';
-        if (activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT') return;
-        manualCloudPull(false);
-      }, 3500);
-
-      document.addEventListener('visibilitychange', () => {
-        if (!document.hidden && getActiveApiUrl()) {
-          manualCloudPull(false);
-        }
-      });
     }
 
     // ==================== NÉN LINK LỚP HỌC ====================
@@ -2025,7 +1991,6 @@ function doPost(e) {
 
     // ==================== CÁC MÀN HÌNH CHỨC NĂNG ====================
 
-    // 0. TRANG CHỦ
     function buildHomeHtml() {
       const user = currentUser();
       const sec = isSecretary(user);
@@ -2060,7 +2025,7 @@ function doPost(e) {
       }
 
       return `
-        <div class="space-y-6 view-enter">
+        <div class="space-y-6">
           <section class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#003370] via-[#0056B3] to-[#0284C7] text-white p-5 sm:p-8 shadow-xl shadow-blue-900/15">
             <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div class="space-y-3 max-w-2xl">
@@ -2087,7 +2052,7 @@ function doPost(e) {
                 </div>
               </div>
 
-              <div class="grid grid-cols-3 md:grid-cols-1 gap-2.5 shrink-0 bg-white/12 backdrop-blur-md p-3.5 rounded-2xl border border-white/20">
+              <div class="grid grid-cols-3 md:grid-cols-1 gap-2.5 shrink-0 bg-white/12 p-3.5 rounded-2xl border border-white/20">
                 <div class="flex items-center gap-3">
                   <div class="w-9 h-9 rounded-xl bg-amber-400/20 text-amber-300 flex items-center justify-center text-sm shrink-0"><i class="fa-solid fa-users"></i></div>
                   <div>
@@ -2143,13 +2108,12 @@ function doPost(e) {
       `;
     }
 
-    // 1. HOẠT ĐỘNG VÀ PHONG TRÀO
     function buildActivitiesHtml() {
       const user = currentUser();
       const sec = isSecretary(user);
 
       return `
-        <div class="space-y-5 view-enter">
+        <div class="space-y-5">
           <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h2 class="text-lg font-extrabold text-slate-900">1. Hoạt động & Phong trào Thanh niên</h2>
@@ -2209,7 +2173,6 @@ function doPost(e) {
       `;
     }
 
-    // 2. SỔ TAY ĐOÀN VIÊN & HỒ SƠ
     function buildHandbookHtml() {
       const user = currentUser();
       const filtered = GUIDE_DOCS.filter(d =>
@@ -2219,7 +2182,7 @@ function doPost(e) {
       );
 
       return `
-        <div class="space-y-5 view-enter">
+        <div class="space-y-5">
           <section class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-xs">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-100">
               <div class="flex items-center gap-4">
@@ -2321,7 +2284,6 @@ function doPost(e) {
       `;
     }
 
-    // 3. ĐOÀN PHÍ VÀ TÀI CHÍNH
     function buildFinanceHtml() {
       const sec = isSecretary();
       const feeRate = Number(db.feeAmount || 120000);
@@ -2330,7 +2292,7 @@ function doPost(e) {
       const balance = sumIn - sumOut;
 
       return `
-        <div class="space-y-5 view-enter">
+        <div class="space-y-5">
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
             <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs">
               <span class="text-xs font-bold text-slate-500">Tổng thu quỹ Chi đoàn</span>
@@ -2442,7 +2404,6 @@ function doPost(e) {
       `;
     }
 
-    // 4. MINH CHỨNG HOẠT ĐỘNG
     function renderEvidenceBanner(kind) {
       const cfg = {
         volunteer: { bg: 'from-blue-500 to-sky-600', icon: 'fa-hands-holding-heart', text: 'Minh chứng Tình nguyện' },
@@ -2463,7 +2424,7 @@ function doPost(e) {
       const sec = isSecretary(user);
 
       return `
-        <div class="space-y-5 view-enter">
+        <div class="space-y-5">
           <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
             <div class="lg:col-span-5 bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs h-fit">
               <h2 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
@@ -2551,7 +2512,6 @@ function doPost(e) {
       `;
     }
 
-    // 5. QR ĐIỂM DANH
     function buildQrAttendanceHtml() {
       const user = currentUser();
       const sec = isSecretary(user);
@@ -2564,12 +2524,12 @@ function doPost(e) {
       const currentRound = Number(db.attendance.round || 1);
 
       return `
-        <div class="space-y-5 view-enter">
+        <div class="space-y-5">
           <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="space-y-1">
               <div class="flex flex-wrap items-center gap-2">
                 <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full ${db.attendance.isOpen ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-600'} text-[11px] font-extrabold">
-                  <span class="w-2 h-2 rounded-full ${db.attendance.isOpen ? 'bg-emerald-500 beacon-dot' : 'bg-slate-400'}"></span>
+                  <span class="w-2 h-2 rounded-full ${db.attendance.isOpen ? 'bg-emerald-500' : 'bg-slate-400'}"></span>
                   ${db.attendance.isOpen ? 'MÃ QR ĐIỂM DANH ĐANG MỞ' : 'MÃ QR ĐANG ĐÓNG'}
                 </span>
                 <span class="px-2.5 py-0.5 rounded-full bg-blue-50 text-[#0056B3] text-[11px] font-extrabold">Đợt điểm danh #${currentRound}</span>
@@ -2688,7 +2648,7 @@ function doPost(e) {
                       <span id="qr-remaining-label" class="font-mono text-lg font-extrabold text-emerald-600">${formatSecondsMMSS(leftSec)}</span>
                     </div>
                     <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                      <div id="qr-remaining-bar" class="h-full bg-emerald-500 transition-all duration-1000 ease-linear" style="width: ${Math.min(100, Math.round((leftSec / Math.max(1, currentDur)) * 100))}%"></div>
+                      <div id="qr-remaining-bar" class="h-full bg-emerald-500" style="width: ${Math.min(100, Math.round((leftSec / Math.max(1, currentDur)) * 100))}%"></div>
                     </div>
                   </div>
 
@@ -2770,7 +2730,7 @@ function doPost(e) {
               <div class="flex items-center justify-between mb-4">
                 <div>
                   <h3 class="font-extrabold text-base text-slate-900">Danh sách Điểm danh (Đợt #${currentRound})</h3>
-                  <p class="text-xs text-slate-500">Tự động cập nhật khi thành viên quét QR</p>
+                  <p class="text-xs text-slate-500">Bấm F5 hoặc nút Đồng bộ ở góc trên để cập nhật mới nhất</p>
                 </div>
                 ${sec ? `<button onclick="onResetAttendanceSession()" class="text-xs font-bold text-rose-600 hover:underline">Reset danh sách</button>` : ''}
               </div>
@@ -2816,7 +2776,6 @@ function doPost(e) {
       `;
     }
 
-    // 6. QUẢN LÝ & CẤP TÀI KHOẢN + CẤP CHỨC VỤ PHÓ BÍ THƯ, ỦY VIÊN (BÍ THƯ)
     function buildAccountsAdminHtml() {
       const members = db.users.filter(u => u.role === 'member');
       const pbtCount = members.filter(m => m.position === 'Phó Bí thư Chi đoàn').length;
@@ -2830,7 +2789,7 @@ function doPost(e) {
       const activeApi = getActiveApiUrl();
 
       return `
-        <div class="space-y-5 view-enter">
+        <div class="space-y-5">
           <div class="bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-3xl p-5 sm:p-6 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 text-[11px] font-extrabold mb-1.5">
@@ -3510,13 +3469,11 @@ function doPost(e) {
         info: 'fa-circle-info text-sky-400',
         error: 'fa-triangle-exclamation text-white'
       };
-      el.className = `pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-2xl shadow-xl border-l-4 text-xs font-semibold view-enter ${styleMap[type] || styleMap.info}`;
+      el.className = `pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-2xl shadow-xl border-l-4 text-xs font-semibold ${styleMap[type] || styleMap.info}`;
       el.innerHTML = `<i class="fa-solid ${iconMap[type] || iconMap.info} text-sm shrink-0"></i><span>${esc(msg)}</span>`;
       box.appendChild(el);
       setTimeout(() => {
-        el.style.opacity = '0';
-        el.style.transition = 'opacity 0.25s';
-        setTimeout(() => el.remove(), 250);
+        el.remove();
       }, 3600);
     }
 
