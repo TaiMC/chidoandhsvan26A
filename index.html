@@ -84,7 +84,7 @@
 </head>
 <body class="min-h-screen bg-[#F8FAFC] text-slate-800">
 
-  <!-- ==================== 1. MÀN HÌNH ĐĂNG NHẬP (MẶC ĐỊNH KHI MỞ LINK) ==================== -->
+  <!-- ==================== 1. MÀN HÌNH ĐĂNG NHẬP ==================== -->
   <section id="auth-view" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-[#002B5B] via-[#0056B3] to-[#0284C7] relative overflow-hidden">
     <div class="absolute -top-20 -left-20 w-72 h-72 rounded-full bg-white/10 blur-2xl pointer-events-none"></div>
     <div class="absolute -bottom-24 -right-20 w-80 h-80 rounded-full bg-sky-300/15 blur-2xl pointer-events-none"></div>
@@ -145,7 +145,7 @@
         </button>
 
         <div class="pt-2 text-center text-[11px] text-slate-500">
-          Đoàn viên đăng nhập bằng <strong>Mã số sinh viên (MSSV)</strong> được Bí Thư cấp.
+          Hệ thống tự động ghi nhớ đăng nhập trên thiết bị này cho đến khi bạn bấm <strong>Thoát</strong>.
         </div>
       </form>
     </div>
@@ -445,9 +445,9 @@
 
   <!-- ==================== JAVASCRIPT LOGIC ==================== -->
   <script>
-    const DB_KEY = 'dhsvan26a_bithu_system_v4';
+    const DB_KEY = 'dhsvan26a_bithu_system_v5';
 
-    // NẾU MUỐN LƯU CỐ ĐỊNH DANH SÁCH LỚP VÀO LINK GỐC GITHUB, BÍ THƯ BẤM "COPY MÃ DÁN VÀO GITHUB" TRÊN WEB RỒI DÁN ĐÈ DÒNG NÀY:
+    // NẾU MUỐN LƯU CỐ ĐỊNH DANH SÁCH LỚP VÀO LINK GỐC GITHUB, BÍ THƯ BẤM "COPY MÃ LƯU CỐ ĐỊNH GITHUB" TRÊN WEB RỒI DÁN ĐÈ DÒNG NÀY:
     const PRESET_MEMBERS = [];
 
     const SEED_USERS = [
@@ -493,7 +493,7 @@
     ];
 
     const INITIAL_DB = {
-      activeUserId: null, // Luôn vào màn hình đăng nhập khi mở link
+      activeUserId: null,
       activeTab: 'home',
       users: SEED_USERS,
       activities: [
@@ -559,7 +559,7 @@
 
     let db = loadDatabase();
 
-    // ==================== MÃ HÓA & ĐỒNG BỘ DANH SÁCH LỚP QUA LINK (KHÔNG CẦN FIREBASE) ====================
+    // ==================== MÃ HÓA & ĐỒNG BỘ DANH SÁCH LỚP QUA LINK ====================
     function encodeUtf8Base64(str) {
       return btoa(unescape(encodeURIComponent(str)));
     }
@@ -580,7 +580,7 @@
         const points = Number(item[4] || 85);
         const feePaid = Boolean(item[5]);
 
-        if (mssv === '0026410310') return; // Không ghi đè Bí Thư
+        if (mssv === '0026410310') return;
 
         const existing = db.users.find(u => u.mssv.toUpperCase() === mssv);
         if (existing) {
@@ -611,7 +611,6 @@
       return addedOrUpdated;
     }
 
-    // Kiểm tra xem đường dẫn có đính kèm danh sách tài khoản do Bí Thư gửi không (#lop=...)
     function checkClassInviteLinkOnLoad() {
       try {
         let encoded = '';
@@ -630,6 +629,10 @@
         const count = mergeMemberListIntoDb(list);
         if (count > 0) {
           persistLocalOnly();
+          // Làm gọn URL sau khi đã nạp danh sách vào trình duyệt
+          if (window.history && window.history.replaceState) {
+            window.history.replaceState(null, '', window.location.pathname);
+          }
         }
         return count;
       } catch (err) {
@@ -638,7 +641,6 @@
       }
     }
 
-    // Tạo link chứa toàn bộ danh sách tài khoản của lớp để Bí Thư gửi qua Zalo
     function buildClassInviteLink() {
       const members = db.users.filter(u => u.role === 'member');
       const compact = members.map(m => [
@@ -672,7 +674,6 @@
       }
     }
 
-    // Tạo đoạn code JS PRESET_MEMBERS để Bí Thư dán cố định vào GitHub nếu muốn
     function copyGithubPresetCode() {
       const members = db.users.filter(u => u.role === 'member');
       const compact = members.map(m => [
@@ -695,7 +696,7 @@
       }
     }
 
-    // ==================== LƯU TRỮ LOCAL & KHỞI TẠO ====================
+    // ==================== LƯU TRỮ LOCAL & GIỮ PHIÊN ĐĂNG NHẬP KHI F5 ====================
     function loadDatabase() {
       let baseData = JSON.parse(JSON.stringify(INITIAL_DB));
       try {
@@ -709,10 +710,12 @@
           baseData = {
             ...baseData,
             ...parsed,
-            activeUserId: null, // Luôn bắt buộc đăng nhập khi mở link
-            activeTab: 'home',
             attendance: { ...baseData.attendance, ...(parsed.attendance || {}) }
           };
+          // Đảm bảo activeUserId vẫn hợp lệ trong danh sách users
+          if (baseData.activeUserId && !baseData.users.some(u => u.id === baseData.activeUserId)) {
+            baseData.activeUserId = null;
+          }
         }
       } catch (err) {
         console.warn('Lỗi đọc dữ liệu:', err);
@@ -722,15 +725,10 @@
 
     function persistLocalOnly() {
       try {
-        const toSave = { ...db, activeUserId: null };
-        localStorage.setItem(DB_KEY, JSON.stringify(toSave));
+        localStorage.setItem(DB_KEY, JSON.stringify(db));
       } catch (err) {
         showToast('Bộ nhớ trình duyệt đầy! Hãy chọn ảnh đại diện dung lượng nhỏ hơn.', 'error');
       }
-    }
-
-    function persistDatabase() {
-      persistLocalOnly();
     }
 
     function currentUser() {
@@ -807,6 +805,7 @@
 
       db.activeUserId = matched.id;
       db.activeTab = 'home';
+      persistLocalOnly();
       renderApp();
       showToast(`Xin chào ${matched.name}!`, 'success');
     }
@@ -815,6 +814,7 @@
       stopCameraScanner();
       db.activeUserId = null;
       db.activeTab = 'home';
+      persistLocalOnly();
       document.getElementById('auth-pass').value = '';
       renderApp();
       showToast('Đã đăng xuất khỏi hệ thống.', 'info');
@@ -824,7 +824,7 @@
     function exportBackupJsonFile() {
       const payload = {
         app: 'CHI_DOAN_DHSVAN26A',
-        version: 4,
+        version: 5,
         exportedAt: new Date().toISOString(),
         data: {
           users: db.users,
@@ -1427,6 +1427,7 @@
         stopCameraScanner();
       }
       db.activeTab = tabId;
+      persistLocalOnly();
       renderApp();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -2382,7 +2383,6 @@
 
           <!-- KHỐI 1: GỬI LINK LỚP HỌC QUA ZALO & SAO LƯU DỮ LIỆU -->
           <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
-            <!-- Chia sẻ tài khoản cho cả lớp không cần Firebase -->
             <div class="lg:col-span-7 bg-white rounded-3xl p-5 border border-emerald-200/80 shadow-xs space-y-3.5">
               <div class="flex items-center gap-2 text-emerald-700 font-extrabold text-sm">
                 <i class="fa-solid fa-share-nodes"></i>
@@ -2403,7 +2403,6 @@
               </div>
             </div>
 
-            <!-- Sao lưu & Khôi phục File JSON -->
             <div class="lg:col-span-5 bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between space-y-3.5">
               <div>
                 <div class="flex items-center gap-2 text-[#0056B3] font-extrabold text-sm">
@@ -2431,7 +2430,6 @@
           <!-- KHỐI 2: CẤP TÀI KHOẢN (LẺ HOẶC HÀNG LOẠT) & DANH SÁCH ĐOÀN VIÊN -->
           <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
             <div class="lg:col-span-5 space-y-5">
-              <!-- Cấp từng tài khoản -->
               <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-xs">
                 <h3 class="font-extrabold text-base text-slate-900 flex items-center gap-2">
                   <span class="w-8 h-8 rounded-xl bg-blue-50 text-[#0056B3] flex items-center justify-center text-sm"><i class="fa-solid fa-user-plus"></i></span>
@@ -2481,7 +2479,6 @@
                 </form>
               </div>
 
-              <!-- Nhập hàng loạt cả lớp cùng lúc -->
               <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs space-y-3">
                 <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
                   <i class="fa-solid fa-list-check text-emerald-600"></i>
@@ -2505,7 +2502,6 @@
               </div>
             </div>
 
-            <!-- Danh sách tài khoản đã cấp -->
             <div class="lg:col-span-7 bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-xs h-fit">
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                 <div>
@@ -2967,13 +2963,11 @@
     });
 
     window.addEventListener('DOMContentLoaded', () => {
-      // 1. Nạp danh sách PRESET_MEMBERS nếu Bí Thư có dán cứng vào GitHub
       if (Array.isArray(PRESET_MEMBERS) && PRESET_MEMBERS.length > 0) {
         mergeMemberListIntoDb(PRESET_MEMBERS);
         persistLocalOnly();
       }
 
-      // 2. Tự động nhận diện danh sách tài khoản nếu mở từ Link Lớp học (#lop=...) Bí Thư gửi
       const importedCount = checkClassInviteLinkOnLoad();
       if (importedCount > 0) {
         const noticeEl = document.getElementById('login-sync-notice');
