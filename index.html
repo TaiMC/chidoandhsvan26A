@@ -16,10 +16,10 @@
   <!-- Font Awesome 6 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 
-  <!-- Thư viện tạo mã QR chuẩn quốc tế (Scannable QRCode.js) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- QRious: Thư viện tạo mã QR Canvas độ phân giải cao, chuẩn viền trắng (Quiet Zone) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 
-  <!-- Thư viện quét mã QR qua Camera (Html5-QRCode) -->
+  <!-- Html5-QRCode: Thư viện quét mã QR qua Camera & Ảnh -->
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
   <script>
@@ -71,14 +71,15 @@
       animation: pulseBeacon 1.4s infinite;
     }
 
-    /* Căn chỉnh canvas/img do QRCode.js sinh ra */
-    #real-qr-box img,
-    #real-qr-box canvas,
-    #zoom-qr-box img,
-    #zoom-qr-box canvas {
-      margin: 0 auto;
-      border-radius: 12px;
-      display: block !important;
+    /* Tối ưu khung camera html5-qrcode trên mobile & desktop */
+    #qr-camera-box video {
+      width: 100% !important;
+      height: auto !important;
+      border-radius: 14px;
+      object-fit: cover;
+    }
+    #qr-camera-box img {
+      display: none !important;
     }
   </style>
 </head>
@@ -260,8 +261,7 @@
           </div>
           <button onclick="switchTab('qr')" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#0056B3] to-[#0284C7] text-white text-xs font-bold shadow-sm hover:opacity-95 transition">
             <i class="fa-solid fa-qrcode"></i>
-            <span>QR Điểm danh</span>
-            <span class="px-1.5 py-0.5 text-[10px] rounded-md bg-rose-500 text-white font-extrabold">15s</span>
+            <span>5. QR Điểm danh</span>
           </button>
         </div>
       </div>
@@ -288,7 +288,6 @@
         </button>
       </div>
       <form onsubmit="onSaveProfile(event)" class="p-5 space-y-3.5 max-h-[85vh] overflow-y-auto">
-        <!-- Ảnh đại diện -->
         <div class="flex items-center gap-4 p-3 rounded-2xl bg-slate-50 border border-slate-200/80">
           <div id="prof-preview-avatar" class="w-16 h-16 rounded-2xl overflow-hidden bg-[#0056B3] text-white font-extrabold text-xl flex items-center justify-center shrink-0 shadow-sm">
             VV
@@ -304,7 +303,7 @@
                 Xóa ảnh
               </button>
             </div>
-            <p class="text-[10px] text-slate-400">Hỗ trợ JPG, PNG, WEBP (tự động tối ưu dung lượng)</p>
+            <p class="text-[10px] text-slate-400">Hỗ trợ JPG, PNG, WEBP</p>
           </div>
         </div>
 
@@ -402,23 +401,23 @@
   </div>
 
   <!-- ==================== MODAL: PHÓNG TO MÃ QR CHIẾU LỚP ==================== -->
-  <div id="qr-zoom-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+  <div id="qr-zoom-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm">
     <div class="bg-white w-full max-w-md rounded-3xl p-6 text-center shadow-2xl space-y-4 view-enter">
       <div class="flex items-center justify-between">
-        <span class="px-3 py-1 rounded-full bg-rose-50 text-rose-600 text-xs font-extrabold inline-flex items-center gap-1.5">
-          <span class="w-2 h-2 rounded-full bg-rose-500 beacon-dot"></span> MÃ QR ĐIỂM DANH TRỰC TIẾP
+        <span class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-extrabold inline-flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 beacon-dot"></span> MÃ QR ĐIỂM DANH ĐANG MỞ
         </span>
         <button onclick="closeZoomQrModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
       <h3 id="zoom-session-title" class="font-extrabold text-base text-slate-900">Sinh hoạt Chi đoàn ĐHSVAN26A</h3>
-      <div class="p-4 rounded-3xl bg-white border-2 border-[#0056B3]/30 inline-block shadow-inner">
-        <div id="zoom-qr-box"></div>
+      <div class="p-4 rounded-3xl bg-white border-2 border-slate-200 inline-block shadow-inner">
+        <canvas id="zoom-qr-canvas" class="mx-auto block"></canvas>
       </div>
-      <div class="bg-slate-50 rounded-2xl p-3 border border-slate-200">
-        <div class="text-xs text-slate-500">Mã xác thực OTP (đổi sau <strong id="zoom-countdown" class="text-rose-600">15s</strong>):</div>
-        <div id="zoom-otp-text" class="font-mono text-2xl font-extrabold tracking-[0.2em] text-[#0056B3] mt-1">000 000</div>
+      <div class="bg-blue-50 rounded-2xl p-3 border border-blue-100">
+        <div class="text-xs text-slate-600">Thời gian hiệu lực còn lại:</div>
+        <div id="zoom-countdown" class="font-mono text-2xl font-extrabold text-[#0056B3] mt-0.5">02:00</div>
       </div>
     </div>
   </div>
@@ -442,7 +441,7 @@
 
   <!-- ==================== JAVASCRIPT LOGIC ==================== -->
   <script>
-    const DB_KEY = 'dhsvan26a_bithu_system_v3';
+    const DB_KEY = 'dhsvan26a_bithu_system_v4';
 
     const SEED_USERS = [
       {
@@ -452,7 +451,7 @@
         mssv: '0026410310',
         name: 'Võ Quang Vinh',
         position: 'Bí Thư Chi đoàn',
-        role: 'secretary', // 'secretary' (Bí Thư) | 'member' (Đoàn viên)
+        role: 'secretary',
         phone: '',
         email: '',
         avatar: '',
@@ -471,8 +470,8 @@
       },
       {
         tag: 'Quy chế Điểm danh',
-        title: 'Quy định điểm danh QR động 15 giây tại Chi đoàn ĐHSVAN26A',
-        body: 'Đoàn viên quét mã QR trực tiếp bằng camera hoặc nhập mã OTP 6 số do Bí Thư trình chiếu. Mã tự động làm mới sau mỗi 15 giây để đảm bảo tính chính xác.'
+        title: 'Quy định điểm danh bằng mã QR của Bí Thư tại Chi đoàn ĐHSVAN26A',
+        body: 'Khi Bí Thư mở mã QR điểm danh trong thời gian quy định, Đoàn viên vào mục 5 để bật máy quét QR (hoặc chọn ảnh mã QR Bí Thư gửi) để xác nhận có mặt.'
       },
       {
         tag: 'Đoàn phí & Quỹ lớp',
@@ -538,12 +537,15 @@
         }
       ],
       attendance: {
-        sessionId: 'SESS-' + Date.now().toString().slice(-6),
+        sessionId: 'SESS-26A',
         title: 'Sinh hoạt Chi đoàn định kỳ Tháng 11/2026',
         location: 'Phòng B.304 - Giảng đường B',
-        isOpen: true,
+        isOpen: false,          // Trạng thái mở/đóng mã QR do Bí Thư điều khiển
+        durationSec: 120,       // Thời gian hiệu lực QR (giây) do Bí Thư cài đặt (mặc định 2 phút = 120s)
+        openedAtSec: 0,         // Unix timestamp (giây) lúc Bí Thư bấm Mở QR Code
+        qrNonce: '2601',        // Mã phiên ngắn gọn giúp mã QR thưa, cực dễ quét
         logs: [
-          { userId: 'BITHU_VINH', time: '19:00:00 17/11/2026', method: 'Bí Thư khởi tạo' }
+          { userId: 'BITHU_VINH', time: '19:00:00 17/11/2026', method: 'Bí Thư chủ trì' }
         ]
       }
     };
@@ -559,10 +561,14 @@
           if (!hasSecretary) {
             parsed.users = [...SEED_USERS, ...(parsed.users || [])];
           }
-          return { ...INITIAL_DB, ...parsed };
+          return {
+            ...INITIAL_DB,
+            ...parsed,
+            attendance: { ...INITIAL_DB.attendance, ...(parsed.attendance || {}) }
+          };
         }
       } catch (err) {
-        console.warn('Không thể đọc bộ nhớ trình duyệt:', err);
+        console.warn('Lỗi đọc dữ liệu:', err);
       }
       return JSON.parse(JSON.stringify(INITIAL_DB));
     }
@@ -599,6 +605,13 @@
 
     function formatVND(val) {
       return new Intl.NumberFormat('vi-VN').format(val) + 'đ';
+    }
+
+    function formatSecondsMMSS(totalSec) {
+      const s = Math.max(0, Math.floor(totalSec));
+      const mins = Math.floor(s / 60);
+      const secs = s % 60;
+      return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
     }
 
     // ==================== HỆ THỐNG ĐĂNG NHẬP / ĐĂNG XUẤT ====================
@@ -722,8 +735,7 @@
       document.getElementById('prof-mssv').value = u.mssv || '';
       document.getElementById('prof-phone').value = u.phone || '';
       document.getElementById('prof-email').value = u.email || '';
-      const preview = document.getElementById('prof-preview-avatar');
-      preview.innerHTML = renderAvatarContent(u);
+      document.getElementById('prof-preview-avatar').innerHTML = renderAvatarContent(u);
 
       const modal = document.getElementById('profile-modal');
       modal.classList.remove('hidden');
@@ -833,95 +845,149 @@
       showToast('Đổi mật khẩu thành công!', 'success');
     }
 
-    // ==================== MÃ QR ĐỘNG 15S CHUẨN & QUÉT CAMERA ====================
-    let qrTimerSec = 15;
-    let activeOtp = makeSixDigitOtp();
-    let prevOtp = activeOtp;
+    // ==================== HỆ THỐNG QR CODE & CAMERA QUÉT CHUẨN ====================
     let qrTickerHandle = null;
     let html5ScannerInstance = null;
-    let isCameraScanning = false;
+    let isCameraRunning = false;
+    let availableCameras = [];
+    let currentCameraIndex = 0;
 
-    function makeSixDigitOtp() {
-      return Math.floor(100000 + Math.random() * 900000).toString();
+    // Tính số giây còn lại của mã QR do Bí Thư mở
+    function getQrRemainingSeconds() {
+      if (!db.attendance.isOpen || !db.attendance.openedAtSec) return 0;
+      const nowSec = Math.floor(Date.now() / 1000);
+      const endSec = db.attendance.openedAtSec + Number(db.attendance.durationSec || 120);
+      return Math.max(0, endSec - nowSec);
     }
 
-    function buildQrPayloadString() {
-      return `DHSVAN26A|${db.attendance.sessionId}|${activeOtp}`;
+    // Chuỗi dữ liệu ngắn gọn (28 ký tự) giúp QR Code có mắt lưới to, sắc nét, quét tức thì
+    function getQrEncodedText() {
+      return `DHSVAN26A|${db.attendance.openedAtSec}|${db.attendance.durationSec}|${db.attendance.qrNonce}`;
     }
 
-    function drawRealQrCode(elementId, sizePx) {
-      const el = document.getElementById(elementId);
-      if (!el) return;
-      el.innerHTML = '';
-      if (typeof QRCode !== 'undefined') {
-        new QRCode(el, {
-          text: buildQrPayloadString(),
-          width: sizePx,
-          height: sizePx,
-          colorDark: '#0F172A',
-          colorLight: '#FFFFFF',
-          correctLevel: QRCode.CorrectLevel.M
+    // Vẽ mã QR sắc nét bằng QRious với viền trắng chuẩn Quiet Zone
+    function renderCrispQrCanvas(canvasId, sizePx) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas || !db.attendance.isOpen) return;
+      if (typeof QRious !== 'undefined') {
+        new QRious({
+          element: canvas,
+          value: getQrEncodedText(),
+          size: sizePx,
+          padding: 18,
+          level: 'M',
+          background: '#FFFFFF',
+          foreground: '#000000'
         });
-      } else {
-        el.innerHTML = `<div class="p-4 text-xs font-mono text-slate-600">${buildQrPayloadString()}</div>`;
       }
     }
 
-    function startQrEngine() {
+    // Bộ đếm thời gian chạy mỗi giây
+    function startQrCountdownLoop() {
       if (qrTickerHandle) clearInterval(qrTickerHandle);
       qrTickerHandle = setInterval(() => {
         if (!db.attendance.isOpen) return;
-        qrTimerSec--;
-        if (qrTimerSec <= 0) {
-          prevOtp = activeOtp;
-          activeOtp = makeSixDigitOtp();
-          qrTimerSec = 15;
-          drawRealQrCode('real-qr-box', 210);
-          drawRealQrCode('zoom-qr-box', 250);
+        const left = getQrRemainingSeconds();
+        if (left <= 0) {
+          // Hết thời gian Bí Thư cài đặt -> tự động đóng QR
+          db.attendance.isOpen = false;
+          persistDatabase();
+          closeZoomQrModal();
+          if (db.activeTab === 'qr') {
+            renderMainBody();
+          }
+          showToast('Đã hết thời gian điểm danh QR code!', 'info');
+          return;
         }
-        syncQrCountdownUi();
+        updateQrCountdownDom(left);
       }, 1000);
     }
 
-    function syncQrCountdownUi() {
-      const secEl = document.getElementById('qr-sec-label');
-      const barEl = document.getElementById('qr-bar-fill');
-      const otpEl = document.getElementById('qr-otp-display');
-      const zoomSec = document.getElementById('zoom-countdown');
-      const zoomOtp = document.getElementById('zoom-otp-text');
+    function updateQrCountdownDom(leftSec) {
+      const total = Math.max(1, Number(db.attendance.durationSec || 120));
+      const pct = Math.min(100, Math.round((leftSec / total) * 100));
+      const timeFormatted = formatSecondsMMSS(leftSec);
 
-      if (secEl) secEl.textContent = `${qrTimerSec}s`;
-      if (zoomSec) zoomSec.textContent = `${qrTimerSec}s`;
+      const timeEl = document.getElementById('qr-remaining-label');
+      const barEl = document.getElementById('qr-remaining-bar');
+      const zoomEl = document.getElementById('zoom-countdown');
 
+      if (timeEl) timeEl.textContent = timeFormatted;
+      if (zoomEl) zoomEl.textContent = timeFormatted;
       if (barEl) {
-        const pct = (qrTimerSec / 15) * 100;
         barEl.style.width = `${pct}%`;
-        barEl.classList.toggle('bg-rose-500', qrTimerSec <= 4);
-        barEl.classList.toggle('bg-[#0056B3]', qrTimerSec > 4);
+        barEl.classList.toggle('bg-rose-500', leftSec <= 10);
+        barEl.classList.toggle('bg-emerald-500', leftSec > 10);
       }
-
-      const formattedOtp = `${activeOtp.slice(0, 3)} ${activeOtp.slice(3)}`;
-      if (otpEl) otpEl.textContent = formattedOtp;
-      if (zoomOtp) zoomOtp.textContent = formattedOtp;
     }
 
-    function regenerateQrNow() {
-      prevOtp = activeOtp;
-      activeOtp = makeSixDigitOtp();
-      qrTimerSec = 15;
-      drawRealQrCode('real-qr-box', 210);
-      drawRealQrCode('zoom-qr-box', 250);
-      syncQrCountdownUi();
-      showToast('Đã làm mới mã QR & OTP 15s!', 'info');
+    // Bí Thư: Cài đặt thời gian hiệu lực QR
+    function onSetQrDuration(seconds) {
+      if (!isSecretary()) return;
+      const secVal = Math.max(10, Math.min(3600, parseInt(seconds, 10) || 120));
+      db.attendance.durationSec = secVal;
+      // Nếu QR đang mở thì cập nhật lại mốc thời gian mới ngay lập tức
+      if (db.attendance.isOpen) {
+        db.attendance.openedAtSec = Math.floor(Date.now() / 1000);
+        db.attendance.qrNonce = Math.floor(1000 + Math.random() * 9000).toString();
+      }
+      persistDatabase();
+      renderMainBody();
+      showToast(`Đã đặt thời gian QR code: ${formatSecondsMMSS(secVal)} (${secVal} giây)!`, 'success');
+    }
+
+    function onCustomDurationSubmit(e) {
+      e.preventDefault();
+      const num = parseInt(document.getElementById('custom-time-val').value, 10);
+      const unit = document.getElementById('custom-time-unit').value;
+      if (!num || num <= 0) {
+        showToast('Vui lòng nhập số thời gian hợp lệ!', 'error');
+        return;
+      }
+      const totalSeconds = unit === 'min' ? num * 60 : num;
+      onSetQrDuration(totalSeconds);
+    }
+
+    // Bí Thư: Nút Mở / Đóng QR Code
+    function onToggleOpenQrCode() {
+      if (!isSecretary()) return;
+      if (db.attendance.isOpen) {
+        db.attendance.isOpen = false;
+        persistDatabase();
+        renderMainBody();
+        showToast('Bí Thư đã đóng mã QR điểm danh.', 'info');
+      } else {
+        db.attendance.isOpen = true;
+        db.attendance.openedAtSec = Math.floor(Date.now() / 1000);
+        db.attendance.qrNonce = Math.floor(1000 + Math.random() * 9000).toString();
+        persistDatabase();
+        renderMainBody();
+        showToast(`Đã mở mã QR điểm danh (${formatSecondsMMSS(db.attendance.durationSec)})!`, 'success');
+      }
+    }
+
+    // Bí Thư: Tải ảnh PNG mã QR để gửi qua Zalo / nhóm lớp
+    function downloadQrPng() {
+      const canvas = document.getElementById('secretary-qr-canvas');
+      if (!canvas) {
+        showToast('Hãy mở mã QR trước khi tải ảnh!', 'error');
+        return;
+      }
+      const link = document.createElement('a');
+      link.download = `QR_DiemDanh_DHSVAN26A_${db.attendance.qrNonce}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      showToast('Đã tải ảnh mã QR! Bạn có thể gửi ảnh này cho các thành viên quét.', 'success');
     }
 
     function openZoomQrModal() {
+      if (!db.attendance.isOpen) return;
       document.getElementById('zoom-session-title').textContent = db.attendance.title;
       const m = document.getElementById('qr-zoom-modal');
       m.classList.remove('hidden');
       m.classList.add('flex');
-      drawRealQrCode('zoom-qr-box', 250);
-      syncQrCountdownUi();
+      renderCrispQrCanvas('zoom-qr-canvas', 270);
+      updateQrCountdownDom(getQrRemainingSeconds());
     }
 
     function closeZoomQrModal() {
@@ -930,72 +996,199 @@
       m.classList.remove('flex');
     }
 
-    async function startCameraScanner() {
-      const readerEl = document.getElementById('qr-camera-reader');
-      if (!readerEl) return;
+    // Âm thanh báo quét thành công (Web Audio API)
+    function playSuccessBeep() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, ctx.currentTime);
+        osc.frequency.setValueAtTime(1174.66, ctx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.3);
+      } catch (e) {}
+    }
+
+    // Thành viên: Bật máy quét Camera (có tự động fallback mọi thiết bị)
+    async function startMemberCameraScanner() {
+      const box = document.getElementById('qr-camera-box');
+      const statusEl = document.getElementById('scanner-status-text');
+      if (!box) return;
+
       if (typeof Html5Qrcode === 'undefined') {
-        showToast('Trình duyệt chưa tải được module Camera. Vui lòng nhập mã OTP 6 số bên dưới.', 'error');
+        showToast('Trình duyệt chưa tải được bộ quét Camera. Hãy dùng nút "Chọn ảnh QR" bên dưới.', 'error');
         return;
       }
+
       try {
-        if (html5ScannerInstance) {
-          await stopCameraScanner();
+        await stopCameraScanner();
+
+        const formats = typeof Html5QrcodeSupportedFormats !== 'undefined'
+          ? [Html5QrcodeSupportedFormats.QR_CODE]
+          : undefined;
+
+        html5ScannerInstance = new Html5Qrcode('qr-camera-box', formats ? { formatsToSupport: formats, verbose: false } : false);
+
+        if (statusEl) statusEl.textContent = 'Đang khởi động camera...';
+
+        // Lấy danh sách camera trên thiết bị
+        try {
+          availableCameras = await Html5Qrcode.getCameras();
+        } catch (camErr) {
+          availableCameras = [];
         }
-        html5ScannerInstance = new Html5Qrcode('qr-camera-reader');
-        isCameraScanning = true;
-        updateCameraButtons();
-        await html5ScannerInstance.start(
-          { facingMode: 'environment' },
-          { fps: 10, qrbox: { width: 200, height: 200 } },
-          (decodedText) => {
-            handleDecodedQrText(decodedText);
-          },
-          () => {}
-        );
+
+        const scanConfig = {
+          fps: 12,
+          qrbox: function (viewfinderWidth, viewfinderHeight) {
+            const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+            const size = Math.max(160, Math.floor(minEdge * 0.72));
+            return { width: size, height: size };
+          }
+        };
+
+        let started = false;
+
+        // Ưu tiên 1: Chọn camera sau nếu tìm thấy trong danh sách thiết bị
+        if (availableCameras && availableCameras.length > 0) {
+          const backIdx = availableCameras.findIndex(c => /back|rear|environment|sau/i.test(c.label || ''));
+          if (backIdx !== -1 && currentCameraIndex === 0) {
+            currentCameraIndex = backIdx;
+          }
+          const chosenCam = availableCameras[currentCameraIndex % availableCameras.length];
+          try {
+            await html5ScannerInstance.start(
+              chosenCam.id,
+              scanConfig,
+              (decodedText) => onQrCodeScannedSuccess(decodedText),
+              () => {}
+            );
+            started = true;
+          } catch (e1) {
+            started = false;
+          }
+        }
+
+        // Ưu tiên 2: Fallback sang facingMode environment -> user
+        if (!started) {
+          try {
+            await html5ScannerInstance.start(
+              { facingMode: 'environment' },
+              scanConfig,
+              (decodedText) => onQrCodeScannedSuccess(decodedText),
+              () => {}
+            );
+            started = true;
+          } catch (e2) {
+            await html5ScannerInstance.start(
+              { facingMode: 'user' },
+              scanConfig,
+              (decodedText) => onQrCodeScannedSuccess(decodedText),
+              () => {}
+            );
+            started = true;
+          }
+        }
+
+        isCameraRunning = true;
+        updateScannerUiState();
+        if (statusEl) statusEl.textContent = 'Đưa mã QR của Bí Thư vào khung hình để điểm danh...';
       } catch (err) {
-        isCameraScanning = false;
-        updateCameraButtons();
-        showToast('Không mở được Camera (hãy cấp quyền camera hoặc dùng mã OTP 6 số).', 'error');
+        isCameraRunning = false;
+        updateScannerUiState();
+        if (statusEl) {
+          statusEl.textContent = 'Không truy cập được Camera (do trình duyệt chặn quyền hoặc thiết bị không có camera). Bạn có thể dùng nút "Quét từ ảnh QR" ngay bên dưới!';
+        }
+        showToast('Không bật được camera! Hãy cấp quyền Camera hoặc dùng nút "Quét từ ảnh QR".', 'error');
       }
+    }
+
+    async function switchMemberCamera() {
+      if (!availableCameras || availableCameras.length < 2) {
+        showToast('Thiết bị chỉ có 1 camera.', 'info');
+        return;
+      }
+      currentCameraIndex = (currentCameraIndex + 1) % availableCameras.length;
+      await startMemberCameraScanner();
     }
 
     async function stopCameraScanner() {
-      if (html5ScannerInstance && isCameraScanning) {
+      if (html5ScannerInstance) {
         try {
-          await html5ScannerInstance.stop();
+          if (isCameraRunning) {
+            await html5ScannerInstance.stop();
+          }
           await html5ScannerInstance.clear();
         } catch (e) {}
       }
-      isCameraScanning = false;
-      updateCameraButtons();
+      isCameraRunning = false;
+      updateScannerUiState();
     }
 
-    function updateCameraButtons() {
-      const btnStart = document.getElementById('btn-start-cam');
-      const btnStop = document.getElementById('btn-stop-cam');
-      if (btnStart) btnStart.classList.toggle('hidden', isCameraScanning);
-      if (btnStop) btnStop.classList.toggle('hidden', !isCameraScanning);
+    function updateScannerUiState() {
+      const startBtn = document.getElementById('btn-cam-open');
+      const stopBtn = document.getElementById('btn-cam-close');
+      const switchBtn = document.getElementById('btn-cam-switch');
+      const placeholder = document.getElementById('cam-idle-placeholder');
+
+      if (startBtn) startBtn.classList.toggle('hidden', isCameraRunning);
+      if (stopBtn) stopBtn.classList.toggle('hidden', !isCameraRunning);
+      if (switchBtn) switchBtn.classList.toggle('hidden', !(isCameraRunning && availableCameras.length > 1));
+      if (placeholder) placeholder.classList.toggle('hidden', isCameraRunning);
     }
 
-    function handleDecodedQrText(text) {
-      // Định dạng chuẩn: DHSVAN26A|<sessionId>|<otp>
-      const parts = (text || '').trim().split('|');
-      if (parts.length === 3 && parts[0] === 'DHSVAN26A') {
-        const scannedSession = parts[1];
-        const scannedOtp = parts[2];
-        if (scannedSession !== db.attendance.sessionId) {
-          showToast('Mã QR thuộc buổi sinh hoạt khác!', 'error');
-          return;
-        }
-        if (scannedOtp === activeOtp || (qrTimerSec >= 12 && scannedOtp === prevOtp)) {
-          stopCameraScanner();
-          commitAttendance(db.activeUserId, 'Quét QR Camera');
-        } else {
-          showToast('Mã QR đã hết hạn 15 giây! Vui lòng quét mã mới.', 'error');
-        }
-      } else {
-        showToast('Mã QR không thuộc hệ thống Chi đoàn ĐHSVAN26A!', 'error');
+    // Thành viên: Quét trực tiếp từ file ảnh mã QR do Bí Thư gửi (Zalo/Messenger)
+    async function onScanQrFromImageFile(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      if (typeof Html5Qrcode === 'undefined') {
+        showToast('Trình duyệt không hỗ trợ đọc ảnh QR.', 'error');
+        return;
       }
+
+      try {
+        await stopCameraScanner();
+        const fileScanner = new Html5Qrcode('qr-file-temp-slot', false);
+        const decodedText = await fileScanner.scanFile(file, false);
+        fileScanner.clear();
+        onQrCodeScannedSuccess(decodedText);
+      } catch (err) {
+        showToast('Không nhận diện được mã QR trong ảnh này! Hãy chọn ảnh rõ nét hơn.', 'error');
+      } finally {
+        event.target.value = '';
+      }
+    }
+
+    // Xử lý kết quả sau khi quét được mã QR
+    async function onQrCodeScannedSuccess(rawText) {
+      const parts = (rawText || '').trim().split('|');
+      if (parts.length < 4 || parts[0] !== 'DHSVAN26A') {
+        showToast('Mã QR không hợp lệ! Vui lòng quét đúng mã QR của Bí Thư Chi đoàn.', 'error');
+        return;
+      }
+
+      const openedAtSec = parseInt(parts[1], 10);
+      const durationSec = parseInt(parts[2], 10);
+      const nowSec = Math.floor(Date.now() / 1000);
+
+      // Kiểm tra thời hạn hiệu lực do Bí Thư cài đặt (cộng 15s bù sai số đồng hồ giữa 2 điện thoại)
+      if (!openedAtSec || !durationSec || nowSec > openedAtSec + durationSec + 15) {
+        await stopCameraScanner();
+        showToast('Mã QR này đã hết thời gian hiệu lực! Hãy báo Bí Thư mở lại mã mới.', 'error');
+        return;
+      }
+
+      await stopCameraScanner();
+      playSuccessBeep();
+      commitAttendance(db.activeUserId, 'Quét QR Bí Thư');
     }
 
     // ==================== ĐIỀU HƯỚNG & MENU ====================
@@ -1003,10 +1196,10 @@
       const list = [
         { id: 'home', title: 'Trang chủ Chi đoàn', short: 'Trang chủ', icon: 'fa-house' },
         { id: 'activities', title: '1. Hoạt động và phong trào', short: 'Hoạt động', icon: 'fa-fire-flame-curved' },
-        { id: 'handbook', title: '2. Sổ tay Đoàn viên', short: 'Sổ tay', icon: 'fa-book-bookmark' },
+        { id: 'handbook', title: '2. Sổ tay Đoàn viên & Hồ sơ', short: 'Sổ tay', icon: 'fa-book-bookmark' },
         { id: 'finance', title: '3. Đoàn phí và Tài chính', short: 'Đoàn phí', icon: 'fa-wallet' },
         { id: 'proofs', title: '4. Minh chứng hoạt động', short: 'Minh chứng', icon: 'fa-file-circle-check' },
-        { id: 'qr', title: '5. QR Điểm danh', short: 'QR 15s', icon: 'fa-qrcode', pill: '15s' }
+        { id: 'qr', title: '5. QR Điểm danh', short: 'Quét QR', icon: 'fa-qrcode', pill: isSecretary() ? 'Bí Thư' : 'Quét QR' }
       ];
       if (isSecretary()) {
         list.push({
@@ -1052,7 +1245,6 @@
       const sec = isSecretary(user);
       const menu = getMenuList();
 
-      // Sidebar info
       const sbAvatar = document.getElementById('sb-avatar-wrap');
       sbAvatar.innerHTML = renderAvatarContent(user);
       sbAvatar.className = `w-11 h-11 rounded-xl overflow-hidden bg-gradient-to-br ${user.badgeGradient || 'from-[#0056B3] to-[#0284C7]'} text-white font-bold flex items-center justify-center text-sm shrink-0 shadow-sm`;
@@ -1069,7 +1261,6 @@
         sbPill.className = 'px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-100 text-[#0056B3]';
       }
 
-      // Mobile header
       const mbAvatar = document.getElementById('mb-avatar-wrap');
       mbAvatar.innerHTML = renderAvatarContent(user);
       document.getElementById('mb-name').textContent = user.name;
@@ -1077,7 +1268,6 @@
       mbRole.textContent = sec ? `Bí Thư • ${user.mssv}` : `MSSV: ${user.mssv}`;
       mbRole.className = sec ? 'font-bold text-amber-600' : 'font-bold text-[#0056B3]';
 
-      // Desktop top bar badge
       const topBadge = document.getElementById('topbar-role-badge');
       if (sec) {
         topBadge.className = 'flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-xs font-bold text-amber-800';
@@ -1087,7 +1277,6 @@
         topBadge.innerHTML = `<i class="fa-solid fa-id-card"></i><span>Đoàn viên • MSSV: ${user.mssv}</span>`;
       }
 
-      // Desktop menu
       document.getElementById('desktop-menu').innerHTML = menu.map(item => {
         const active = db.activeTab === item.id;
         const isAcc = item.id === 'accounts';
@@ -1109,14 +1298,13 @@
             </span>
             ${item.pill ? `
               <span class="ml-2 px-2 py-0.5 rounded-full text-[10px] font-extrabold shrink-0 ${
-                active ? 'bg-white/20 text-white' : item.pill === '15s' ? 'bg-rose-100 text-rose-600' : 'bg-amber-200 text-amber-900'
+                active ? 'bg-white/20 text-white' : item.pill === 'Quét QR' ? 'bg-blue-100 text-[#0056B3]' : 'bg-amber-200 text-amber-900'
               }">${item.pill}</span>
             ` : ''}
           </button>
         `;
       }).join('');
 
-      // Mobile bottom menu
       const bottomList = sec
         ? [menu[0], menu[1], menu[5], menu[6], menu[2]]
         : [menu[0], menu[1], menu[5], menu[2], menu[4]];
@@ -1133,7 +1321,6 @@
                 <i class="fa-solid ${item.icon} text-base"></i>
               </div>
               <span class="text-[10px] font-extrabold ${active ? 'text-[#0056B3]' : 'text-slate-700'}">${item.short}</span>
-              <span class="absolute -top-4 right-2 px-1.5 bg-rose-500 text-white text-[8px] font-extrabold rounded-full">15s</span>
             ` : `
               <div class="w-7 h-7 rounded-xl flex items-center justify-center text-sm mb-0.5 ${active ? 'bg-blue-50 text-[#0056B3]' : ''}">
                 <i class="fa-solid ${item.icon}"></i>
@@ -1163,7 +1350,14 @@
         { id: 'handbook', title: '2. Sổ tay Đoàn viên & Hồ sơ', sub: 'Cập nhật ảnh, SĐT, Gmail & MSSV', icon: 'fa-book-bookmark', bg: 'from-sky-500 to-cyan-600' },
         { id: 'finance', title: '3. Đoàn phí và Tài chính', sub: 'Minh bạch thu chi quỹ Chi đoàn', icon: 'fa-wallet', bg: 'from-emerald-500 to-teal-600' },
         { id: 'proofs', title: '4. Minh chứng hoạt động', sub: `${pendingEv} hồ sơ đang chờ duyệt`, icon: 'fa-file-circle-check', bg: 'from-indigo-500 to-blue-600' },
-        { id: 'qr', title: '5. QR Điểm danh', sub: 'Mã QR chuẩn động 15 giây', icon: 'fa-qrcode', bg: 'from-rose-500 to-red-600', tag: '15s LIVE' }
+        {
+          id: 'qr',
+          title: '5. QR Điểm danh',
+          sub: sec ? 'Bí Thư mở QR & đặt thời gian' : 'Bật máy quét QR code điểm danh',
+          icon: 'fa-qrcode',
+          bg: 'from-rose-500 to-red-600',
+          tag: sec ? 'MỞ QR' : 'QUÉT QR'
+        }
       ];
 
       if (sec) {
@@ -1339,7 +1533,7 @@
       `;
     }
 
-    // 2. SỔ TAY ĐOÀN VIÊN & CẬP NHẬT HỒ SƠ (ẢNH ĐẠI DIỆN, MSSV, SĐT, GMAIL)
+    // 2. SỔ TAY ĐOÀN VIÊN & CẬP NHẬT HỒ SƠ
     let guideFilter = '';
 
     function buildHandbookHtml() {
@@ -1352,7 +1546,6 @@
 
       return `
         <div class="space-y-5 view-enter">
-          <!-- Thẻ Hồ sơ Cá nhân & Form cập nhật trực tiếp -->
           <section class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-xs">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-100">
               <div class="flex items-center gap-4">
@@ -1389,7 +1582,6 @@
               </div>
             </div>
 
-            <!-- Form cập nhật Ảnh đại diện, MSSV, Số điện thoại, Gmail -->
             <form onsubmit="onSaveInlineProfile(event)" class="mt-5 space-y-4">
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
@@ -1434,7 +1626,6 @@
             </form>
           </section>
 
-          <!-- Cẩm nang Sổ tay -->
           <section class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
               <div>
@@ -1673,7 +1864,7 @@
       `;
     }
 
-    // 5. QR ĐIỂM DANH CHUẨN (MÃ QR THẬT 15S + QUÉT CAMERA + QUẢN LÝ PHIÊN)
+    // ==================== 5. PHẦN ĐIỂM DANH QR CODE (THIẾT KẾ LẠI HOÀN TOÀN) ====================
     function buildQrAttendanceHtml() {
       const user = currentUser();
       const sec = isSecretary(user);
@@ -1681,6 +1872,8 @@
       const totalUsers = db.users.length;
       const presentCount = db.attendance.logs.length;
       const percentPresent = totalUsers > 0 ? Math.round((presentCount / totalUsers) * 100) : 0;
+      const leftSec = getQrRemainingSeconds();
+      const currentDur = Number(db.attendance.durationSec || 120);
 
       return `
         <div class="space-y-5 view-enter">
@@ -1690,9 +1883,8 @@
               <div class="flex flex-wrap items-center gap-2">
                 <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full ${db.attendance.isOpen ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-600'} text-[11px] font-extrabold">
                   <span class="w-2 h-2 rounded-full ${db.attendance.isOpen ? 'bg-emerald-500 beacon-dot' : 'bg-slate-400'}"></span>
-                  ${db.attendance.isOpen ? 'ĐANG MỞ ĐIỂM DANH (QR 15S)' : 'ĐÃ TẠM ĐÓNG ĐIỂM DANH'}
+                  ${db.attendance.isOpen ? 'MÃ QR ĐIỂM DANH ĐANG MỞ' : 'MÃ QR ĐANG ĐÓNG'}
                 </span>
-                <span class="text-[11px] font-mono text-slate-400">Mã phiên: ${db.attendance.sessionId}</span>
               </div>
               <h2 class="text-lg font-extrabold text-slate-900">${db.attendance.title}</h2>
               <p class="text-xs text-slate-500"><i class="fa-solid fa-location-dot text-[#0056B3] mr-1"></i>${db.attendance.location}</p>
@@ -1700,7 +1892,7 @@
 
             <div class="flex items-center gap-3 shrink-0">
               <div class="bg-blue-50 px-4 py-2.5 rounded-2xl border border-blue-100 text-right">
-                <div class="text-[11px] font-semibold text-slate-500">Chuyên cần (${percentPresent}%)</div>
+                <div class="text-[11px] font-semibold text-slate-500">Có mặt (${percentPresent}%)</div>
                 <div class="text-xl font-extrabold text-[#0056B3]">${presentCount} / ${totalUsers}</div>
               </div>
               ${sec ? `
@@ -1713,124 +1905,195 @@
           </div>
 
           ${sec ? `
-            <!-- Thanh cấu hình buổi điểm danh dành cho Bí Thư -->
-            <form onsubmit="onUpdateAttendanceSession(event)" class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200/80 shadow-xs grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
-              <div class="md:col-span-5">
-                <label class="block text-[11px] font-bold text-slate-600 mb-1">Tên buổi sinh hoạt / hoạt động điểm danh</label>
-                <input type="text" id="sess-title-input" required value="${db.attendance.title}" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:border-[#0056B3]" />
-              </div>
-              <div class="md:col-span-4">
-                <label class="block text-[11px] font-bold text-slate-600 mb-1">Địa điểm tổ chức</label>
-                <input type="text" id="sess-loc-input" required value="${db.attendance.location}" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#0056B3]" />
-              </div>
-              <div class="md:col-span-3 flex items-center gap-2">
-                <button type="submit" class="flex-1 py-2 px-3 rounded-xl bg-[#0056B3] hover:bg-[#004494] text-white text-xs font-bold">
-                  Lưu phiên
+            <!-- BẢNG ĐIỀU KHIỂN BÍ THƯ: CÀI ĐẶT THỜI GIAN & NÚT MỞ QR CODE -->
+            <div class="bg-white rounded-3xl p-5 border border-amber-200/80 shadow-xs space-y-4">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                <div>
+                  <span class="text-[11px] font-extrabold uppercase tracking-wider text-amber-700"><i class="fa-solid fa-star mr-1"></i>Bảng điều khiển Bí Thư</span>
+                  <h3 class="text-base font-extrabold text-slate-900">Cài đặt Thời gian & Mở QR Code Điểm danh</h3>
+                </div>
+
+                <!-- NÚT MỞ / ĐÓNG QR CODE CHÍNH -->
+                <button onclick="onToggleOpenQrCode()" class="px-5 py-3 rounded-2xl text-xs sm:text-sm font-extrabold shadow-md transition flex items-center justify-center gap-2 ${
+                  db.attendance.isOpen
+                    ? 'bg-rose-600 hover:bg-rose-700 text-white shadow-rose-500/20'
+                    : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:opacity-95 text-white shadow-emerald-500/25'
+                }">
+                  <i class="fa-solid ${db.attendance.isOpen ? 'fa-lock' : 'fa-qrcode'} text-base"></i>
+                  <span>${db.attendance.isOpen ? 'Đóng QR Code' : 'Mở QR Code Điểm danh'}</span>
                 </button>
-                <button type="button" onclick="toggleSessionOpenState()" class="py-2 px-3 rounded-xl ${db.attendance.isOpen ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'} text-xs font-bold">
-                  ${db.attendance.isOpen ? 'Tạm khóa' : 'Mở lại'}
-                </button>
               </div>
-            </form>
+
+              <!-- NÚT ĐẶT THỜI GIAN HIỆU LỰC QR -->
+              <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
+                <div class="lg:col-span-7 space-y-2">
+                  <label class="block text-xs font-bold text-slate-700">
+                    <i class="fa-regular fa-clock text-[#0056B3] mr-1"></i>
+                    Đặt thời gian hiệu lực QR Code (Hiện tại: <span class="text-[#0056B3] font-extrabold">${formatSecondsMMSS(currentDur)}</span>):
+                  </label>
+                  <div class="flex flex-wrap gap-2">
+                    ${[
+                      { label: '30 giây', sec: 30 },
+                      { label: '1 phút', sec: 60 },
+                      { label: '2 phút', sec: 120 },
+                      { label: '5 phút', sec: 300 },
+                      { label: '15 phút', sec: 900 }
+                    ].map(p => `
+                      <button type="button" onclick="onSetQrDuration(${p.sec})" class="px-3.5 py-2 rounded-xl text-xs font-bold border transition ${
+                        currentDur === p.sec
+                          ? 'bg-[#0056B3] text-white border-[#0056B3] shadow-xs'
+                          : 'bg-slate-50 hover:bg-blue-50 text-slate-700 border-slate-200'
+                      }">
+                        ${p.label}
+                      </button>
+                    `).join('')}
+                  </div>
+                </div>
+
+                <!-- Nhập thời gian tùy chỉnh -->
+                <form onsubmit="onCustomDurationSubmit(event)" class="lg:col-span-5 flex items-end gap-2">
+                  <div class="flex-1">
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Hoặc nhập thời gian tùy chỉnh</label>
+                    <div class="flex gap-1.5">
+                      <input type="number" id="custom-time-val" min="1" max="180" placeholder="VD: 3" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold focus:outline-none focus:border-[#0056B3]" />
+                      <select id="custom-time-unit" class="px-2.5 py-2 rounded-xl border border-slate-200 text-xs font-bold bg-white">
+                        <option value="min">Phút</option>
+                        <option value="sec">Giây</option>
+                      </select>
+                    </div>
+                  </div>
+                  <button type="submit" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shrink-0">
+                    Đặt thời gian
+                  </button>
+                </form>
+              </div>
+
+              <!-- Cập nhật tên buổi & địa điểm -->
+              <form onsubmit="onUpdateAttendanceSession(event)" class="pt-3 border-t border-slate-100 grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                <div class="md:col-span-5">
+                  <label class="block text-[11px] font-bold text-slate-600 mb-1">Tên buổi điểm danh</label>
+                  <input type="text" id="sess-title-input" required value="${db.attendance.title}" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-semibold" />
+                </div>
+                <div class="md:col-span-5">
+                  <label class="block text-[11px] font-bold text-slate-600 mb-1">Địa điểm</label>
+                  <input type="text" id="sess-loc-input" required value="${db.attendance.location}" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs" />
+                </div>
+                <div class="md:col-span-2">
+                  <button type="submit" class="w-full py-2 px-3 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0056B3] border border-blue-200 text-xs font-bold">
+                    Lưu tên buổi
+                  </button>
+                </div>
+              </form>
+            </div>
           ` : ''}
 
           <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
-            <!-- CỘT TRÁI: MÃ QR CHUẨN (BÍ THƯ) HOẶC QUÉT QR / OTP (ĐOÀN VIÊN) -->
+            <!-- CỘT TRÁI: HIỂN THỊ QR (BÍ THƯ) HOẶC MÁY QUÉT QR (THÀNH VIÊN) -->
             <div class="lg:col-span-6 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs flex flex-col items-center text-center">
               ${sec ? `
-                <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200 text-xs font-extrabold mb-2">
-                  <i class="fa-solid fa-star mr-1"></i> Mã QR Điểm danh Chuẩn (Bí Thư)
-                </span>
-                <p class="text-xs text-slate-500 max-w-sm mb-4">
-                  Đoàn viên dùng Camera điện thoại quét trực tiếp mã QR dưới đây hoặc nhập mã OTP 6 số. Mã tự đổi sau mỗi <strong>15 giây</strong>.
-                </p>
-
-                <!-- Khung chứa mã QR chuẩn do QRCode.js vẽ -->
-                <div class="p-4 rounded-3xl bg-white border-2 border-[#0056B3]/30 shadow-lg inline-block">
-                  <div id="real-qr-box" class="w-[210px] h-[210px] flex items-center justify-center"></div>
-                </div>
-
-                <div class="w-full max-w-xs mt-5 space-y-2">
-                  <div class="flex items-center justify-between text-xs">
-                    <span class="font-semibold text-slate-500">Mã OTP 15s hiện tại:</span>
-                    <span id="qr-otp-display" class="font-mono text-xl font-extrabold tracking-widest text-[#0056B3]">
-                      ${activeOtp.slice(0, 3)} ${activeOtp.slice(3)}
-                    </span>
-                  </div>
-                  <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div id="qr-bar-fill" class="h-full bg-[#0056B3] transition-all duration-1000 ease-linear" style="width: ${(qrTimerSec / 15) * 100}%"></div>
-                  </div>
-                  <div class="flex items-center justify-between text-[11px] font-bold">
-                    <span class="text-slate-400">Tự động làm mới sau:</span>
-                    <span id="qr-sec-label" class="text-rose-600 font-extrabold">${qrTimerSec}s</span>
-                  </div>
-                </div>
-
-                <div class="mt-4 flex flex-wrap items-center justify-center gap-2">
-                  <button onclick="regenerateQrNow()" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition">
-                    <i class="fa-solid fa-rotate mr-1"></i> Đổi mã ngay
-                  </button>
-                  <button onclick="openZoomQrModal()" class="px-3.5 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0056B3] border border-blue-200 text-xs font-bold transition">
-                    <i class="fa-solid fa-expand mr-1"></i> Phóng to chiếu lớp
-                  </button>
-                </div>
-              ` : `
-                <span class="px-3 py-1 rounded-full bg-blue-100 text-[#0056B3] text-xs font-extrabold mb-3">
-                  <i class="fa-solid fa-qrcode mr-1"></i> Điểm danh Đoàn viên (${user.mssv})
+                <!-- GIAO DIỆN BÍ THƯ -->
+                <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200 text-xs font-extrabold mb-3">
+                  <i class="fa-solid fa-qrcode mr-1"></i> Mã QR Điểm danh của Bí Thư
                 </span>
 
-                ${!db.attendance.isOpen ? `
-                  <div class="py-8 px-4 w-full rounded-3xl bg-slate-50 border border-slate-200 text-center space-y-2">
-                    <i class="fa-solid fa-lock text-2xl text-slate-400"></i>
-                    <h3 class="font-extrabold text-sm text-slate-800">Phiên điểm danh hiện đang tạm khóa</h3>
-                    <p class="text-xs text-slate-500">Vui lòng chờ Bí Thư mở lại cổng điểm danh.</p>
+                ${db.attendance.isOpen ? `
+                  <p class="text-xs text-slate-500 max-w-sm mb-4">
+                    Đưa mã QR này cho các thành viên quét hoặc bấm <strong>Tải ảnh QR</strong> để gửi vào nhóm lớp.
+                  </p>
+
+                  <!-- Canvas QR sắc nét viền trắng chuẩn -->
+                  <div class="p-3 rounded-3xl bg-white border-2 border-slate-200 shadow-lg inline-block">
+                    <canvas id="secretary-qr-canvas" class="mx-auto block"></canvas>
                   </div>
-                ` : checkedIn ? `
-                  <div class="py-7 px-4 w-full rounded-3xl bg-emerald-50 border border-emerald-200 text-center space-y-2">
-                    <div class="w-14 h-14 rounded-full bg-emerald-500 text-white text-2xl flex items-center justify-center mx-auto shadow-md">
-                      <i class="fa-solid fa-check"></i>
+
+                  <!-- Thanh đếm ngược thời gian -->
+                  <div class="w-full max-w-xs mt-5 space-y-2">
+                    <div class="flex items-center justify-between text-xs">
+                      <span class="font-semibold text-slate-500">Thời gian còn lại:</span>
+                      <span id="qr-remaining-label" class="font-mono text-lg font-extrabold text-emerald-600">
+                        ${formatSecondsMMSS(leftSec)}
+                      </span>
                     </div>
-                    <h3 class="font-extrabold text-base text-emerald-900">Đã ghi nhận điểm danh!</h3>
-                    <p class="text-xs text-emerald-700">Đoàn viên <strong>${user.name} (${user.mssv})</strong> đã có mặt trong buổi sinh hoạt.</p>
+                    <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                      <div id="qr-remaining-bar" class="h-full bg-emerald-500 transition-all duration-1000 ease-linear" style="width: ${Math.min(100, Math.round((leftSec / Math.max(1, currentDur)) * 100))}%"></div>
+                    </div>
+                  </div>
+
+                  <div class="mt-4 flex flex-wrap items-center justify-center gap-2">
+                    <button onclick="downloadQrPng()" class="px-3.5 py-2 rounded-xl bg-[#0056B3] hover:bg-[#004494] text-white text-xs font-bold shadow-xs transition">
+                      <i class="fa-solid fa-download mr-1"></i> Tải ảnh QR gửi nhóm
+                    </button>
+                    <button onclick="openZoomQrModal()" class="px-3.5 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0056B3] border border-blue-200 text-xs font-bold transition">
+                      <i class="fa-solid fa-expand mr-1"></i> Phóng to
+                    </button>
                   </div>
                 ` : `
-                  <!-- Khung Camera Quét QR Thực Tế -->
-                  <div class="w-full max-w-xs space-y-3">
-                    <div id="qr-camera-reader" class="w-full rounded-2xl overflow-hidden bg-slate-900 border-2 border-[#0056B3] min-h-[210px] flex items-center justify-center text-slate-300 text-xs">
-                      <div class="p-4 text-center space-y-2">
-                        <i class="fa-solid fa-camera text-3xl text-sky-400"></i>
-                        <p>Bấm <strong>Mở Camera quét QR</strong> để đưa vào mã QR của Bí Thư</p>
+                  <div class="py-10 px-5 w-full rounded-3xl bg-slate-50 border-2 border-dashed border-slate-200 text-center space-y-3">
+                    <div class="w-16 h-16 rounded-2xl bg-amber-100 text-amber-600 text-2xl flex items-center justify-center mx-auto">
+                      <i class="fa-solid fa-qrcode"></i>
+                    </div>
+                    <h3 class="font-extrabold text-base text-slate-900">Mã QR hiện đang tắt</h3>
+                    <p class="text-xs text-slate-500 max-w-xs mx-auto">
+                      Bí Thư hãy chọn thời gian hiệu lực và nhấn nút <strong>Mở QR Code Điểm danh</strong> ở bảng điều khiển phía trên.
+                    </p>
+                    <button onclick="onToggleOpenQrCode()" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-sm">
+                      <i class="fa-solid fa-play mr-1"></i> Mở QR Code ngay (${formatSecondsMMSS(currentDur)})
+                    </button>
+                  </div>
+                `}
+              ` : `
+                <!-- GIAO DIỆN THÀNH VIÊN (KHÔNG PHẢI BÍ THƯ): BẬT MÁY QUÉT QR CODE -->
+                <span class="px-3 py-1 rounded-full bg-blue-100 text-[#0056B3] text-xs font-extrabold mb-3">
+                  <i class="fa-solid fa-camera mr-1"></i> Máy quét QR Điểm danh (${user.mssv})
+                </span>
+
+                ${checkedIn ? `
+                  <div class="py-8 px-5 w-full rounded-3xl bg-emerald-50 border border-emerald-200 text-center space-y-2.5">
+                    <div class="w-16 h-16 rounded-full bg-emerald-500 text-white text-2xl flex items-center justify-center mx-auto shadow-md">
+                      <i class="fa-solid fa-check"></i>
+                    </div>
+                    <h3 class="font-extrabold text-base text-emerald-900">Đã điểm danh Có mặt!</h3>
+                    <p class="text-xs text-emerald-700">
+                      Hệ thống đã ghi nhận <strong>${user.name} (${user.mssv})</strong> có mặt thành công.
+                    </p>
+                  </div>
+                ` : `
+                  <p id="scanner-status-text" class="text-xs text-slate-500 max-w-sm mb-3">
+                    Bấm <strong>Bật máy quét QR code</strong> để quét mã QR của Bí Thư. Quét xong hệ thống sẽ tự động tính điểm danh <strong>Có mặt</strong>.
+                  </p>
+
+                  <!-- Khung Camera Quét QR -->
+                  <div class="w-full max-w-xs rounded-2xl overflow-hidden bg-slate-900 border-2 border-[#0056B3] relative min-h-[230px] flex items-center justify-center">
+                    <div id="cam-idle-placeholder" class="p-5 text-center text-slate-300 space-y-2">
+                      <div class="w-14 h-14 rounded-2xl bg-white/10 text-sky-400 text-2xl flex items-center justify-center mx-auto">
+                        <i class="fa-solid fa-qrcode"></i>
                       </div>
+                      <p class="text-xs font-medium">Máy quét đang chờ khởi động</p>
+                    </div>
+                    <div id="qr-camera-box" class="w-full"></div>
+                  </div>
+
+                  <!-- Các nút điều khiển máy quét -->
+                  <div class="w-full max-w-xs mt-4 space-y-2.5">
+                    <button id="btn-cam-open" type="button" onclick="startMemberCameraScanner()" class="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-[#0056B3] to-[#0284C7] text-white text-xs sm:text-sm font-extrabold shadow-lg shadow-blue-500/25 hover:opacity-95 transition flex items-center justify-center gap-2">
+                      <i class="fa-solid fa-camera text-base"></i> Bật máy quét QR code
+                    </button>
+
+                    <div class="flex gap-2">
+                      <button id="btn-cam-close" type="button" onclick="stopCameraScanner()" class="hidden flex-1 py-2.5 px-3 rounded-xl bg-rose-600 text-white text-xs font-bold flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-stop"></i> Tắt máy quét
+                      </button>
+                      <button id="btn-cam-switch" type="button" onclick="switchMemberCamera()" class="hidden py-2.5 px-3 rounded-xl bg-slate-800 text-white text-xs font-bold flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-camera-rotate"></i> Đổi camera
+                      </button>
                     </div>
 
-                    <div class="flex justify-center gap-2">
-                      <button id="btn-start-cam" type="button" onclick="startCameraScanner()" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#0056B3] to-[#0284C7] text-white text-xs font-extrabold shadow-md hover:opacity-95 flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-camera"></i> Mở Camera quét QR
-                      </button>
-                      <button id="btn-stop-cam" type="button" onclick="stopCameraScanner()" class="hidden w-full py-2.5 px-4 rounded-xl bg-rose-600 text-white text-xs font-extrabold flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-stop"></i> Tắt Camera
-                      </button>
-                    </div>
-
-                    <div class="relative py-1">
-                      <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200"></div></div>
-                      <div class="relative flex justify-center"><span class="bg-white px-2 text-[11px] font-semibold text-slate-400">Hoặc nhập 6 số OTP từ màn chiếu</span></div>
-                    </div>
-
-                    <form onsubmit="onMemberSubmitOtp(event)" class="flex gap-2">
-                      <input
-                        type="text"
-                        id="inp-member-otp"
-                        inputmode="numeric"
-                        maxlength="6"
-                        required
-                        placeholder="Nhập 6 số OTP..."
-                        class="flex-1 px-3 py-2.5 rounded-xl border border-slate-200 text-sm font-mono font-bold text-center tracking-widest focus:outline-none focus:border-[#0056B3]"
-                      />
-                      <button type="submit" class="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold">
-                        Xác nhận
-                      </button>
-                    </form>
+                    <!-- Nút quét từ ảnh QR Bí Thư gửi -->
+                    <label class="cursor-pointer w-full py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 text-xs font-bold transition flex items-center justify-center gap-2">
+                      <i class="fa-solid fa-image text-[#0056B3]"></i> Quét từ ảnh QR Bí Thư gửi
+                      <input type="file" accept="image/*" onchange="onScanQrFromImageFile(event)" class="hidden" />
+                    </label>
+                    <div id="qr-file-temp-slot" class="hidden"></div>
                   </div>
                 `}
               `}
@@ -1840,17 +2103,17 @@
             <div class="lg:col-span-6 bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs">
               <div class="flex items-center justify-between mb-4">
                 <div>
-                  <h3 class="font-extrabold text-base text-slate-900">Danh sách Điểm danh Trực tiếp</h3>
-                  <p class="text-xs text-slate-500">Cập nhật theo thời gian thực toàn Chi đoàn</p>
+                  <h3 class="font-extrabold text-base text-slate-900">Danh sách Điểm danh</h3>
+                  <p class="text-xs text-slate-500">Trạng thái Có mặt / Vắng của toàn Chi đoàn</p>
                 </div>
                 ${sec ? `
                   <button onclick="onResetAttendanceSession()" class="text-xs font-bold text-rose-600 hover:underline">
-                    Tạo phiên mới
+                    Làm mới danh sách
                   </button>
                 ` : ''}
               </div>
 
-              <div class="divide-y divide-slate-100 max-h-[420px] overflow-y-auto pr-1">
+              <div class="divide-y divide-slate-100 max-h-[430px] overflow-y-auto pr-1">
                 ${db.users.map(u => {
                   const log = db.attendance.logs.find(l => l.userId === u.id);
                   return `
@@ -1874,7 +2137,7 @@
                         </div>
                       ` : `
                         <div class="flex items-center gap-2 shrink-0">
-                          <span class="px-2.5 py-1 rounded-xl bg-slate-100 text-slate-500 text-[11px] font-semibold">Vắng / Chưa ĐD</span>
+                          <span class="px-2.5 py-1 rounded-xl bg-slate-100 text-slate-500 text-[11px] font-semibold">Chưa điểm danh</span>
                           ${sec ? `
                             <button onclick="secretaryCheckInUser('${u.id}')" class="px-2.5 py-1 rounded-xl bg-blue-50 hover:bg-[#0056B3] text-[#0056B3] hover:text-white text-[11px] font-bold transition">
                               Điểm danh hộ
@@ -2099,7 +2362,6 @@
       showToast(`Đã xóa tài khoản ${u.mssv}.`, 'info');
     }
 
-    // Hoạt động
     function toggleActivityJoin(actId) {
       const u = currentUser();
       const act = db.activities.find(a => a.id === actId);
@@ -2195,7 +2457,6 @@
       renderMainBody();
     }
 
-    // Đoàn phí
     function toggleFeePaid(uid) {
       const u = db.users.find(x => x.id === uid);
       if (!u) return;
@@ -2234,7 +2495,6 @@
       showToast('Đã lưu vào sổ quỹ!', 'success');
     }
 
-    // Minh chứng
     function onSubmitEvidence(e) {
       e.preventDefault();
       const u = currentUser();
@@ -2268,7 +2528,7 @@
       showToast(status === 'approved' ? 'Bí Thư đã duyệt minh chứng (+3 ĐRL)!' : 'Đã từ chối minh chứng.', status === 'approved' ? 'success' : 'info');
     }
 
-    // Điểm danh QR 15s
+    // Điểm danh
     function onUpdateAttendanceSession(e) {
       e.preventDefault();
       db.attendance.title = document.getElementById('sess-title-input').value.trim();
@@ -2278,16 +2538,9 @@
       showToast('Đã cập nhật thông tin buổi điểm danh!', 'success');
     }
 
-    function toggleSessionOpenState() {
-      db.attendance.isOpen = !db.attendance.isOpen;
-      persistDatabase();
-      renderApp();
-      showToast(db.attendance.isOpen ? 'Đã mở lại cổng điểm danh QR 15s!' : 'Đã tạm khóa điểm danh.', 'info');
-    }
-
     function commitAttendance(uid, method) {
       if (db.attendance.logs.some(l => l.userId === uid)) {
-        showToast('Tài khoản này đã điểm danh trước đó!', 'info');
+        showToast('Tài khoản này đã điểm danh Có mặt trước đó!', 'info');
         return;
       }
       const now = new Date();
@@ -2296,17 +2549,7 @@
       persistDatabase();
       renderApp();
       const u = db.users.find(x => x.id === uid);
-      showToast(`Điểm danh thành công: ${u ? u.name : uid}`, 'success');
-    }
-
-    function onMemberSubmitOtp(e) {
-      e.preventDefault();
-      const raw = (document.getElementById('inp-member-otp').value || '').replace(/\s+/g, '');
-      if (raw === activeOtp || (qrTimerSec >= 12 && raw === prevOtp)) {
-        commitAttendance(db.activeUserId, 'Mã OTP 15s');
-      } else {
-        showToast('Mã OTP không đúng hoặc đã hết hạn 15 giây!', 'error');
-      }
+      showToast(`Điểm danh Có mặt thành công: ${u ? u.name : uid}`, 'success');
     }
 
     function secretaryCheckInUser(uid) {
@@ -2315,15 +2558,12 @@
 
     function onResetAttendanceSession() {
       const now = new Date();
-      db.attendance.sessionId = 'SESS-' + Date.now().toString().slice(-6);
-      db.attendance.isOpen = true;
       db.attendance.logs = [
-        { userId: 'BITHU_VINH', time: `${now.toTimeString().slice(0, 8)} ${now.toLocaleDateString('vi-VN')}`, method: 'Bí Thư khởi tạo' }
+        { userId: 'BITHU_VINH', time: `${now.toTimeString().slice(0, 8)} ${now.toLocaleDateString('vi-VN')}`, method: 'Bí Thư chủ trì' }
       ];
-      regenerateQrNow();
       persistDatabase();
       renderApp();
-      showToast('Đã khởi tạo phiên điểm danh mới!', 'info');
+      showToast('Đã làm mới danh sách điểm danh!', 'info');
     }
 
     function exportAttendanceCsv() {
@@ -2345,7 +2585,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `DiemDanh_DHSVAN26A_${db.attendance.sessionId}.csv`;
+      a.download = `DiemDanh_DHSVAN26A_${new Date().toISOString().slice(0, 10)}.csv`;
       a.click();
       URL.revokeObjectURL(url);
       showToast('Đã xuất danh sách điểm danh ra file Excel (.csv)!', 'success');
@@ -2371,7 +2611,7 @@
         el.style.opacity = '0';
         el.style.transition = 'opacity 0.25s';
         setTimeout(() => el.remove(), 250);
-      }, 2800);
+      }, 3000);
     }
 
     // ==================== MASTER RENDER ====================
@@ -2384,10 +2624,15 @@
         case 'finance': container.innerHTML = buildFinanceHtml(); break;
         case 'proofs': container.innerHTML = buildProofsHtml(); break;
         case 'qr':
+          // Kiểm tra nếu QR đã quá thời gian trước khi render
+          if (db.attendance.isOpen && getQrRemainingSeconds() <= 0) {
+            db.attendance.isOpen = false;
+            persistDatabase();
+          }
           container.innerHTML = buildQrAttendanceHtml();
-          if (isSecretary()) {
-            drawRealQrCode('real-qr-box', 210);
-            syncQrCountdownUi();
+          if (isSecretary() && db.attendance.isOpen) {
+            renderCrispQrCanvas('secretary-qr-canvas', 240);
+            updateQrCountdownDom(getQrRemainingSeconds());
           }
           break;
         case 'accounts':
@@ -2414,7 +2659,7 @@
 
     window.addEventListener('DOMContentLoaded', () => {
       renderApp();
-      startQrEngine();
+      startQrCountdownLoop();
     });
   </script>
 </body>
