@@ -68,7 +68,12 @@
       <form onsubmit="onLoginSubmit(event)" class="p-6 sm:p-7 space-y-4">
         <div id="login-sync-notice" class="hidden px-3.5 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold flex items-center gap-2">
           <i class="fa-solid fa-circle-check text-emerald-600 text-sm shrink-0"></i>
-          <span id="login-sync-text">Đã nạp danh sách tài khoản Chi đoàn!</span>
+          <span id="login-sync-text">Đã kết nối dữ liệu Chi đoàn!</span>
+        </div>
+
+        <div id="login-no-sheet-notice" class="hidden px-3.5 py-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-[11px] font-semibold flex items-start gap-2">
+          <i class="fa-solid fa-triangle-exclamation text-amber-600 text-sm shrink-0 mt-0.5"></i>
+          <span>Chưa gắn link Google Sheet cố định trên web. Bí Thư vui lòng dán link Web App vào <code class="font-mono font-bold">PRESET_API_URL</code> hoặc mục 6.</span>
         </div>
 
         <div>
@@ -90,7 +95,7 @@
           </div>
         </div>
 
-        <button type="submit" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#0056B3] to-[#0284C7] text-white text-sm font-extrabold shadow-lg shadow-blue-600/25 hover:opacity-95 transition active:scale-[0.99]">
+        <button type="submit" id="auth-submit-btn" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#0056B3] to-[#0284C7] text-white text-sm font-extrabold shadow-lg shadow-blue-600/25 hover:opacity-95 transition active:scale-[0.99]">
           <i class="fa-solid fa-right-to-bracket mr-1.5"></i> Đăng nhập Hệ thống
         </button>
 
@@ -214,6 +219,9 @@
           </button>
         </div>
       </div>
+
+      <!-- CẢNH BÁO NẾU CHƯA NỐI GOOGLE SHEET HOẶC APPS SCRIPT BẢN CŨ -->
+      <div id="global-sync-alert" class="hidden max-w-6xl mx-auto px-3.5 sm:px-6 lg:px-8 pt-4"></div>
 
       <div id="main-container" class="max-w-6xl mx-auto px-3.5 sm:px-6 lg:px-8 pt-4 lg:pt-6"></div>
     </main>
@@ -369,9 +377,9 @@
 
   <!-- ==================== JAVASCRIPT LOGIC ==================== -->
   <script>
-    const DB_KEY = 'dhsvan26a_bithu_system_v5';
+    const DB_KEY = 'dhsvan26a_bithu_system_v6';
 
-    // DÁN LINK GOOGLE APPS SCRIPT (/exec) VÀO DÒNG DƯỚI ĐỂ CẢ LỚP TỰ ĐỘNG KẾT NỐI CHUNG DỮ LIỆU:
+    // DÁN LINK GOOGLE APPS SCRIPT (/exec) VÀO DÒNG DƯỚI ĐỂ CẢ LỚP DÙNG LINK GỐC BÌNH THƯỜNG:
     const PRESET_API_URL = '';
 
     // DÁN MÃ DANH SÁCH LỚP CỐ ĐỊNH VÀO DÒNG DƯỚI NẾU MUỐN:
@@ -493,6 +501,7 @@
     let db = loadDatabase();
     let latestCompactLinkCache = '';
     let cloudSyncStatus = 'offline';
+    let remoteScriptVersion = '';
     let lastSyncedTimeStr = '';
     let cloudPollHandle = null;
     let isCloudBusy = false;
@@ -554,21 +563,57 @@
     function updateSyncStatusBadge() {
       const el = document.getElementById('sync-status-pill');
       const topLabel = document.getElementById('topbar-sync-label');
+      const alertBox = document.getElementById('global-sync-alert');
+      const url = getActiveApiUrl();
+
       if (topLabel) {
         topLabel.textContent = lastSyncedTimeStr ? `Đồng bộ (${lastSyncedTimeStr})` : 'Đồng bộ';
       }
+
+      if (alertBox) {
+        if (!url) {
+          alertBox.classList.remove('hidden');
+          alertBox.innerHTML = `
+            <div class="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div class="flex items-start gap-2">
+                <i class="fa-solid fa-triangle-exclamation text-amber-600 text-sm mt-0.5"></i>
+                <div>
+                  <strong>Thiết bị chưa kết nối Google Sheet!</strong> Dữ liệu hiện chỉ lưu trên máy này, máy khác sẽ không thấy.
+                  ${isSecretary() ? 'Bí Thư hãy vào <strong>Mục 6</strong> dán link Web App (/exec) và gắn vào <code class="font-mono">PRESET_API_URL</code>.' : 'Hãy mở đúng link có kết nối Google Sheet từ Bí Thư.'}
+                </div>
+              </div>
+              ${isSecretary() ? `<button onclick="switchTab('accounts')" class="px-3 py-1.5 rounded-xl bg-amber-600 text-white font-bold shrink-0">Cài đặt ngay</button>` : ''}
+            </div>
+          `;
+        } else if (remoteScriptVersion && remoteScriptVersion !== 'v6' && isSecretary()) {
+          alertBox.classList.remove('hidden');
+          alertBox.innerHTML = `
+            <div class="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div class="flex items-start gap-2">
+                <i class="fa-solid fa-circle-exclamation text-rose-600 text-sm mt-0.5"></i>
+                <div>
+                  <strong>Apps Script đang chạy bản cũ!</strong> Hãy vào Google Apps Script dán mã <strong>v6</strong> mới nhất và chọn <strong>Quản lý các bản triển khai -> Sửa -> Phiên bản mới -> Triển khai</strong>.
+                </div>
+              </div>
+              <button onclick="copyAppsScriptSource()" class="px-3 py-1.5 rounded-xl bg-rose-600 text-white font-bold shrink-0">Copy mã v6</button>
+            </div>
+          `;
+        } else {
+          alertBox.classList.add('hidden');
+        }
+      }
+
       if (!el) return;
-      const url = getActiveApiUrl();
       if (!url) {
-        el.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-[11px] font-semibold text-slate-500';
-        el.innerHTML = '<span class="w-2 h-2 rounded-full bg-slate-400"></span> Lưu cục bộ (Chưa gắn Sheet)';
+        el.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[11px] font-bold';
+        el.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span> Chưa nối Google Sheet';
         return;
       }
       if (cloudSyncStatus === 'syncing') {
         el.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-[#0056B3] text-[11px] font-bold';
         el.innerHTML = '<span class="w-2 h-2 rounded-full bg-[#0056B3] beacon-dot"></span> Đang đồng bộ Sheet...';
       } else if (cloudSyncStatus === 'error') {
-        el.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 text-rose-600 text-[11px] font-bold';
+        el.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 text-rose-600 border border-rose-200 text-[11px] font-bold';
         el.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500"></span> Lỗi kết nối Google Sheet';
       } else {
         el.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold';
@@ -638,7 +683,8 @@
       };
     }
 
-    async function cloudApiRequest(payloadOrNull) {
+    // Gửi lệnh qua GET (cho các thao tác nhỏ như Quét QR, Đăng ký hoạt động, Mở/Đóng QR -> 100% không bị lỗi CORS/Redirect)
+    async function cloudGetAction(actionName, dataObjOrNull) {
       const apiUrl = getActiveApiUrl();
       if (!apiUrl) return null;
 
@@ -646,18 +692,15 @@
       updateSyncStatusBadge();
 
       try {
-        let res;
-        if (!payloadOrNull) {
-          const sep = apiUrl.includes('?') ? '&' : '?';
-          res = await fetch(`${apiUrl}${sep}t=${Date.now()}`, { method: 'GET', redirect: 'follow' });
-        } else {
-          res = await fetch(apiUrl, {
-            method: 'POST',
-            redirect: 'follow',
-            body: JSON.stringify(payloadOrNull)
-          });
+        const sep = apiUrl.includes('?') ? '&' : '?';
+        let queryUrl = `${apiUrl}${sep}action=${encodeURIComponent(actionName)}&t=${Date.now()}`;
+        if (dataObjOrNull !== null && dataObjOrNull !== undefined) {
+          queryUrl += `&data=${encodeURIComponent(JSON.stringify(dataObjOrNull))}`;
         }
+
+        const res = await fetch(queryUrl, { method: 'GET', redirect: 'follow' });
         const json = await res.json();
+        if (json && json.scriptVersion) remoteScriptVersion = json.scriptVersion;
         cloudSyncStatus = 'online';
         lastSyncedTimeStr = new Date().toTimeString().slice(0, 5);
         updateSyncStatusBadge();
@@ -669,19 +712,63 @@
       }
     }
 
-    async function pushAtomicActionToCloud(actionName, dataObj) {
-      if (!getActiveApiUrl()) return;
-      lastLocalMutationAt = Date.now();
-      const resp = await cloudApiRequest({
-        action: actionName,
-        data: dataObj,
-        fallbackState: getSharedPayloadSnapshot()
-      });
-      lastLocalMutationAt = Date.now();
-      if (resp && resp.ok && resp.state) {
-        applyRemoteSharedState(resp.state);
-        renderApp();
+    // Gửi dữ liệu lớn qua POST (dùng text/plain để tránh preflight OPTIONS)
+    async function cloudPostAction(actionName, dataObj) {
+      const apiUrl = getActiveApiUrl();
+      if (!apiUrl) return null;
+
+      cloudSyncStatus = 'syncing';
+      updateSyncStatusBadge();
+
+      try {
+        const res = await fetch(apiUrl, {
+          method: 'POST',
+          redirect: 'follow',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: actionName,
+            data: dataObj,
+            state: getSharedPayloadSnapshot(),
+            fallbackState: getSharedPayloadSnapshot()
+          })
+        });
+        const json = await res.json();
+        if (json && json.scriptVersion) remoteScriptVersion = json.scriptVersion;
+        cloudSyncStatus = 'online';
+        lastSyncedTimeStr = new Date().toTimeString().slice(0, 5);
+        updateSyncStatusBadge();
+        return json;
+      } catch (err) {
+        cloudSyncStatus = 'error';
+        updateSyncStatusBadge();
+        return null;
       }
+    }
+
+    // Hàm gửi đồng bộ thông minh: ưu tiên GET cho gói nhỏ, POST cho gói lớn, và tự fallback nếu Apps Script còn bản cũ
+    async function sendCloudMutation(actionName, dataObj, usePost = false) {
+      const apiUrl = getActiveApiUrl();
+      if (!apiUrl) return { ok: false, reason: 'NO_URL' };
+
+      lastLocalMutationAt = Date.now();
+      let resp = usePost
+        ? await cloudPostAction(actionName, dataObj)
+        : await cloudGetAction(actionName, dataObj);
+
+      // Nếu Apps Script vẫn đang chạy bản cũ (chưa có scriptVersion === 'v6'), tự động gửi SYNC_PUSH để vẫn lưu được
+      if (resp && resp.ok && resp.scriptVersion !== 'v6' && actionName !== 'SYNC_PUSH') {
+        resp = await cloudPostAction('SYNC_PUSH', getSharedPayloadSnapshot());
+      }
+
+      lastLocalMutationAt = Date.now();
+      if (resp && resp.ok) {
+        if (resp.state) {
+          applyRemoteSharedState(resp.state);
+          renderApp();
+        }
+        return { ok: true, state: resp.state };
+      }
+      return { ok: false, reason: 'NETWORK_ERROR' };
     }
 
     async function manualCloudPull(showNotice = false) {
@@ -694,7 +781,7 @@
       isCloudBusy = true;
       const pullStartedAt = Date.now();
       try {
-        const resp = await cloudApiRequest(null);
+        const resp = await cloudGetAction('PULL', null);
         if (lastLocalMutationAt > pullStartedAt) return;
 
         if (resp && resp.ok && resp.state) {
@@ -706,14 +793,34 @@
           }
           if (showNotice) showToast('Đã đồng bộ dữ liệu mới nhất từ Google Sheet!', 'success');
         } else if (resp && resp.ok && !resp.state && isSecretary()) {
-          await pushAtomicActionToCloud('SYNC_FULL', getSharedPayloadSnapshot());
+          await sendCloudMutation('SYNC_FULL', getSharedPayloadSnapshot(), true);
           if (showNotice) showToast('Đã khởi tạo dữ liệu lên Google Sheet thành công!', 'success');
         } else if (showNotice) {
-          showToast('Không tải được dữ liệu từ Google Sheet. Kiểm tra quyền truy cập Web App!', 'error');
+          showToast('Không tải được dữ liệu từ Google Sheet. Kiểm tra lại quyền Web App!', 'error');
         }
       } finally {
         isCloudBusy = false;
       }
+    }
+
+    async function testCloudConnection() {
+      const url = getActiveApiUrl();
+      if (!url) {
+        showToast('Bạn chưa dán link Google Apps Script (/exec)!', 'error');
+        return;
+      }
+      showToast('Đang kiểm tra kết nối Google Sheet...', 'info');
+      const resp = await cloudGetAction('PULL', null);
+      if (!resp || !resp.ok) {
+        showToast('Kết nối THẤT BẠI! Kiểm tra lại link /exec hoặc quyền truy cập "Bất kỳ ai".', 'error');
+        return;
+      }
+      if (resp.scriptVersion === 'v6') {
+        showToast('Kết nối THÀNH CÔNG! Apps Script đã ở bản mới nhất (v6).', 'success');
+      } else {
+        showToast('Đã nối Sheet nhưng Apps Script đang chạy bản cũ! Hãy dán mã v6 và triển khai Phiên bản mới.', 'error');
+      }
+      renderMainBody();
     }
 
     function startCloudAutoSync() {
@@ -723,7 +830,7 @@
         const activeTag = document.activeElement ? document.activeElement.tagName : '';
         if (activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT') return;
         manualCloudPull(false);
-      }, 4000);
+      }, 3500);
 
       document.addEventListener('visibilitychange', () => {
         if (!document.hidden && getActiveApiUrl()) {
@@ -897,11 +1004,9 @@
 
         const list = unpackMembersCompactText(rawText);
         const count = mergeMemberListIntoDb(list);
-        if (count > 0) {
-          persistLocalOnly();
-          if (window.history && window.history.replaceState) {
-            window.history.replaceState(null, '', window.location.pathname);
-          }
+        persistLocalOnly();
+        if (window.history && window.history.replaceState) {
+          window.history.replaceState(null, '', window.location.pathname);
         }
         return count;
       } catch (err) {
@@ -973,7 +1078,7 @@
       showToast('Đã copy mã cố định! Dán đè vào index.html trên GitHub.', 'success');
     }
 
-    function onSaveApiUrlConfig(e) {
+    async function onSaveApiUrlConfig(e) {
       e.preventDefault();
       if (!isSecretary()) return;
       const val = document.getElementById('sheet-api-url-input').value.trim();
@@ -986,7 +1091,7 @@
       persistLocalOnly();
       updateSyncStatusBadge();
       if (val) {
-        manualCloudPull(true);
+        await manualCloudPull(true);
       } else {
         showToast('Đã ngắt kết nối Google Sheet (chuyển về lưu cục bộ).', 'info');
       }
@@ -994,7 +1099,9 @@
     }
 
     function copyAppsScriptSource() {
-      const scriptCode = `function saveStateToSheet(sheet, state) {
+      const scriptCode = `var SCRIPT_VERSION = 'v6';
+
+function saveStateToSheet(sheet, state) {
   var json = JSON.stringify(state);
   var chunkSize = 45000;
   var totalChunks = Math.max(1, Math.ceil(json.length / chunkSize));
@@ -1019,12 +1126,143 @@ function loadStateFromSheet(sheet) {
   return raw ? JSON.parse(raw) : null;
 }
 
+function applyMutation(ss, sheet, state, action, data) {
+  if (action === 'SYNC_FULL' || action === 'SYNC_PUSH') {
+    if (data) state = data;
+  } else if (action === 'QR_CONTROL' && data) {
+    state.attendance = state.attendance || { logs: [] };
+    state.attendance.isOpen = Boolean(data.isOpen);
+    state.attendance.durationSec = Number(data.durationSec || 120);
+    state.attendance.openedAtSec = Number(data.openedAtSec || 0);
+    state.attendance.qrNonce = String(data.qrNonce || '');
+    if (data.title) state.attendance.title = data.title;
+    if (data.location) state.attendance.location = data.location;
+  } else if (action === 'RESET_ATTENDANCE' && data) {
+    state.attendance = state.attendance || {};
+    state.attendance.round = Number(data.round || 1);
+    state.attendance.qrNonce = String(data.qrNonce || '');
+    state.attendance.openedAtSec = Number(data.openedAtSec || 0);
+    state.attendance.isOpen = Boolean(data.isOpen);
+    state.attendance.logs = data.logs || [];
+  } else if (action === 'SCAN_QR' && data) {
+    state.attendance = state.attendance || { logs: [] };
+    state.attendance.logs = state.attendance.logs || [];
+    var targetRound = Number(data.round || 1);
+    var existingIdx = -1;
+    for (var i = 0; i < state.attendance.logs.length; i++) {
+      if (state.attendance.logs[i].userId === data.userId) {
+        existingIdx = i;
+        break;
+      }
+    }
+    if (existingIdx > -1) {
+      state.attendance.logs[existingIdx] = data;
+    } else {
+      state.attendance.logs.push(data);
+    }
+    var logSheet = ss.getSheetByName('DIEM_DANH_LOG') || ss.insertSheet('DIEM_DANH_LOG');
+    if (logSheet.getLastRow() === 0) {
+      logSheet.appendRow(['Thoi gian', 'MSSV / ID', 'Ho va ten', 'Phuong thuc', 'Dot']);
+    }
+    logSheet.appendRow([data.time, data.mssv || data.userId, data.name || '', data.method || 'QR', targetRound]);
+  } else if (action === 'TOGGLE_ACTIVITY' && data) {
+    state.activities = state.activities || [];
+    for (var j = 0; j < state.activities.length; j++) {
+      if (state.activities[j].id === data.actId) {
+        var act = state.activities[j];
+        act.joinedIds = act.joinedIds || [];
+        var idx = act.joinedIds.indexOf(data.userId);
+        if (idx > -1) act.joinedIds.splice(idx, 1);
+        else act.joinedIds.push(data.userId);
+        break;
+      }
+    }
+  } else if (action === 'SAVE_ACTIVITIES' && Array.isArray(data)) {
+    var oldMap = {};
+    (state.activities || []).forEach(function(a) { oldMap[a.id] = a.joinedIds || []; });
+    data.forEach(function(a) {
+      if (oldMap[a.id]) a.joinedIds = oldMap[a.id];
+    });
+    state.activities = data;
+  } else if (action === 'SUBMIT_EVIDENCE' && data) {
+    state.evidences = state.evidences || [];
+    if (!state.evidences.some(function(x) { return x.id === data.id; })) {
+      state.evidences.unshift(data);
+    }
+  } else if (action === 'SET_EVIDENCE_STATUS' && data) {
+    var ev = (state.evidences || []).filter(function(x) { return x.id === data.evId; })[0];
+    if (ev) {
+      var wasOk = ev.status === 'approved';
+      ev.status = data.status;
+      var owner = (state.users || []).filter(function(u) { return u.id === ev.userId; })[0];
+      if (owner) {
+        if (data.status === 'approved' && !wasOk) owner.points = Math.min(100, Number(owner.points || 85) + 3);
+        else if (data.status !== 'approved' && wasOk) owner.points = Math.max(0, Number(owner.points || 85) - 3);
+      }
+    }
+  } else if (action === 'SAVE_FINANCE' && data) {
+    if (data.feeAmount) state.feeAmount = Number(data.feeAmount);
+    if (Array.isArray(data.ledger)) state.ledger = data.ledger;
+    if (data.feeMap && Array.isArray(state.users)) {
+      state.users.forEach(function(u) {
+        if (data.feeMap.hasOwnProperty(u.id)) u.feePaid = Boolean(data.feeMap[u.id]);
+      });
+    }
+  } else if (action === 'SAVE_USERS' && Array.isArray(data)) {
+    var prevMap = {};
+    (state.users || []).forEach(function(u) { prevMap[u.id] = u; });
+    state.users = data.map(function(nu) {
+      var old = prevMap[nu.id];
+      if (old) {
+        if (!nu.phone && old.phone) nu.phone = old.phone;
+        if (!nu.email && old.email) nu.email = old.email;
+      }
+      return nu;
+    });
+  } else if (action === 'UPDATE_USER' && data) {
+    var u = (state.users || []).filter(function(x) { return x.id === data.id; })[0];
+    if (u) {
+      for (var k in data) {
+        if (k !== 'avatar' || (data[k] && data[k].length < 1500)) {
+          u[k] = data[k];
+        }
+      }
+    }
+  }
+
+  saveStateToSheet(sheet, state);
+  return state;
+}
+
 function doGet(e) {
+  var params = (e && e.parameter) ? e.parameter : {};
+  var action = params.action || '';
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName('DB_STATE') || ss.insertSheet('DB_STATE');
-  var state = loadStateFromSheet(sheet);
-  return ContentService.createTextOutput(JSON.stringify({ ok: true, state: state }))
-    .setMimeType(ContentService.MimeType.JSON);
+
+  if (!action || action === 'PULL') {
+    var currentState = loadStateFromSheet(sheet);
+    return ContentService.createTextOutput(JSON.stringify({
+      ok: true,
+      scriptVersion: SCRIPT_VERSION,
+      state: currentState
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  var lock = LockService.getScriptLock();
+  lock.waitLock(15000);
+  try {
+    var state = loadStateFromSheet(sheet) || {};
+    var data = params.data ? JSON.parse(params.data) : null;
+    state = applyMutation(ss, sheet, state, action, data);
+    return ContentService.createTextOutput(JSON.stringify({
+      ok: true,
+      scriptVersion: SCRIPT_VERSION,
+      state: state
+    })).setMimeType(ContentService.MimeType.JSON);
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function doPost(e) {
@@ -1035,115 +1273,18 @@ function doPost(e) {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheet = ss.getSheetByName('DB_STATE') || ss.insertSheet('DB_STATE');
     var state = loadStateFromSheet(sheet) || req.fallbackState || {};
-
-    if (req.action === 'SYNC_FULL' && req.data) {
-      state = req.data;
-    } else if (req.action === 'QR_CONTROL' && req.data) {
-      state.attendance = state.attendance || { logs: [] };
-      state.attendance.isOpen = Boolean(req.data.isOpen);
-      state.attendance.durationSec = Number(req.data.durationSec || 120);
-      state.attendance.openedAtSec = Number(req.data.openedAtSec || 0);
-      state.attendance.qrNonce = String(req.data.qrNonce || '');
-      if (req.data.title) state.attendance.title = req.data.title;
-      if (req.data.location) state.attendance.location = req.data.location;
-    } else if (req.action === 'RESET_ATTENDANCE' && req.data) {
-      state.attendance = state.attendance || {};
-      state.attendance.round = Number(req.data.round || 1);
-      state.attendance.qrNonce = String(req.data.qrNonce || '');
-      state.attendance.openedAtSec = Number(req.data.openedAtSec || 0);
-      state.attendance.isOpen = Boolean(req.data.isOpen);
-      state.attendance.logs = req.data.logs || [];
-    } else if (req.action === 'SCAN_QR' && req.data) {
-      state.attendance = state.attendance || { logs: [] };
-      state.attendance.logs = state.attendance.logs || [];
-      var targetRound = Number(req.data.round || 1);
-      var existingIdx = -1;
-      for (var i = 0; i < state.attendance.logs.length; i++) {
-        if (state.attendance.logs[i].userId === req.data.userId) {
-          existingIdx = i;
-          break;
-        }
-      }
-      if (existingIdx > -1) {
-        state.attendance.logs[existingIdx] = req.data;
-      } else {
-        state.attendance.logs.push(req.data);
-      }
-      var logSheet = ss.getSheetByName('DIEM_DANH_LOG') || ss.insertSheet('DIEM_DANH_LOG');
-      if (logSheet.getLastRow() === 0) {
-        logSheet.appendRow(['Thoi gian', 'MSSV / ID', 'Ho va ten', 'Phuong thuc', 'Dot']);
-      }
-      logSheet.appendRow([req.data.time, req.data.mssv || req.data.userId, req.data.name || '', req.data.method || 'QR', targetRound]);
-    } else if (req.action === 'TOGGLE_ACTIVITY' && req.data) {
-      var act = (state.activities || []).filter(function(a) { return a.id === req.data.actId; })[0];
-      if (act) {
-        act.joinedIds = act.joinedIds || [];
-        var idx = act.joinedIds.indexOf(req.data.userId);
-        if (idx > -1) act.joinedIds.splice(idx, 1);
-        else act.joinedIds.push(req.data.userId);
-      }
-    } else if (req.action === 'SAVE_ACTIVITIES' && Array.isArray(req.data)) {
-      var oldMap = {};
-      (state.activities || []).forEach(function(a) { oldMap[a.id] = a.joinedIds || []; });
-      req.data.forEach(function(a) {
-        if (oldMap[a.id]) a.joinedIds = oldMap[a.id];
-      });
-      state.activities = req.data;
-    } else if (req.action === 'SUBMIT_EVIDENCE' && req.data) {
-      state.evidences = state.evidences || [];
-      if (!state.evidences.some(function(x) { return x.id === req.data.id; })) {
-        state.evidences.unshift(req.data);
-      }
-    } else if (req.action === 'SET_EVIDENCE_STATUS' && req.data) {
-      var ev = (state.evidences || []).filter(function(x) { return x.id === req.data.evId; })[0];
-      if (ev) {
-        var wasOk = ev.status === 'approved';
-        ev.status = req.data.status;
-        var owner = (state.users || []).filter(function(u) { return u.id === ev.userId; })[0];
-        if (owner) {
-          if (req.data.status === 'approved' && !wasOk) owner.points = Math.min(100, Number(owner.points || 85) + 3);
-          else if (req.data.status !== 'approved' && wasOk) owner.points = Math.max(0, Number(owner.points || 85) - 3);
-        }
-      }
-    } else if (req.action === 'SAVE_FINANCE' && req.data) {
-      if (req.data.feeAmount) state.feeAmount = Number(req.data.feeAmount);
-      if (Array.isArray(req.data.ledger)) state.ledger = req.data.ledger;
-      if (req.data.feeMap && Array.isArray(state.users)) {
-        state.users.forEach(function(u) {
-          if (req.data.feeMap.hasOwnProperty(u.id)) u.feePaid = Boolean(req.data.feeMap[u.id]);
-        });
-      }
-    } else if (req.action === 'SAVE_USERS' && Array.isArray(req.data)) {
-      var prevMap = {};
-      (state.users || []).forEach(function(u) { prevMap[u.id] = u; });
-      state.users = req.data.map(function(nu) {
-        var old = prevMap[nu.id];
-        if (old) {
-          if (!nu.phone && old.phone) nu.phone = old.phone;
-          if (!nu.email && old.email) nu.email = old.email;
-        }
-        return nu;
-      });
-    } else if (req.action === 'UPDATE_USER' && req.data) {
-      var u = (state.users || []).filter(function(x) { return x.id === req.data.id; })[0];
-      if (u) {
-        for (var k in req.data) {
-          if (k !== 'avatar' || (req.data[k] && req.data[k].length < 1500)) {
-            u[k] = req.data[k];
-          }
-        }
-      }
-    }
-
-    saveStateToSheet(sheet, state);
-    return ContentService.createTextOutput(JSON.stringify({ ok: true, state: state }))
-      .setMimeType(ContentService.MimeType.JSON);
+    state = applyMutation(ss, sheet, state, req.action, req.data || req.state);
+    return ContentService.createTextOutput(JSON.stringify({
+      ok: true,
+      scriptVersion: SCRIPT_VERSION,
+      state: state
+    })).setMimeType(ContentService.MimeType.JSON);
   } finally {
     lock.releaseLock();
   }
 }`;
       copyTextSafely(scriptCode);
-      showToast('Đã copy mã Google Apps Script mới! Dán vào Apps Script và Triển khai Web App.', 'success');
+      showToast('Đã copy mã Google Apps Script v6! Dán vào Apps Script và Triển khai Phiên bản mới.', 'success');
     }
 
     // ==================== LƯU TRỮ LOCAL ====================
@@ -1242,7 +1383,7 @@ function doPost(e) {
       }
 
       if (!matched) {
-        showToast('Tài khoản hoặc mật khẩu không đúng! Nếu chưa có tài khoản, hãy mở đúng Link Lớp học Bí Thư gửi.', 'error');
+        showToast('Tài khoản hoặc mật khẩu không đúng! Kiểm tra lại MSSV hoặc kết nối Google Sheet.', 'error');
         return;
       }
 
@@ -1301,7 +1442,7 @@ function doPost(e) {
           db.attendance = { ...db.attendance, ...(imported.attendance || {}) };
 
           persistLocalOnly();
-          await pushAtomicActionToCloud('SYNC_FULL', getSharedPayloadSnapshot());
+          await sendCloudMutation('SYNC_FULL', getSharedPayloadSnapshot(), true);
           renderApp();
           showToast('Khôi phục dữ liệu từ file sao lưu thành công!', 'success');
         } catch (err) {
@@ -1376,8 +1517,8 @@ function doPost(e) {
 
       persistLocalOnly();
       renderApp();
-      showToast('Đã lưu cập nhật hồ sơ cá nhân!', 'success');
-      await pushAtomicActionToCloud('UPDATE_USER', { id: u.id, name: u.name, mssv: u.mssv, username: u.username, phone: u.phone, email: u.email });
+      const res = await sendCloudMutation('UPDATE_USER', { id: u.id, name: u.name, mssv: u.mssv, username: u.username, phone: u.phone, email: u.email }, false);
+      showToast(res.ok ? 'Đã lưu & đồng bộ cập nhật hồ sơ!' : 'Đã lưu hồ sơ trên máy (chưa nối Sheet).', 'success');
     }
 
     function openPassModal() { openModal('pass-modal'); }
@@ -1394,8 +1535,8 @@ function doPost(e) {
       persistLocalOnly();
       e.target.reset();
       closeModal('pass-modal');
+      await sendCloudMutation('UPDATE_USER', { id: u.id, password: u.password }, false);
       showToast('Đổi mật khẩu thành công!', 'success');
-      await pushAtomicActionToCloud('UPDATE_USER', { id: u.id, password: u.password });
     }
 
     // ==================== HỆ THỐNG QR CODE & ĐIỂM DANH ====================
@@ -1442,12 +1583,12 @@ function doPost(e) {
           closeModal('qr-zoom-modal');
           if (db.activeTab === 'qr') renderMainBody();
           if (isSecretary()) {
-            pushAtomicActionToCloud('QR_CONTROL', {
+            sendCloudMutation('QR_CONTROL', {
               isOpen: false,
               durationSec: db.attendance.durationSec,
               openedAtSec: db.attendance.openedAtSec,
               qrNonce: 'EXPIRED'
-            });
+            }, false);
           }
           showToast('Đã hết thời gian điểm danh QR code!', 'info');
           return;
@@ -1485,12 +1626,12 @@ function doPost(e) {
       persistLocalOnly();
       renderMainBody();
       showToast(`Đã đặt thời gian QR code: ${formatSecondsMMSS(secVal)}!`, 'success');
-      await pushAtomicActionToCloud('QR_CONTROL', {
+      await sendCloudMutation('QR_CONTROL', {
         isOpen: db.attendance.isOpen,
         durationSec: db.attendance.durationSec,
         openedAtSec: db.attendance.openedAtSec,
         qrNonce: db.attendance.qrNonce
-      });
+      }, false);
     }
 
     function onCustomDurationSubmit(e) {
@@ -1520,14 +1661,14 @@ function doPost(e) {
         renderMainBody();
         showToast(`Đã mở mã QR điểm danh Đợt #${db.attendance.round || 1} (${formatSecondsMMSS(db.attendance.durationSec)})!`, 'success');
       }
-      await pushAtomicActionToCloud('QR_CONTROL', {
+      await sendCloudMutation('QR_CONTROL', {
         isOpen: db.attendance.isOpen,
         durationSec: db.attendance.durationSec,
         openedAtSec: db.attendance.openedAtSec,
         qrNonce: db.attendance.qrNonce,
         title: db.attendance.title,
         location: db.attendance.location
-      });
+      }, false);
     }
 
     async function onResetAttendanceSession() {
@@ -1551,13 +1692,13 @@ function doPost(e) {
       persistLocalOnly();
       renderApp();
       showToast(`Đã Reset danh sách điểm danh sang Đợt #${db.attendance.round}!`, 'success');
-      await pushAtomicActionToCloud('RESET_ATTENDANCE', {
+      await sendCloudMutation('RESET_ATTENDANCE', {
         round: db.attendance.round,
         qrNonce: db.attendance.qrNonce,
         openedAtSec: db.attendance.openedAtSec,
         isOpen: db.attendance.isOpen,
         logs: db.attendance.logs
-      });
+      }, false);
     }
 
     function resetMyLocalScanForRescan() {
@@ -1703,42 +1844,47 @@ function doPost(e) {
       }
     }
 
+    let isProcessingQrScan = false;
     async function onQrCodeScannedSuccess(rawText) {
+      if (isProcessingQrScan) return;
       const parts = (rawText || '').trim().split('|');
       if (parts.length < 4 || parts[0] !== 'DHSVAN26A') {
         showToast('Mã QR không hợp lệ! Vui lòng quét đúng mã QR của Bí Thư Chi đoàn.', 'error');
         return;
       }
 
-      const openedAtSec = parseInt(parts[1], 10);
-      const durationSec = parseInt(parts[2], 10);
-      const scannedNonce = String(parts[3] || '');
-      const scannedRound = parseInt(parts[4] || '1', 10);
-      const nowSec = Math.floor(Date.now() / 1000);
+      isProcessingQrScan = true;
+      try {
+        const openedAtSec = parseInt(parts[1], 10);
+        const durationSec = parseInt(parts[2], 10);
+        const scannedNonce = String(parts[3] || '');
+        const scannedRound = parseInt(parts[4] || '1', 10);
+        const nowSec = Math.floor(Date.now() / 1000);
 
-      if (!openedAtSec || !durationSec || nowSec > openedAtSec + durationSec + 20) {
-        await stopCameraScanner();
-        showToast('Mã QR này đã hết thời gian hiệu lực! Hãy báo Bí Thư mở lại mã mới.', 'error');
-        return;
-      }
-
-      if (getActiveApiUrl()) {
-        const resp = await cloudApiRequest(null);
-        if (resp && resp.ok && resp.state && resp.state.attendance) {
-          const remoteAtt = resp.state.attendance;
-          if (!remoteAtt.isOpen || (remoteAtt.qrNonce && remoteAtt.qrNonce !== scannedNonce)) {
-            await stopCameraScanner();
-            showToast('Mã QR này đã bị Bí Thư đóng hoặc đã chuyển sang đợt mới!', 'error');
-            return;
+        if (getActiveApiUrl()) {
+          const resp = await cloudGetAction('PULL', null);
+          if (resp && resp.ok && resp.state && resp.state.attendance) {
+            const remoteAtt = resp.state.attendance;
+            if (!remoteAtt.isOpen || (remoteAtt.qrNonce && remoteAtt.qrNonce !== scannedNonce)) {
+              await stopCameraScanner();
+              showToast('Mã QR này đã bị Bí Thư đóng hoặc đã chuyển sang đợt mới!', 'error');
+              return;
+            }
           }
+        } else if (!openedAtSec || !durationSec || nowSec > openedAtSec + durationSec + 60) {
+          await stopCameraScanner();
+          showToast('Mã QR này đã hết thời gian hiệu lực! Hãy báo Bí Thư mở lại mã mới.', 'error');
+          return;
         }
-      }
 
-      const wasForcedRescan = localForceRescan;
-      localForceRescan = false;
-      await stopCameraScanner();
-      playSuccessBeep();
-      await commitAttendance(db.activeUserId, 'Quét QR Bí Thư', scannedRound, wasForcedRescan);
+        const wasForcedRescan = localForceRescan;
+        localForceRescan = false;
+        await stopCameraScanner();
+        playSuccessBeep();
+        await commitAttendance(db.activeUserId, 'Quét QR Bí Thư', scannedRound, wasForcedRescan);
+      } finally {
+        isProcessingQrScan = false;
+      }
     }
 
     function copyAttendanceReceipt() {
@@ -1787,6 +1933,8 @@ function doPost(e) {
       if (!user) {
         authEl.classList.remove('hidden');
         workEl.classList.add('hidden');
+        const noSheetEl = document.getElementById('login-no-sheet-notice');
+        if (noSheetEl) noSheetEl.classList.toggle('hidden', Boolean(getActiveApiUrl()));
         return;
       }
 
@@ -2584,7 +2732,7 @@ function doPost(e) {
                   </div>
                 ` : `
                   <p id="scanner-status-text" class="text-xs text-slate-500 max-w-sm mb-3">
-                    Bấm <strong>Bật máy quét QR code</strong> để quét mã QR của Bí Thư. Quét xong hệ thống sẽ tự động tính điểm danh <strong>Có mặt</strong>.
+                    Bấm <strong>Bật máy quét QR code</strong> để quét mã QR của Bí Thư. Quét xong hệ thống sẽ tự động gửi kết quả <strong>Có mặt</strong> về trang Bí Thư.
                   </p>
 
                   <div class="w-full max-w-xs rounded-2xl overflow-hidden bg-slate-900 border-2 border-[#0056B3] relative min-h-[230px] flex items-center justify-center">
@@ -2718,9 +2866,14 @@ function doPost(e) {
                 </span>
                 <h3 class="font-extrabold text-base text-slate-900">Kết nối Google Sheets để đồng bộ giữa Bí Thư & Đoàn viên</h3>
               </div>
-              <button type="button" onclick="copyAppsScriptSource()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-xs transition inline-flex items-center gap-1.5 shrink-0">
-                <i class="fa-solid fa-copy"></i> Copy mã Google Apps Script
-              </button>
+              <div class="flex flex-wrap items-center gap-2 shrink-0">
+                <button type="button" onclick="testCloudConnection()" class="px-3.5 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0056B3] border border-blue-200 text-xs font-extrabold transition inline-flex items-center gap-1.5">
+                  <i class="fa-solid fa-heart-pulse"></i> Kiểm tra kết nối
+                </button>
+                <button type="button" onclick="copyAppsScriptSource()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-xs transition inline-flex items-center gap-1.5">
+                  <i class="fa-solid fa-copy"></i> Copy mã Apps Script v6
+                </button>
+              </div>
             </div>
 
             <form onsubmit="onSaveApiUrlConfig(event)" class="flex flex-col sm:flex-row gap-2">
@@ -2931,8 +3084,8 @@ function doPost(e) {
       persistLocalOnly();
       e.target.reset();
       renderApp();
-      showToast(`Đã cấp tài khoản ${mssv} (${position})!`, 'success');
-      await pushAtomicActionToCloud('SAVE_USERS', getSharedPayloadSnapshot().users);
+      const res = await sendCloudMutation('SAVE_USERS', getSharedPayloadSnapshot().users, true);
+      showToast(res.ok ? `Đã cấp & đồng bộ tài khoản ${mssv} (${position})!` : `Đã tạo tài khoản ${mssv} trên máy (chưa đồng bộ được Sheet).`, res.ok ? 'success' : 'error');
     }
 
     async function onBulkCreateMembers(e) {
@@ -2981,8 +3134,8 @@ function doPost(e) {
       persistLocalOnly();
       e.target.reset();
       renderApp();
-      showToast(`Đã cấp thành công ${createdCount} tài khoản mới!`, 'success');
-      await pushAtomicActionToCloud('SAVE_USERS', getSharedPayloadSnapshot().users);
+      const res = await sendCloudMutation('SAVE_USERS', getSharedPayloadSnapshot().users, true);
+      showToast(res.ok ? `Đã cấp & đồng bộ ${createdCount} tài khoản mới!` : `Đã tạo ${createdCount} tài khoản trên máy (chưa nối Sheet).`, res.ok ? 'success' : 'error');
     }
 
     async function onChangeMemberPosition(id, newPosition) {
@@ -2993,8 +3146,8 @@ function doPost(e) {
       latestCompactLinkCache = '';
       persistLocalOnly();
       renderApp();
-      showToast(`Đã cấp chức vụ "${u.position}" cho ${u.name}!`, 'success');
-      await pushAtomicActionToCloud('SAVE_USERS', getSharedPayloadSnapshot().users);
+      const res = await sendCloudMutation('SAVE_USERS', getSharedPayloadSnapshot().users, true);
+      showToast(res.ok ? `Đã cấp chức vụ "${u.position}" cho ${u.name}!` : 'Đã lưu cục bộ (chưa đồng bộ được Sheet).', res.ok ? 'success' : 'error');
     }
 
     function onSearchMembers(v) {
@@ -3009,8 +3162,8 @@ function doPost(e) {
       latestCompactLinkCache = '';
       persistLocalOnly();
       renderApp();
+      await sendCloudMutation('SAVE_USERS', getSharedPayloadSnapshot().users, true);
       showToast(`Đã đặt lại mật khẩu của ${u.mssv} về mặc định (${u.mssv}).`, 'info');
-      await pushAtomicActionToCloud('SAVE_USERS', getSharedPayloadSnapshot().users);
     }
 
     async function deleteMemberUser(id) {
@@ -3020,8 +3173,8 @@ function doPost(e) {
       latestCompactLinkCache = '';
       persistLocalOnly();
       renderApp();
+      await sendCloudMutation('SAVE_USERS', getSharedPayloadSnapshot().users, true);
       showToast(`Đã xóa tài khoản ${u.mssv}.`, 'info');
-      await pushAtomicActionToCloud('SAVE_USERS', getSharedPayloadSnapshot().users);
     }
 
     async function toggleActivityJoin(actId) {
@@ -3029,16 +3182,20 @@ function doPost(e) {
       const act = db.activities.find(a => a.id === actId);
       if (!u || !act) return;
       const idx = act.joinedIds.indexOf(u.id);
-      if (idx > -1) {
-        act.joinedIds.splice(idx, 1);
-        showToast(`Đã hủy đăng ký "${act.title}"`, 'info');
-      } else {
-        act.joinedIds.push(u.id);
-        showToast(`Đăng ký thành công "${act.title}"!`, 'success');
-      }
+      const willJoin = idx === -1;
+
+      if (willJoin) act.joinedIds.push(u.id);
+      else act.joinedIds.splice(idx, 1);
+
       persistLocalOnly();
       renderApp();
-      await pushAtomicActionToCloud('TOGGLE_ACTIVITY', { actId, userId: u.id });
+
+      const res = await sendCloudMutation('TOGGLE_ACTIVITY', { actId, userId: u.id }, false);
+      if (res.ok) {
+        showToast(willJoin ? `Đã đăng ký "${act.title}" & gửi về Bí Thư!` : `Đã hủy đăng ký "${act.title}"!`, 'success');
+      } else {
+        showToast('Đã lưu trên máy bạn nhưng chưa gửi được lên Google Sheet! Hãy kiểm tra kết nối mạng/Sheet.', 'error');
+      }
     }
 
     async function onCreateActivity(e) {
@@ -3057,16 +3214,16 @@ function doPost(e) {
       closeModal('activity-modal');
       e.target.reset();
       renderApp();
-      showToast('Đã đăng hoạt động mới!', 'success');
-      await pushAtomicActionToCloud('SAVE_ACTIVITIES', db.activities);
+      const res = await sendCloudMutation('SAVE_ACTIVITIES', db.activities, true);
+      showToast(res.ok ? 'Đã đăng hoạt động mới & đồng bộ cả lớp!' : 'Đã tạo hoạt động trên máy (chưa nối Sheet).', res.ok ? 'success' : 'error');
     }
 
     async function removeActivity(actId) {
       db.activities = db.activities.filter(a => a.id !== actId);
       persistLocalOnly();
       renderApp();
+      await sendCloudMutation('SAVE_ACTIVITIES', db.activities, true);
       showToast('Đã xóa hoạt động.', 'info');
-      await pushAtomicActionToCloud('SAVE_ACTIVITIES', db.activities);
     }
 
     function openRegListModal(actId) {
@@ -3119,8 +3276,8 @@ function doPost(e) {
       db.feeAmount = num;
       persistLocalOnly();
       renderApp();
+      await sendCloudMutation('SAVE_FINANCE', getFinanceSyncPayload(), true);
       showToast(`Đã cập nhật mức thu Đoàn phí: ${formatVND(num)}/năm`, 'success');
-      await pushAtomicActionToCloud('SAVE_FINANCE', getFinanceSyncPayload());
     }
 
     async function toggleFeePaid(uid) {
@@ -3155,7 +3312,7 @@ function doPost(e) {
 
       persistLocalOnly();
       renderApp();
-      await pushAtomicActionToCloud('SAVE_FINANCE', getFinanceSyncPayload());
+      await sendCloudMutation('SAVE_FINANCE', getFinanceSyncPayload(), true);
     }
 
     function openLedgerEditModal(lgId) {
@@ -3186,8 +3343,8 @@ function doPost(e) {
       persistLocalOnly();
       closeModal('ledger-edit-modal');
       renderApp();
+      await sendCloudMutation('SAVE_FINANCE', getFinanceSyncPayload(), true);
       showToast('Đã lưu điều chỉnh giao dịch!', 'success');
-      await pushAtomicActionToCloud('SAVE_FINANCE', getFinanceSyncPayload());
     }
 
     async function deleteLedgerEntry(lgId) {
@@ -3201,8 +3358,8 @@ function doPost(e) {
       db.ledger = db.ledger.filter(x => x.id !== lgId);
       persistLocalOnly();
       renderApp();
+      await sendCloudMutation('SAVE_FINANCE', getFinanceSyncPayload(), true);
       showToast(`Đã xóa giao dịch "${item.title}"!`, 'info');
-      await pushAtomicActionToCloud('SAVE_FINANCE', getFinanceSyncPayload());
     }
 
     async function onAddLedgerEntry(e) {
@@ -3221,8 +3378,8 @@ function doPost(e) {
       });
       persistLocalOnly();
       renderApp();
+      await sendCloudMutation('SAVE_FINANCE', getFinanceSyncPayload(), true);
       showToast('Đã lưu vào sổ quỹ!', 'success');
-      await pushAtomicActionToCloud('SAVE_FINANCE', getFinanceSyncPayload());
     }
 
     // ==================== MINH CHỨNG & ĐIỂM DANH ====================
@@ -3243,8 +3400,8 @@ function doPost(e) {
       db.evidences.unshift(newEv);
       persistLocalOnly();
       renderApp();
-      showToast('Đã gửi minh chứng chờ Bí Thư duyệt!', 'success');
-      await pushAtomicActionToCloud('SUBMIT_EVIDENCE', newEv);
+      const res = await sendCloudMutation('SUBMIT_EVIDENCE', newEv, false);
+      showToast(res.ok ? 'Đã gửi minh chứng lên hệ thống Bí Thư!' : 'Đã lưu trên máy (chưa gửi được lên Sheet).', res.ok ? 'success' : 'error');
     }
 
     async function setEvidenceStatus(evId, status) {
@@ -3260,8 +3417,8 @@ function doPost(e) {
       }
       persistLocalOnly();
       renderApp();
+      await sendCloudMutation('SET_EVIDENCE_STATUS', { evId, status }, false);
       showToast(status === 'approved' ? 'Bí Thư đã duyệt minh chứng (+3 ĐRL)!' : 'Đã từ chối minh chứng.', status === 'approved' ? 'success' : 'info');
-      await pushAtomicActionToCloud('SET_EVIDENCE_STATUS', { evId, status });
     }
 
     async function onUpdateAttendanceSession(e) {
@@ -3270,15 +3427,15 @@ function doPost(e) {
       db.attendance.location = document.getElementById('sess-loc-input').value.trim();
       persistLocalOnly();
       renderApp();
-      showToast('Đã cập nhật thông tin buổi điểm danh!', 'success');
-      await pushAtomicActionToCloud('QR_CONTROL', {
+      await sendCloudMutation('QR_CONTROL', {
         isOpen: db.attendance.isOpen,
         durationSec: db.attendance.durationSec,
         openedAtSec: db.attendance.openedAtSec,
         qrNonce: db.attendance.qrNonce,
         title: db.attendance.title,
         location: db.attendance.location
-      });
+      }, false);
+      showToast('Đã cập nhật thông tin buổi điểm danh!', 'success');
     }
 
     async function commitAttendance(uid, method, roundNum = Number(db.attendance.round || 1), allowSameRoundOverwrite = false) {
@@ -3307,8 +3464,13 @@ function doPost(e) {
       db.attendance.logs.push(logEntry);
       persistLocalOnly();
       renderApp();
-      showToast(`Điểm danh Có mặt thành công: ${u ? u.name : uid}`, 'success');
-      await pushAtomicActionToCloud('SCAN_QR', logEntry);
+
+      const res = await sendCloudMutation('SCAN_QR', logEntry, false);
+      if (res.ok) {
+        showToast(`✅ Điểm danh Có mặt & đồng bộ về Bí Thư thành công: ${u ? u.name : uid}`, 'success');
+      } else {
+        showToast('⚠️ Đã quét xong trên máy bạn nhưng chưa gửi được lên Google Sheet! Hãy kiểm tra kết nối.', 'error');
+      }
     }
 
     function secretaryCheckInUser(uid) {
@@ -3356,7 +3518,7 @@ function doPost(e) {
         el.style.opacity = '0';
         el.style.transition = 'opacity 0.25s';
         setTimeout(() => el.remove(), 250);
-      }, 3400);
+      }, 3600);
     }
 
     // ==================== MASTER RENDER ====================
