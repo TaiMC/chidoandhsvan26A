@@ -84,6 +84,20 @@
   </section>
   <!-- ==================== 2. GIAO DIỆN CHÍNH ==================== -->
   <div id="workspace-view" class="hidden min-h-screen flex flex-col lg:flex-row">
+  <script>
+    (function () {
+      try {
+        var raw = localStorage.getItem('dhsvan26a_bithu_system_v6');
+        if (raw) {
+          var parsed = JSON.parse(raw);
+          if (parsed && parsed.activeUserId && Array.isArray(parsed.users) && parsed.users.some(function (u) { return u.id === parsed.activeUserId; })) {
+            document.getElementById('auth-view').classList.add('hidden');
+            document.getElementById('workspace-view').classList.remove('hidden');
+          }
+        }
+      } catch (e) {}
+    })();
+  </script>
     <!-- SIDEBAR DESKTOP -->
     <aside class="hidden lg:flex lg:w-72 lg:flex-col lg:fixed lg:inset-y-0 bg-white border-r border-slate-200/80 z-30 shadow-sm">
       <div class="p-5 border-b border-slate-100 flex items-center gap-3">
@@ -436,6 +450,13 @@
         ]
       }
     ];
+    const DEFAULT_DRL_RANKS = [
+      { id: 'rk-1', label: 'Xuất sắc', minScore: 90, maxScore: 100, tone: 'emerald', note: 'Đủ điều kiện xét Đoàn viên ưu tú & học bổng khuyến khích' },
+      { id: 'rk-2', label: 'Giỏi', minScore: 80, maxScore: 89, tone: 'blue', note: 'Đạt chuẩn rèn luyện loại Giỏi' },
+      { id: 'rk-3', label: 'Khá', minScore: 65, maxScore: 79, tone: 'sky', note: 'Đạt yêu cầu rèn luyện mức Khá' },
+      { id: 'rk-4', label: 'Trung bình', minScore: 50, maxScore: 64, tone: 'amber', note: 'Cần tích cực tham gia hoạt động Chi đoàn hơn' },
+      { id: 'rk-5', label: 'Yếu', minScore: 0, maxScore: 49, tone: 'rose', note: 'Chưa đạt chuẩn rèn luyện, cần khắc phục' }
+    ];
     const DEFAULT_DRL_SECTIONS = [
       {
         id: 'sec-1',
@@ -534,6 +555,9 @@
         }
       ],
       pointLogs: [],
+      guideDocs: JSON.parse(JSON.stringify(GUIDE_DOCS)),
+      drlRanks: JSON.parse(JSON.stringify(DEFAULT_DRL_RANKS)),
+      drlPresets: JSON.parse(JSON.stringify(DRL_POINT_PRESETS)),
       drlAssessment: {
         isOpen: true,
         periodTitle: 'Tự đánh giá Điểm Rèn Luyện Học kỳ I - Năm học 2026 - 2027',
@@ -568,6 +592,7 @@
     let memberSearchTerm = '';
     let drlPublicSearch = '';
     let activeInspectMemberId = null;
+    let editingGuideIdx = -1;
 
     function esc(str) {
       return String(str || '')
@@ -634,17 +659,17 @@
               ${isSecretary() ? `<button onclick="switchTab('accounts')" class="px-3 py-1.5 rounded-xl bg-amber-600 text-white font-bold shrink-0">Cài đặt ngay</button>` : ''}
             </div>
           `;
-        } else if (remoteScriptVersion && remoteScriptVersion !== 'v6' && isSecretary()) {
+        } else if (remoteScriptVersion && remoteScriptVersion !== 'v7' && isSecretary()) {
           alertBox.classList.remove('hidden');
           alertBox.innerHTML = `
             <div class="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div class="flex items-start gap-2">
                 <i class="fa-solid fa-circle-exclamation text-rose-600 text-sm mt-0.5"></i>
                 <div>
-                  <strong>Apps Script đang chạy bản cũ!</strong> Hãy vào Google Apps Script dán mã <strong>v6</strong> mới nhất và chọn <strong>Quản lý các bản triển khai -> Sửa -> Phiên bản mới -> Triển khai</strong>.
+                  <strong>Apps Script đang chạy bản cũ!</strong> Hãy vào Google Apps Script dán mã <strong>v7</strong> mới nhất và chọn <strong>Quản lý các bản triển khai -> Sửa -> Phiên bản mới -> Triển khai</strong>.
                 </div>
               </div>
-              <button onclick="copyAppsScriptSource()" class="px-3 py-1.5 rounded-xl bg-rose-600 text-white font-bold shrink-0">Copy mã v6</button>
+              <button onclick="copyAppsScriptSource()" class="px-3 py-1.5 rounded-xl bg-rose-600 text-white font-bold shrink-0">Copy mã v7</button>
             </div>
           `;
         } else {
@@ -674,15 +699,42 @@
       let changed = false;
       if (Array.isArray(remote.users) && remote.users.length > 0) {
         const localAvatarMap = new Map(db.users.map(u => [u.id, u.avatar]));
+        const vault = getAvatarVault();
+        const locks = getProfileLocks();
         remote.users.forEach(ru => {
-          if (!ru.avatar && localAvatarMap.get(ru.id)) {
+          const vItem = vault[ru.id];
+          if (ru.avatar) {
+            saveAvatarToVault(ru.id, ru.avatar);
+          } else if (vItem && !vItem.cleared && vItem.avatar) {
+            ru.avatar = vItem.avatar;
+          } else if ((!vItem || !vItem.cleared) && localAvatarMap.get(ru.id)) {
             ru.avatar = localAvatarMap.get(ru.id);
+          }
+          const lk = locks[ru.id];
+          if (lk && (Date.now() - lk.updatedAt < 300000)) {
+            ru.name = lk.name;
+            ru.mssv = lk.mssv;
+            if (ru.role !== 'secretary') ru.username = lk.username;
+            ru.phone = lk.phone;
+            ru.email = lk.email;
           }
         });
         if (!remote.users.some(u => u.id === 'BITHU_VINH')) {
           remote.users.unshift(SEED_USERS[0]);
         }
         db.users = remote.users;
+        changed = true;
+      }
+      if (Array.isArray(remote.guideDocs)) {
+        db.guideDocs = remote.guideDocs;
+        changed = true;
+      }
+      if (Array.isArray(remote.drlRanks) && remote.drlRanks.length > 0) {
+        db.drlRanks = remote.drlRanks;
+        changed = true;
+      }
+      if (Array.isArray(remote.drlPresets)) {
+        db.drlPresets = remote.drlPresets;
         changed = true;
       }
       if (Array.isArray(remote.activities)) {
@@ -726,7 +778,7 @@
     function getSharedPayloadSnapshot() {
       const safeUsers = db.users.map(u => {
         const copy = { ...u };
-        if (copy.avatar && copy.avatar.length > 1500) copy.avatar = '';
+        if (copy.avatar && copy.avatar.length > 25000) copy.avatar = '';
         return copy;
       });
       return {
@@ -737,6 +789,9 @@
         evidences: db.evidences,
         attendance: db.attendance,
         pointLogs: db.pointLogs || [],
+        guideDocs: Array.isArray(db.guideDocs) ? db.guideDocs : GUIDE_DOCS,
+        drlRanks: (Array.isArray(db.drlRanks) && db.drlRanks.length > 0) ? db.drlRanks : DEFAULT_DRL_RANKS,
+        drlPresets: Array.isArray(db.drlPresets) ? db.drlPresets : DRL_POINT_PRESETS,
         drlAssessment: db.drlAssessment || { isOpen: true, periodTitle: '', notice: '', sections: DEFAULT_DRL_SECTIONS, submissions: {} }
       };
     }
@@ -806,7 +861,7 @@
         let resp = usePost
           ? await cloudPostAction(actionName, dataObj)
           : await cloudGetAction(actionName, dataObj);
-        if (resp && resp.ok && resp.scriptVersion !== 'v6' && actionName !== 'SYNC_PUSH') {
+        if (resp && resp.ok && resp.scriptVersion !== 'v7' && actionName !== 'SYNC_PUSH') {
           resp = await cloudPostAction('SYNC_PUSH', getSharedPayloadSnapshot());
         }
         lastLocalMutationAt = Date.now();
@@ -1128,7 +1183,7 @@
       renderMainBody();
     }
     function copyAppsScriptSource() {
-      const scriptCode = `var SCRIPT_VERSION = 'v6';
+      const scriptCode = `var SCRIPT_VERSION = 'v7';
 function saveStateToSheet(sheet, state) {
   var json = JSON.stringify(state);
   var chunkSize = 45000;
@@ -1242,6 +1297,7 @@ function applyMutation(ss, sheet, state, action, data) {
       if (old) {
         if (!nu.phone && old.phone) nu.phone = old.phone;
         if (!nu.email && old.email) nu.email = old.email;
+        if (!nu.avatar && old.avatar && !nu._avatarCleared) nu.avatar = old.avatar;
       }
       return nu;
     });
@@ -1249,7 +1305,8 @@ function applyMutation(ss, sheet, state, action, data) {
     var u = (state.users || []).filter(function(x) { return x.id === data.id; })[0];
     if (u) {
       for (var k in data) {
-        if (k !== 'avatar' || (data[k] && data[k].length < 1500)) {
+        if (k === '_avatarCleared') continue;
+        if (k !== 'avatar' || !data[k] || data[k].length <= 25000) {
           u[k] = data[k];
         }
       }
@@ -1305,7 +1362,7 @@ function doPost(e) {
   }
 }`;
       copyTextSafely(scriptCode);
-      showToast('Đã copy mã Google Apps Script v6!', 'success');
+      showToast('Đã copy mã Google Apps Script v7!', 'success');
     }
     // ==================== LƯU TRỮ LOCAL ====================
     function loadDatabase() {
@@ -1323,6 +1380,9 @@ function doPost(e) {
             feeAmount: Number(parsed.feeAmount || 120000),
             attendance: { round: 1, ...baseData.attendance, ...(parsed.attendance || {}) },
             pointLogs: Array.isArray(parsed.pointLogs) ? parsed.pointLogs : [],
+            guideDocs: Array.isArray(parsed.guideDocs) ? parsed.guideDocs : baseData.guideDocs,
+            drlRanks: (Array.isArray(parsed.drlRanks) && parsed.drlRanks.length > 0) ? parsed.drlRanks : baseData.drlRanks,
+            drlPresets: Array.isArray(parsed.drlPresets) ? parsed.drlPresets : baseData.drlPresets,
             drlAssessment: {
               ...baseData.drlAssessment,
               ...(parsed.drlAssessment || {}),
@@ -1330,6 +1390,16 @@ function doPost(e) {
               submissions: (parsed.drlAssessment && parsed.drlAssessment.submissions) ? parsed.drlAssessment.submissions : {}
             }
           };
+          try {
+            const rawVault = localStorage.getItem('dhsvan26a_avatar_vault_v1');
+            const vault = rawVault ? JSON.parse(rawVault) : {};
+            baseData.users.forEach(u => {
+              const vItem = vault[u.id];
+              if (!u.avatar && vItem && !vItem.cleared && vItem.avatar) {
+                u.avatar = vItem.avatar;
+              }
+            });
+          } catch (e2) {}
           if (baseData.activeUserId && !baseData.users.some(u => u.id === baseData.activeUserId)) {
             baseData.activeUserId = null;
           }
@@ -1355,6 +1425,15 @@ function doPost(e) {
       if (!user) return false;
       if (isSecretary(user)) return user.canManage !== false;
       return Boolean(user.canManage);
+    }
+    function isBchMember(user = currentUser()) {
+      if (!user) return false;
+      if (isSecretary(user)) return true;
+      return (
+        user.position === 'Phó Bí thư Chi đoàn' ||
+        user.position === 'Ủy viên BCH Chi đoàn' ||
+        Boolean(user.canManage)
+      );
     }
     function getInitials(name) {
       const parts = (name || 'ĐV').trim().split(/\s+/);
@@ -1467,35 +1546,91 @@ function doPost(e) {
       };
       reader.readAsText(file);
     }
-    // ==================== HỒ SƠ & MẬT KHẨU ====================
-    function onAvatarFileSelected(event) {
-      const file = event.target.files && event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function (ev) {
-        const img = new Image();
-        img.onload = function () {
+    // ==================== HỒ SƠ, AVATAR BỀN VỮNG & MẬT KHẨU ====================
+    const AVATAR_VAULT_KEY = 'dhsvan26a_avatar_vault_v1';
+    const PROFILE_LOCK_KEY = 'dhsvan26a_profile_lock_v1';
+
+    function getAvatarVault() {
+      try { return JSON.parse(localStorage.getItem(AVATAR_VAULT_KEY) || '{}'); } catch (e) { return {}; }
+    }
+    function saveAvatarToVault(uid, avatarDataUrl) {
+      try {
+        const vault = getAvatarVault();
+        vault[uid] = { avatar: avatarDataUrl || '', cleared: !avatarDataUrl, updatedAt: Date.now() };
+        localStorage.setItem(AVATAR_VAULT_KEY, JSON.stringify(vault));
+      } catch (e) {}
+    }
+    function getProfileLocks() {
+      try { return JSON.parse(localStorage.getItem(PROFILE_LOCK_KEY) || '{}'); } catch (e) { return {}; }
+    }
+    function saveProfileLock(userObj) {
+      try {
+        const locks = getProfileLocks();
+        locks[userObj.id] = {
+          name: userObj.name,
+          mssv: userObj.mssv,
+          username: userObj.username,
+          phone: userObj.phone || '',
+          email: userObj.email || '',
+          updatedAt: Date.now()
+        };
+        localStorage.setItem(PROFILE_LOCK_KEY, JSON.stringify(locks));
+      } catch (e) {}
+    }
+    function compressAvatarDataUrl(rawDataUrl, callback) {
+      const img = new Image();
+      img.onload = function () {
+        const renderScaled = (maxSize, quality) => {
           const canvas = document.createElement('canvas');
-          const maxSize = 180;
           let w = img.width, h = img.height;
           if (w > h && w > maxSize) { h = Math.round((h * maxSize) / w); w = maxSize; }
           else if (h >= w && h > maxSize) { w = Math.round((w * maxSize) / h); h = maxSize; }
           canvas.width = w;
           canvas.height = h;
           canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-          tempInlineAvatar = canvas.toDataURL('image/jpeg', 0.78);
-          const box = document.getElementById('inline-avatar-preview');
-          if (box) box.innerHTML = `<img src="${tempInlineAvatar}" class="w-full h-full object-cover" />`;
+          return canvas.toDataURL('image/jpeg', quality);
         };
-        img.src = ev.target.result;
+        let out = renderScaled(150, 0.76);
+        if (out.length > 16000) out = renderScaled(120, 0.65);
+        callback(out);
+      };
+      img.src = rawDataUrl;
+    }
+    function onAvatarFileSelected(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (ev) {
+        compressAvatarDataUrl(ev.target.result, async function (compressed) {
+          tempInlineAvatar = compressed;
+          const box = document.getElementById('inline-avatar-preview');
+          if (box) box.innerHTML = `<img src="${compressed}" class="w-full h-full object-cover" />`;
+          const u = currentUser();
+          if (u) {
+            u.avatar = compressed;
+            saveAvatarToVault(u.id, compressed);
+            persistLocalOnly();
+            renderWorkspaceShell();
+            await sendCloudMutation('UPDATE_USER', { id: u.id, avatar: compressed, _avatarCleared: false }, true);
+            showToast('Đã cập nhật ảnh đại diện!', 'success');
+          }
+        });
       };
       reader.readAsDataURL(file);
     }
-    function clearTempAvatar() {
+    async function clearTempAvatar() {
       const u = currentUser();
       tempInlineAvatar = '';
       const box = document.getElementById('inline-avatar-preview');
       if (box) box.innerHTML = `<span>${getInitials(u ? u.name : 'VV')}</span>`;
+      if (u) {
+        u.avatar = '';
+        saveAvatarToVault(u.id, '');
+        persistLocalOnly();
+        renderWorkspaceShell();
+        await sendCloudMutation('UPDATE_USER', { id: u.id, avatar: '', _avatarCleared: true }, true);
+        showToast('Đã gỡ ảnh đại diện!', 'success');
+      }
     }
     async function onSaveInlineProfile(e) {
       e.preventDefault();
@@ -1522,10 +1657,21 @@ function doPost(e) {
         u.avatar = tempInlineAvatar;
         tempInlineAvatar = null;
       }
+      saveAvatarToVault(u.id, u.avatar || '');
+      saveProfileLock(u);
       persistLocalOnly();
       renderApp();
-      await sendCloudMutation('UPDATE_USER', { id: u.id, name: u.name, mssv: u.mssv, username: u.username, phone: u.phone, email: u.email }, false);
-      showToast('Đã thay đổi thành công', 'success');
+      await sendCloudMutation('UPDATE_USER', {
+        id: u.id,
+        name: u.name,
+        mssv: u.mssv,
+        username: u.username,
+        phone: u.phone,
+        email: u.email,
+        avatar: u.avatar || '',
+        _avatarCleared: !u.avatar
+      }, true);
+      showToast('Đã lưu thông tin & ảnh đại diện!', 'success');
     }
     function openPassModal() { openModal('pass-modal'); }
     async function onSavePassword(e) {
@@ -2159,12 +2305,43 @@ function doPost(e) {
         inp.setSelectionRange(pos, pos);
       }
     }
+    function getRankToneClasses(tone) {
+      const map = {
+        emerald: 'text-emerald-700 bg-emerald-50 border-emerald-200',
+        blue: 'text-[#0056B3] bg-blue-50 border-blue-200',
+        sky: 'text-sky-700 bg-sky-50 border-sky-200',
+        amber: 'text-amber-700 bg-amber-50 border-amber-200',
+        rose: 'text-rose-700 bg-rose-50 border-rose-200',
+        purple: 'text-purple-700 bg-purple-50 border-purple-200'
+      };
+      return map[tone] || map.blue;
+    }
     function getDrLClassification(pts) {
-      if (pts >= 90) return { label: 'Xuất sắc', color: 'text-emerald-700 bg-emerald-50 border-emerald-200' };
-      if (pts >= 80) return { label: 'Tốt', color: 'text-[#0056B3] bg-blue-50 border-blue-200' };
-      if (pts >= 65) return { label: 'Khá', color: 'text-sky-700 bg-sky-50 border-sky-200' };
-      if (pts >= 50) return { label: 'Trung bình', color: 'text-amber-700 bg-amber-50 border-amber-200' };
-      return { label: 'Yếu', color: 'text-rose-700 bg-rose-50 border-rose-200' };
+      const score = Number(pts || 0);
+      const ranks = (Array.isArray(db.drlRanks) && db.drlRanks.length > 0 ? db.drlRanks : DEFAULT_DRL_RANKS)
+        .slice()
+        .sort((a, b) => Number(b.minScore) - Number(a.minScore));
+      const matched = ranks.find(r => score >= Number(r.minScore) && score <= Number(r.maxScore))
+        || ranks.find(r => score >= Number(r.minScore))
+        || ranks[ranks.length - 1];
+      return {
+        label: matched ? matched.label : 'Chưa xếp loại',
+        note: matched ? (matched.note || '') : '',
+        color: getRankToneClasses(matched ? matched.tone : 'blue')
+      };
+    }
+    function recalcAssessmentLiveTotals(formId) {
+      const form = document.getElementById(formId);
+      if (!form) return;
+      let sSum = 0, bSum = 0;
+      form.querySelectorAll('[data-drl-self]').forEach(el => { sSum += Number(el.value || 0); });
+      form.querySelectorAll('[data-drl-bithu]').forEach(el => { bSum += Number(el.value || 0); });
+      const sRank = getDrLClassification(sSum);
+      const bRank = getDrLClassification(bSum);
+      const sBox = form.querySelector('[data-live-self-rank]');
+      const bBox = form.querySelector('[data-live-bithu-rank]');
+      if (sBox) sBox.innerHTML = `${sSum}đ <span class="ml-1 px-2 py-0.5 rounded-md text-[10px] border ${sRank.color}">${esc(sRank.label)}</span>`;
+      if (bBox) bBox.innerHTML = `${bSum}đ <span class="ml-1 px-2 py-0.5 rounded-md text-[10px] border ${bRank.color}">${esc(bRank.label)}</span>`;
     }
     function ensureDrlStructure() {
       if (!db.drlAssessment || typeof db.drlAssessment !== 'object') {
@@ -2179,6 +2356,9 @@ function doPost(e) {
       if (!Array.isArray(db.drlAssessment.sections)) db.drlAssessment.sections = [];
       if (!db.drlAssessment.submissions) db.drlAssessment.submissions = {};
       if (!Array.isArray(db.pointLogs)) db.pointLogs = [];
+      if (!Array.isArray(db.guideDocs)) db.guideDocs = JSON.parse(JSON.stringify(GUIDE_DOCS));
+      if (!Array.isArray(db.drlRanks) || db.drlRanks.length === 0) db.drlRanks = JSON.parse(JSON.stringify(DEFAULT_DRL_RANKS));
+      if (!Array.isArray(db.drlPresets)) db.drlPresets = JSON.parse(JSON.stringify(DRL_POINT_PRESETS));
     }
     function getMemberAssessmentTotals(uid) {
       ensureDrlStructure();
@@ -2247,14 +2427,14 @@ function doPost(e) {
                         </td>
                         <td class="py-2 px-3 text-center">
                           ${canEditSelf ? `
-                            <input type="number" step="1" min="-20" max="${c.maxScore}" data-drl-self="${c.id}" value="${sVal}" placeholder="0" class="w-20 px-2 py-1.5 rounded-xl border border-blue-200 text-center font-extrabold text-[#0056B3] focus:outline-none focus:border-[#0056B3]" />
+                            <input type="number" step="1" min="-20" max="${c.maxScore}" data-drl-self="${c.id}" value="${sVal}" oninput="recalcAssessmentLiveTotals(this.form ? this.form.id : '')" placeholder="0" class="w-20 px-2 py-1.5 rounded-xl border border-blue-200 text-center font-extrabold text-[#0056B3] focus:outline-none focus:border-[#0056B3]" />
                           ` : `
                             <span class="font-extrabold text-slate-800">${sVal !== '' ? sVal + 'đ' : '—'}</span>
                           `}
                         </td>
                         <td class="py-2 px-3 text-center">
                           ${canEditBithu ? `
-                            <input type="number" step="1" min="-20" max="${c.maxScore}" data-drl-bithu="${c.id}" value="${bVal}" placeholder="0" class="w-20 px-2 py-1.5 rounded-xl border border-emerald-300 bg-emerald-50/40 text-center font-extrabold text-emerald-700 focus:outline-none focus:border-emerald-600" />
+                            <input type="number" step="1" min="-20" max="${c.maxScore}" data-drl-bithu="${c.id}" value="${bVal}" oninput="recalcAssessmentLiveTotals(this.form ? this.form.id : '')" placeholder="0" class="w-20 px-2 py-1.5 rounded-xl border border-emerald-300 bg-emerald-50/40 text-center font-extrabold text-emerald-700 focus:outline-none focus:border-emerald-600" />
                           ` : `
                             <span class="font-extrabold text-emerald-700">${bVal !== '' ? bVal + 'đ' : '—'}</span>
                           `}
@@ -2264,11 +2444,21 @@ function doPost(e) {
                   }).join('')}
                 `;
               }).join('')}
-              <tr class="bg-slate-900 text-white font-extrabold">
-                <td colspan="2" class="py-3 px-3 text-right">TỔNG ĐIỂM ĐÁNH GIÁ (Tối đa ${totals.totalMax}đ):</td>
-                <td class="py-3 px-3 text-center text-sky-300 text-sm">${totals.totalSelf}đ</td>
-                <td class="py-3 px-3 text-center text-emerald-300 text-sm">${totals.totalBithu}đ</td>
-              </tr>
+              ${(() => {
+                const selfRank = getDrLClassification(totals.totalSelf);
+                const bithuRank = getDrLClassification(totals.totalBithu);
+                return `
+                  <tr class="bg-slate-900 text-white font-extrabold">
+                    <td colspan="2" class="py-3 px-3 text-right">TỔNG ĐIỂM & XẾP HẠNG ĐRL (Tối đa ${totals.totalMax}đ):</td>
+                    <td data-live-self-rank class="py-3 px-3 text-center text-sky-300 text-xs sm:text-sm">
+                      ${totals.totalSelf}đ <span class="ml-1 px-2 py-0.5 rounded-md text-[10px] border ${selfRank.color}">${esc(selfRank.label)}</span>
+                    </td>
+                    <td data-live-bithu-rank class="py-3 px-3 text-center text-emerald-300 text-xs sm:text-sm">
+                      ${totals.totalBithu}đ <span class="ml-1 px-2 py-0.5 rounded-md text-[10px] border ${bithuRank.color}">${esc(bithuRank.label)}</span>
+                    </td>
+                  </tr>
+                `;
+              })()}
             </tbody>
           </table>
         </div>
@@ -2297,7 +2487,7 @@ function doPost(e) {
     }
     async function onSaveDrlPeriodSettings(e) {
       e.preventDefault();
-      if (!isSecretary()) return;
+      if (!isBchMember()) return;
       ensureDrlStructure();
       db.drlAssessment.periodTitle = document.getElementById('drl-period-title').value.trim();
       db.drlAssessment.notice = document.getElementById('drl-period-notice').value.trim();
@@ -2305,11 +2495,11 @@ function doPost(e) {
       persistLocalOnly();
       renderMainBody();
       await sendCloudMutation('SYNC_PUSH', getSharedPayloadSnapshot(), true);
-      showToast('Đã thay đổi thành công', 'success');
+      showToast('Đã cập nhật kỳ tự đánh giá ĐRL!', 'success');
     }
     async function onAddDrlSection(e) {
       e.preventDefault();
-      if (!isSecretary()) return;
+      if (!isBchMember()) return;
       ensureDrlStructure();
       const code = document.getElementById('new-drl-sec-code').value.trim();
       const title = document.getElementById('new-drl-sec-title').value.trim();
@@ -2325,19 +2515,19 @@ function doPost(e) {
       persistLocalOnly();
       renderMainBody();
       await sendCloudMutation('SYNC_PUSH', getSharedPayloadSnapshot(), true);
-      showToast('Đã thay đổi thành công', 'success');
+      showToast('Đã thêm mục lớn tiêu chí ĐRL!', 'success');
     }
     async function onDeleteDrlSection(secId) {
-      if (!isSecretary()) return;
+      if (!isBchMember()) return;
       ensureDrlStructure();
       db.drlAssessment.sections = db.drlAssessment.sections.filter(s => s.id !== secId);
       persistLocalOnly();
       renderMainBody();
       await sendCloudMutation('SYNC_PUSH', getSharedPayloadSnapshot(), true);
-      showToast('Đã thay đổi thành công', 'success');
+      showToast('Đã xóa mục tiêu chí ĐRL!', 'success');
     }
     async function onUpdateDrlSectionMax(secId, newVal) {
-      if (!isSecretary()) return;
+      if (!isBchMember()) return;
       ensureDrlStructure();
       const sec = db.drlAssessment.sections.find(s => s.id === secId);
       if (!sec) return;
@@ -2345,11 +2535,11 @@ function doPost(e) {
       persistLocalOnly();
       renderMainBody();
       await sendCloudMutation('SYNC_PUSH', getSharedPayloadSnapshot(), true);
-      showToast('Đã thay đổi thành công', 'success');
+      showToast('Đã cập nhật điểm tối đa mục!', 'success');
     }
     async function onAddDrlCriterion(e, secId) {
       e.preventDefault();
-      if (!isSecretary()) return;
+      if (!isBchMember()) return;
       ensureDrlStructure();
       const sec = db.drlAssessment.sections.find(s => s.id === secId);
       if (!sec) return;
@@ -2362,10 +2552,10 @@ function doPost(e) {
       persistLocalOnly();
       renderMainBody();
       await sendCloudMutation('SYNC_PUSH', getSharedPayloadSnapshot(), true);
-      showToast('Đã thay đổi thành công', 'success');
+      showToast('Đã thêm tiêu chí đánh giá mới!', 'success');
     }
     async function onUpdateDrlCriterionScore(secId, critId, newVal) {
-      if (!isSecretary()) return;
+      if (!isBchMember()) return;
       ensureDrlStructure();
       const sec = db.drlAssessment.sections.find(s => s.id === secId);
       if (!sec) return;
@@ -2375,10 +2565,10 @@ function doPost(e) {
       persistLocalOnly();
       renderMainBody();
       await sendCloudMutation('SYNC_PUSH', getSharedPayloadSnapshot(), true);
-      showToast('Đã thay đổi thành công', 'success');
+      showToast('Đã cập nhật điểm tiêu chí!', 'success');
     }
     async function onDeleteDrlCriterion(secId, critId) {
-      if (!isSecretary()) return;
+      if (!isBchMember()) return;
       ensureDrlStructure();
       const sec = db.drlAssessment.sections.find(s => s.id === secId);
       if (!sec) return;
@@ -2386,7 +2576,132 @@ function doPost(e) {
       persistLocalOnly();
       renderMainBody();
       await sendCloudMutation('SYNC_PUSH', getSharedPayloadSnapshot(), true);
-      showToast('Đã thay đổi thành công', 'success');
+      showToast('Đã xóa tiêu chí đánh giá!', 'success');
+    }
+    // ==================== BCH CHỈNH SỬA XẾP HẠNG ĐRL, THANG ĐIỂM & CẨM NANG QUY ĐỊNH ====================
+    async function onSaveDrlRankRule(e, rankId) {
+      e.preventDefault();
+      if (!isBchMember()) return;
+      ensureDrlStructure();
+      const rk = db.drlRanks.find(r => r.id === rankId);
+      if (!rk) return;
+      rk.label = e.target.querySelector('[name="rlabel"]').value.trim();
+      rk.minScore = Number(e.target.querySelector('[name="rmin"]').value);
+      rk.maxScore = Number(e.target.querySelector('[name="rmax"]').value);
+      rk.tone = e.target.querySelector('[name="rtone"]').value;
+      rk.note = e.target.querySelector('[name="rnote"]').value.trim();
+      persistLocalOnly();
+      renderMainBody();
+      await sendCloudMutation('SYNC_PUSH', getSharedPayloadSnapshot(), true);
+      showToast('Đã cập nhật khung xếp hạng ĐRL!', 'success');
+    }
+    async function onAddDrlRankRule(e) {
+      e.preventDefault();
+      if (!isBchMember()) return;
+      ensureDrlStructure();
+      const label = document.getElementById('new-rk-label').value.trim();
+      const minScore = Number(document.getElementById('new-rk-min').value);
+      const maxScore = Number(document.getElementById('new-rk-max').value);
+      const tone = document.getElementById('new-rk-tone').value;
+      const note = document.getElementById('new-rk-note').value.trim();
+      if (!label) return;
+      db.drlRanks.push({ id: 'rk-' + Date.now(), label, minScore, maxScore, tone, note });
+      persistLocalOnly();
+      renderMainBody();
+      await sendCloudMutation('SYNC_PUSH', getSharedPayloadSnapshot(), true);
+      showToast('Đã thêm mức xếp hạng ĐRL mới!', 'success');
+    }
+    async function onDeleteDrlRankRule(rankId) {
+      if (!isBchMember()) return;
+      ensureDrlStructure();
+      if (db.drlRanks.length <= 1) {
+        showToast('Phải giữ lại ít nhất 1 mức xếp loại!', 'error');
+        return;
+      }
+      db.drlRanks = db.drlRanks.filter(r => r.id !== rankId);
+      persistLocalOnly();
+      renderMainBody();
+      await sendCloudMutation('SYNC_PUSH', getSharedPayloadSnapshot(), true);
+      showToast('Đã xóa mức xếp hạng ĐRL!', 'success');
+    }
+    async function onAddDrlPresetRule(e) {
+      e.preventDefault();
+      if (!isBchMember()) return;
+      ensureDrlStructure();
+      const delta = parseInt(document.getElementById('new-pr-delta').value, 10);
+      const rawLabel = document.getElementById('new-pr-label').value.trim();
+      if (!delta || isNaN(delta) || !rawLabel) return;
+      const prefix = delta > 0 ? `+${delta}đ ` : `${delta}đ `;
+      const label = rawLabel.match(/^[+-]\d+đ/) ? rawLabel : (prefix + rawLabel);
+      db.drlPresets.push({ delta, label });
+      persistLocalOnly();
+      renderMainBody();
+      await sendCloudMutation('SYNC_PUSH', getSharedPayloadSnapshot(), true);
+      showToast('Đã bổ sung mức cộng/trừ vào thang điểm!', 'success');
+    }
+    async function onDeleteDrlPresetRule(idx) {
+      if (!isBchMember()) return;
+      ensureDrlStructure();
+      db.drlPresets.splice(idx, 1);
+      persistLocalOnly();
+      renderMainBody();
+      await sendCloudMutation('SYNC_PUSH', getSharedPayloadSnapshot(), true);
+      showToast('Đã xóa mục khỏi thang điểm!', 'success');
+    }
+    function startEditGuideDoc(idx) {
+      if (!isBchMember()) return;
+      editingGuideIdx = idx;
+      renderMainBody();
+    }
+    function cancelEditGuideDoc() {
+      editingGuideIdx = -1;
+      renderMainBody();
+    }
+    async function onAddGuideDocRule(e) {
+      e.preventDefault();
+      if (!isBchMember()) return;
+      ensureDrlStructure();
+      const cat = document.getElementById('new-gd-cat').value.trim() || 'Quy chế & Kỷ luật';
+      const tag = document.getElementById('new-gd-tag').value.trim() || 'Quy định mới';
+      const docRef = document.getElementById('new-gd-ref').value.trim();
+      const title = document.getElementById('new-gd-title').value.trim();
+      const items = document.getElementById('new-gd-items').value.split('\n').map(s => s.trim()).filter(Boolean);
+      if (!title || items.length === 0) {
+        showToast('Vui lòng nhập tiêu đề và ít nhất 1 nội dung quy định!', 'error');
+        return;
+      }
+      db.guideDocs.unshift({ id: 'gd-' + Date.now(), cat, tag, docRef, title, items });
+      persistLocalOnly();
+      renderMainBody();
+      await sendCloudMutation('SYNC_PUSH', getSharedPayloadSnapshot(), true);
+      showToast('Đã bổ sung quy định / công văn mới!', 'success');
+    }
+    async function onSaveEditedGuideDoc(e, idx) {
+      e.preventDefault();
+      if (!isBchMember()) return;
+      ensureDrlStructure();
+      const doc = db.guideDocs[idx];
+      if (!doc) return;
+      doc.cat = e.target.querySelector('[name="gcat"]').value.trim() || 'Quy chế & Kỷ luật';
+      doc.tag = e.target.querySelector('[name="gtag"]').value.trim() || 'Quy định';
+      doc.docRef = e.target.querySelector('[name="gref"]').value.trim();
+      doc.title = e.target.querySelector('[name="gtitle"]').value.trim();
+      doc.items = e.target.querySelector('[name="gitems"]').value.split('\n').map(s => s.trim()).filter(Boolean);
+      editingGuideIdx = -1;
+      persistLocalOnly();
+      renderMainBody();
+      await sendCloudMutation('SYNC_PUSH', getSharedPayloadSnapshot(), true);
+      showToast('Đã lưu chỉnh sửa quy định!', 'success');
+    }
+    async function onDeleteGuideDoc(idx) {
+      if (!isBchMember()) return;
+      ensureDrlStructure();
+      db.guideDocs.splice(idx, 1);
+      editingGuideIdx = -1;
+      persistLocalOnly();
+      renderMainBody();
+      await sendCloudMutation('SYNC_PUSH', getSharedPayloadSnapshot(), true);
+      showToast('Đã xóa mục quy định!', 'success');
     }
     function openMemberDrlModal(uid) {
       ensureDrlStructure();
@@ -2420,8 +2735,9 @@ function doPost(e) {
             <div class="text-lg font-extrabold text-amber-800">${memberLogs.length} lượt</div>
           </div>
           <div class="p-3 rounded-2xl border ${rank.color}">
-            <div class="text-[11px] opacity-80">Xếp loại</div>
-            <div class="text-lg font-extrabold">${rank.label}</div>
+            <div class="text-[11px] opacity-80">Xếp hạng ĐRL</div>
+            <div class="text-lg font-extrabold">${esc(rank.label)}</div>
+            ${rank.note ? `<div class="text-[10px] opacity-80 truncate">${esc(rank.note)}</div>` : ''}
           </div>
         </div>
 
@@ -2434,7 +2750,7 @@ function doPost(e) {
             <div class="grid grid-cols-1 sm:grid-cols-12 gap-2">
               <select id="mdrl-preset-select" onchange="onSelectDrlPreset(this.value)" class="sm:col-span-7 px-3 py-2 rounded-xl border border-amber-200 bg-white text-xs font-semibold">
                 <option value="">-- Chọn nhanh mục cộng / trừ theo quy chế --</option>
-                ${DRL_POINT_PRESETS.map((p, idx) => `<option value="${idx}">${p.label}</option>`).join('')}
+                ${(db.drlPresets || DRL_POINT_PRESETS).map((p, idx) => `<option value="${idx}">${esc(p.label)}</option>`).join('')}
               </select>
               <input type="number" id="mdrl-delta-input" placeholder="Điểm (+/- VD: 5 hoặc -3)" class="sm:col-span-2 px-3 py-2 rounded-xl border border-amber-200 bg-white text-xs font-extrabold text-center" />
               <button type="button" onclick="onApplyMemberPointDelta('${target.id}')" class="sm:col-span-3 py-2 px-3 rounded-xl bg-[#0056B3] hover:bg-[#004494] text-white text-xs font-extrabold">
@@ -2526,7 +2842,8 @@ function doPost(e) {
     }
     function onSelectDrlPreset(idxStr) {
       if (idxStr === '') return;
-      const item = DRL_POINT_PRESETS[Number(idxStr)];
+      const presets = db.drlPresets || DRL_POINT_PRESETS;
+      const item = presets[Number(idxStr)];
       if (!item) return;
       document.getElementById('mdrl-delta-input').value = item.delta;
       document.getElementById('mdrl-reason-input').value = item.label.replace(/^[+-]\d+đ\s*/, '');
@@ -2543,6 +2860,7 @@ function doPost(e) {
         return;
       }
       target.points = Math.max(0, Math.min(100, Number(target.points || 85) + delta));
+      const newRankAfterDelta = getDrLClassification(target.points);
       db.pointLogs.unshift({
         id: 'pl-' + Date.now(),
         userId: target.id,
@@ -2555,7 +2873,7 @@ function doPost(e) {
       openMemberDrlModal(uid);
       renderMainBody();
       await sendCloudMutation('SYNC_PUSH', getSharedPayloadSnapshot(), true);
-      showToast('Đã thay đổi thành công', 'success');
+      showToast(`Đã cập nhật: ${target.points}/100đ • Xếp hạng ĐRL: ${newRankAfterDelta.label}`, 'success');
     }
     async function onDeletePointLog(logId) {
       if (!canManageMembers()) return;
@@ -2596,18 +2914,25 @@ function doPost(e) {
         const totals = getMemberAssessmentTotals(uid);
         target.points = Math.max(0, Math.min(100, totals.totalBithu));
       }
+      const finalRank = getDrLClassification(Number(target.points || 85));
       persistLocalOnly();
       openMemberDrlModal(uid);
       renderMainBody();
       await sendCloudMutation('SYNC_PUSH', getSharedPayloadSnapshot(), true);
-      showToast('Đã thay đổi thành công', 'success');
+      showToast(`Đã chấm xong: ${target.points}/100đ • Xếp hạng ĐRL: ${finalRank.label}`, 'success');
     }
     function buildHandbookHtml() {
       ensureDrlStructure();
       const user = currentUser();
       const sec = isSecretary(user);
       const canManage = canManageMembers(user);
+      const isBch = isBchMember(user);
       const rank = getDrLClassification(Number(user.points || 85));
+      const activeGuides = Array.isArray(db.guideDocs) ? db.guideDocs : GUIDE_DOCS;
+      const activeRanks = (Array.isArray(db.drlRanks) && db.drlRanks.length > 0 ? db.drlRanks : DEFAULT_DRL_RANKS)
+        .slice()
+        .sort((a, b) => Number(b.minScore) - Number(a.minScore));
+      const activePresets = Array.isArray(db.drlPresets) ? db.drlPresets : DRL_POINT_PRESETS;
       const bchList = db.users.filter(u =>
         u.role === 'secretary' ||
         u.position === 'Phó Bí thư Chi đoàn' ||
@@ -2618,16 +2943,20 @@ function doPost(e) {
         u.mssv.toLowerCase().includes(drlPublicSearch.toLowerCase()) ||
         u.position.toLowerCase().includes(drlPublicSearch.toLowerCase())
       );
-      const categories = ['Tất cả', 'Điểm rèn luyện', 'Sinh hoạt & QR', 'Đoàn phí & Quỹ', 'Quy chế & Kỷ luật'];
-      const filtered = GUIDE_DOCS.filter(d => {
-        const matchCat = guideCategory === 'Tất cả' || d.cat === guideCategory;
-        const kw = guideFilter.toLowerCase();
-        const matchKw = !kw ||
-          d.title.toLowerCase().includes(kw) ||
-          d.tag.toLowerCase().includes(kw) ||
-          d.items.some(it => it.toLowerCase().includes(kw));
-        return matchCat && matchKw;
-      });
+      const dynamicCats = Array.from(new Set(['Điểm rèn luyện', 'Sinh hoạt & QR', 'Đoàn phí & Quỹ', 'Quy chế & Kỷ luật', ...activeGuides.map(g => g.cat).filter(Boolean)]));
+      const categories = ['Tất cả', ...dynamicCats];
+      const filtered = activeGuides
+        .map((doc, rawIdx) => ({ doc, rawIdx }))
+        .filter(({ doc: d }) => {
+          const matchCat = guideCategory === 'Tất cả' || d.cat === guideCategory;
+          const kw = guideFilter.toLowerCase();
+          const matchKw = !kw ||
+            d.title.toLowerCase().includes(kw) ||
+            d.tag.toLowerCase().includes(kw) ||
+            (d.docRef && d.docRef.toLowerCase().includes(kw)) ||
+            d.items.some(it => it.toLowerCase().includes(kw));
+          return matchCat && matchKw;
+        });
       return `
         <div class="space-y-5">
           <!-- 1. HỒ SƠ ĐOÀN VIÊN -->
@@ -2723,20 +3052,32 @@ function doPost(e) {
             <!-- Bảng Tự đánh giá của Đoàn viên đang đăng nhập -->
             <form id="self-drl-form" onsubmit="onSaveSelfAssessment(event)" class="space-y-3">
               ${buildAssessmentTableHtml(user.id, Boolean(db.drlAssessment.isOpen), false)}
-              ${db.drlAssessment.isOpen ? `
-                <div class="flex justify-end">
-                  <button type="submit" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0056B3] to-[#0284C7] text-white text-xs font-extrabold shadow-sm hover:opacity-95">
-                    <i class="fa-solid fa-paper-plane mr-1.5"></i> Lưu & Gửi bản tự đánh giá
-                  </button>
-                </div>
-              ` : ''}
+              ${(() => {
+                const myTotals = getMemberAssessmentTotals(user.id);
+                const mySelfRank = getDrLClassification(myTotals.totalSelf);
+                const myBchRank = getDrLClassification(myTotals.totalBithu);
+                return `
+                  <div class="flex flex-wrap items-center justify-between gap-2 p-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
+                    <div class="flex flex-wrap items-center gap-3">
+                      <span>Tự đánh giá: <strong class="text-[#0056B3]">${myTotals.totalSelf}đ</strong> <span class="px-2 py-0.5 rounded-lg border text-[11px] font-extrabold ${mySelfRank.color}">${esc(mySelfRank.label)}</span></span>
+                      <span class="text-slate-300">|</span>
+                      <span>BCH thẩm định: <strong class="text-emerald-700">${myTotals.totalBithu}đ</strong> <span class="px-2 py-0.5 rounded-lg border text-[11px] font-extrabold ${myBchRank.color}">${esc(myBchRank.label)}</span></span>
+                    </div>
+                    ${db.drlAssessment.isOpen ? `
+                      <button type="submit" class="px-5 py-2 rounded-xl bg-gradient-to-r from-[#0056B3] to-[#0284C7] text-white text-xs font-extrabold shadow-sm hover:opacity-95 ml-auto">
+                        <i class="fa-solid fa-paper-plane mr-1.5"></i> Lưu & Gửi bản tự đánh giá
+                      </button>
+                    ` : ''}
+                  </div>
+                `;
+              })()}
             </form>
 
-            <!-- Khu vực Thiết kế & Chỉnh sửa Mẫu Tự Đánh Giá (Chỉ Bí Thư) -->
-            ${sec ? `
+            <!-- Khu vực Thiết kế & Chỉnh sửa Mẫu Tự Đánh Giá (Ban Chấp hành Chi đoàn) -->
+            ${isBch ? `
               <div class="pt-5 border-t border-slate-200 space-y-4">
                 <div class="text-xs font-extrabold text-amber-800 uppercase tracking-wider flex items-center gap-1.5">
-                  <i class="fa-solid fa-wand-magic-sparkles"></i> Thiết lập Thời hạn & Mẫu Tiêu chí Tự đánh giá (Bí Thư)
+                  <i class="fa-solid fa-wand-magic-sparkles"></i> Thiết lập Thời hạn & Mẫu Tiêu chí Tự đánh giá (Ban Chấp hành Chi đoàn)
                 </div>
                 <form onsubmit="onSaveDrlPeriodSettings(event)" class="grid grid-cols-1 md:grid-cols-12 gap-2.5 p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200">
                   <input type="text" id="drl-period-title" required value="${esc(db.drlAssessment.periodTitle)}" placeholder="Tên đợt đánh giá..." class="md:col-span-4 px-3 py-2 rounded-xl border border-amber-200 bg-white text-xs font-bold" />
@@ -2848,7 +3189,10 @@ function doPost(e) {
                           ${totals.hasSub ? `<span class="font-bold text-[#0056B3]">${totals.totalSelf}đ</span> / <span class="font-bold text-emerald-700">${totals.totalBithu}đ</span>` : `<span class="text-slate-400">Chưa nộp</span>`}
                         </td>
                         <td class="py-3 px-3 text-center">
-                          <span class="px-2.5 py-1 rounded-xl border font-extrabold ${mRank.color}">${m.points}/100</span>
+                          <div class="inline-flex flex-col sm:flex-row items-center gap-1">
+                            <span class="px-2.5 py-1 rounded-xl border font-extrabold ${mRank.color}">${m.points}/100</span>
+                            <span class="px-2 py-0.5 rounded-lg border text-[10px] font-extrabold ${mRank.color}">${esc(mRank.label)}</span>
+                          </div>
                         </td>
                         <td class="py-3 px-3 text-right">
                           <button type="button" onclick="openMemberDrlModal('${m.id}')" class="px-3 py-1.5 rounded-xl text-[11px] font-extrabold transition ${
@@ -2867,18 +3211,112 @@ function doPost(e) {
             </div>
           </section>
 
-          <!-- 4. SỔ TAY SINH VIÊN & CẨM NANG ĐOÀN VIÊN -->
+          <!-- 4. SỔ TAY SINH VIÊN, QUY ĐỊNH CÔNG VĂN & KHUNG XẾP HẠNG ĐRL -->
           <section class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-xs space-y-4">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h3 class="text-base font-extrabold text-slate-900">Sổ tay Sinh viên & Cẩm nang Chi đoàn ĐHSVAN26A</h3>
-                <p class="text-xs text-slate-500">Tra cứu quy chế học vụ, sinh hoạt Đoàn, thang điểm cộng/trừ và đầu mối Ban Chấp hành</p>
+                <p class="text-xs text-slate-500">Tra cứu quy chế học vụ, công văn mới, khung xếp hạng ĐRL, thang điểm cộng/trừ và đầu mối Ban Chấp hành</p>
               </div>
               <div class="relative w-full sm:w-64">
                 <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                <input type="text" value="${esc(guideFilter)}" oninput="onFilterGuide(this.value)" placeholder="Tìm nội dung sổ tay..." class="w-full pl-9 pr-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#0056B3]" />
+                <input type="text" value="${esc(guideFilter)}" oninput="onFilterGuide(this.value)" placeholder="Tìm nội dung sổ tay, công văn..." class="w-full pl-9 pr-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#0056B3]" />
               </div>
             </div>
+
+            <!-- KHUNG XẾP HẠNG ĐIỂM RÈN LUYỆN HIỆN HÀNH & BẢNG ĐIỀU CHỈNH CỦA BCH -->
+            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="text-xs font-extrabold text-slate-900 flex items-center gap-1.5">
+                  <i class="fa-solid fa-award text-amber-500"></i> Khung Xếp Hạng Điểm Rèn Luyện Áp Dụng Hiện Hành
+                </div>
+                ${isBch ? `<span class="px-2.5 py-0.5 rounded-full bg-blue-100 text-[#0056B3] text-[10px] font-extrabold">Quyền Ban Chấp hành (Bí thư, Phó Bí thư, Ủy viên)</span>` : ''}
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
+                ${activeRanks.map(rk => `
+                  <div class="p-3 rounded-xl border ${getRankToneClasses(rk.tone)} space-y-1">
+                    <div class="flex items-center justify-between gap-1">
+                      <span class="font-extrabold text-xs">${esc(rk.label)}</span>
+                      <span class="font-mono text-[11px] font-extrabold">${rk.minScore} – ${rk.maxScore}đ</span>
+                    </div>
+                    <p class="text-[11px] opacity-85 leading-snug">${esc(rk.note || '')}</p>
+                  </div>
+                `).join('')}
+              </div>
+
+              ${isBch ? `
+                <details class="pt-2 border-t border-slate-200">
+                  <summary class="cursor-pointer text-xs font-extrabold text-[#0056B3] hover:text-[#004494] select-none flex items-center gap-1.5">
+                    <i class="fa-solid fa-sliders"></i> Ban Chấp hành điều chỉnh Mốc Xếp Hạng ĐRL & Thang điểm Cộng/Trừ theo Công văn
+                  </summary>
+                  <div class="mt-3 space-y-4">
+                    <div class="space-y-2">
+                      <div class="text-[11px] font-extrabold uppercase text-slate-600">1. Điều chỉnh khoảng điểm xếp loại (từ bao nhiêu đến bao nhiêu điểm):</div>
+                      ${activeRanks.map(rk => `
+                        <form onsubmit="onSaveDrlRankRule(event, '${rk.id}')" class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center bg-white p-2.5 rounded-xl border border-slate-200 text-xs">
+                          <input type="text" name="rlabel" required value="${esc(rk.label)}" placeholder="Tên loại (VD: Giỏi)" class="sm:col-span-2 px-2.5 py-1.5 rounded-lg border border-slate-200 font-bold" />
+                          <div class="sm:col-span-3 flex items-center gap-1">
+                            <input type="number" name="rmin" required min="0" max="100" value="${rk.minScore}" class="w-16 px-2 py-1.5 rounded-lg border border-slate-200 text-center font-mono font-bold" />
+                            <span>đến</span>
+                            <input type="number" name="rmax" required min="0" max="100" value="${rk.maxScore}" class="w-16 px-2 py-1.5 rounded-lg border border-slate-200 text-center font-mono font-bold" />
+                            <span>đ</span>
+                          </div>
+                          <select name="rtone" class="sm:col-span-2 px-2 py-1.5 rounded-lg border border-slate-200 font-semibold">
+                            <option value="emerald" ${rk.tone === 'emerald' ? 'selected' : ''}>Xanh lá</option>
+                            <option value="blue" ${rk.tone === 'blue' ? 'selected' : ''}>Xanh Đoàn</option>
+                            <option value="sky" ${rk.tone === 'sky' ? 'selected' : ''}>Xanh dương</option>
+                            <option value="amber" ${rk.tone === 'amber' ? 'selected' : ''}>Vàng cam</option>
+                            <option value="rose" ${rk.tone === 'rose' ? 'selected' : ''}>Đỏ hồng</option>
+                            <option value="purple" ${rk.tone === 'purple' ? 'selected' : ''}>Tím</option>
+                          </select>
+                          <input type="text" name="rnote" value="${esc(rk.note || '')}" placeholder="Điều kiện / công văn..." class="sm:col-span-3 px-2.5 py-1.5 rounded-lg border border-slate-200" />
+                          <div class="sm:col-span-2 flex justify-end gap-1">
+                            <button type="submit" class="px-2.5 py-1.5 rounded-lg bg-[#0056B3] text-white font-bold">Lưu</button>
+                            <button type="button" onclick="onDeleteDrlRankRule('${rk.id}')" class="px-2 py-1.5 rounded-lg bg-rose-50 text-rose-600 font-bold">Xóa</button>
+                          </div>
+                        </form>
+                      `).join('')}
+                      <form onsubmit="onAddDrlRankRule(event)" class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center bg-blue-50/70 p-2.5 rounded-xl border border-blue-200 text-xs">
+                        <input type="text" id="new-rk-label" required placeholder="Tên xếp loại mới..." class="sm:col-span-2 px-2.5 py-1.5 rounded-lg border border-blue-200 bg-white font-bold" />
+                        <div class="sm:col-span-3 flex items-center gap-1">
+                          <input type="number" id="new-rk-min" required min="0" max="100" placeholder="Từ" class="w-16 px-2 py-1.5 rounded-lg border border-blue-200 bg-white text-center font-mono" />
+                          <span>-</span>
+                          <input type="number" id="new-rk-max" required min="0" max="100" placeholder="Đến" class="w-16 px-2 py-1.5 rounded-lg border border-blue-200 bg-white text-center font-mono" />
+                        </div>
+                        <select id="new-rk-tone" class="sm:col-span-2 px-2 py-1.5 rounded-lg border border-blue-200 bg-white">
+                          <option value="emerald">Xanh lá</option>
+                          <option value="blue" selected>Xanh Đoàn</option>
+                          <option value="sky">Xanh dương</option>
+                          <option value="amber">Vàng cam</option>
+                          <option value="rose">Đỏ hồng</option>
+                          <option value="purple">Tím</option>
+                        </select>
+                        <input type="text" id="new-rk-note" placeholder="Ghi chú điều kiện..." class="sm:col-span-3 px-2.5 py-1.5 rounded-lg border border-blue-200 bg-white" />
+                        <button type="submit" class="sm:col-span-2 py-1.5 px-3 rounded-lg bg-emerald-600 text-white font-bold">+ Thêm loại</button>
+                      </form>
+                    </div>
+
+                    <div class="pt-3 border-t border-slate-200 space-y-2">
+                      <div class="text-[11px] font-extrabold uppercase text-slate-600">2. Điều chỉnh các mức Cộng (+) / Trừ (-) nhanh theo công văn:</div>
+                      <div class="flex flex-wrap gap-1.5">
+                        ${activePresets.map((pr, idx) => `
+                          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl border text-[11px] font-bold ${pr.delta >= 0 ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-rose-50 text-rose-800 border-rose-200'}">
+                            ${esc(pr.label)}
+                            <button type="button" onclick="onDeleteDrlPresetRule(${idx})" class="text-slate-400 hover:text-rose-600" title="Xóa mức này"><i class="fa-solid fa-xmark"></i></button>
+                          </span>
+                        `).join('')}
+                      </div>
+                      <form onsubmit="onAddDrlPresetRule(event)" class="grid grid-cols-1 sm:grid-cols-12 gap-2 text-xs">
+                        <input type="number" id="new-pr-delta" required placeholder="Điểm (+/- VD: 5 hoặc -3)" class="sm:col-span-3 px-3 py-1.5 rounded-xl border border-slate-200 bg-white font-extrabold" />
+                        <input type="text" id="new-pr-label" required placeholder="Nội dung quy định cộng/trừ theo công văn..." class="sm:col-span-7 px-3 py-1.5 rounded-xl border border-slate-200 bg-white" />
+                        <button type="submit" class="sm:col-span-2 py-1.5 px-3 rounded-xl bg-slate-800 text-white font-bold">+ Thêm mức</button>
+                      </form>
+                    </div>
+                  </div>
+                </details>
+              ` : ''}
+            </div>
+
             <div class="p-4 rounded-2xl bg-gradient-to-r from-blue-50 to-sky-50 border border-blue-100 space-y-2.5">
               <div class="text-xs font-extrabold text-[#0056B3] flex items-center gap-1.5">
                 <i class="fa-solid fa-address-book"></i> Đầu mối Liên hệ Ban Chấp hành Chi đoàn ĐHSVAN26A
@@ -2898,30 +3336,110 @@ function doPost(e) {
                 `).join('')}
               </div>
             </div>
+
+            <!-- BCH BỔ SUNG QUY ĐỊNH / CÔNG VĂN MỚI VÀO CẨM NANG -->
+            ${isBch ? `
+              <details class="p-4 rounded-2xl bg-amber-50/70 border border-amber-200">
+                <summary class="cursor-pointer text-xs font-extrabold text-amber-900 select-none flex items-center gap-1.5">
+                  <i class="fa-solid fa-file-circle-plus"></i> Ban Chấp hành thêm Quy định / Nội quy / Công văn mới vào Cẩm nang
+                </summary>
+                <form onsubmit="onAddGuideDocRule(event)" class="mt-3 space-y-2.5 text-xs">
+                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <div>
+                      <label class="block text-[11px] font-bold text-slate-700 mb-1">Chuyên mục *</label>
+                      <input type="text" id="new-gd-cat" list="guide-cat-list" required placeholder="VD: Điểm rèn luyện" class="w-full px-3 py-2 rounded-xl border border-amber-200 bg-white font-semibold" />
+                      <datalist id="guide-cat-list">
+                        ${dynamicCats.map(c => `<option value="${esc(c)}"></option>`).join('')}
+                      </datalist>
+                    </div>
+                    <div>
+                      <label class="block text-[11px] font-bold text-slate-700 mb-1">Nhãn phân loại *</label>
+                      <input type="text" id="new-gd-tag" required placeholder="VD: Công văn mới / Xét điểm" class="w-full px-3 py-2 rounded-xl border border-amber-200 bg-white font-semibold" />
+                    </div>
+                    <div>
+                      <label class="block text-[11px] font-bold text-slate-700 mb-1">Số hiệu công văn / Căn cứ</label>
+                      <input type="text" id="new-gd-ref" placeholder="VD: CV số 15-HD/ĐTN" class="w-full px-3 py-2 rounded-xl border border-amber-200 bg-white font-mono" />
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-[11px] font-bold text-slate-700 mb-1">Tiêu đề quy định / hướng dẫn *</label>
+                    <input type="text" id="new-gd-title" required placeholder="VD: Quy định bổ sung xét điểm rèn luyện Học kỳ I theo công văn mới..." class="w-full px-3 py-2 rounded-xl border border-amber-200 bg-white font-bold" />
+                  </div>
+                  <div>
+                    <label class="block text-[11px] font-bold text-slate-700 mb-1">Nội dung chi tiết (mỗi dòng là 1 ý quy định) *</label>
+                    <textarea id="new-gd-items" rows="3" required placeholder="Nhập từng điều khoản quy định trên mỗi dòng..." class="w-full px-3 py-2 rounded-xl border border-amber-200 bg-white"></textarea>
+                  </div>
+                  <div class="flex justify-end">
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-[#0056B3] hover:bg-[#004494] text-white font-extrabold">
+                      <i class="fa-solid fa-plus mr-1"></i> Đăng quy định vào Cẩm nang
+                    </button>
+                  </div>
+                </form>
+              </details>
+            ` : ''}
+
             <div class="flex flex-wrap gap-1.5">
               ${categories.map(cat => `
-                <button type="button" onclick="onSelectGuideCategory('${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-bold border transition ${
+                <button type="button" onclick="onSelectGuideCategory('${esc(cat)}')" class="px-3 py-1.5 rounded-xl text-xs font-bold border transition ${
                   guideCategory === cat
                     ? 'bg-[#0056B3] text-white border-[#0056B3]'
                     : 'bg-slate-50 hover:bg-blue-50 text-slate-600 border-slate-200'
-                }">${cat}</button>
+                }">${esc(cat)}</button>
               `).join('')}
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
               ${filtered.length === 0 ? `
                 <div class="col-span-2 py-8 text-center text-xs text-slate-400">Không tìm thấy mục nào phù hợp từ khóa tìm kiếm.</div>
-              ` : filtered.map(doc => `
-                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-2.5">
-                  <div class="flex items-center justify-between gap-2">
-                    <span class="inline-block px-2.5 py-0.5 rounded-lg bg-blue-100 text-[#0056B3] text-[11px] font-bold">${doc.tag}</span>
-                    <span class="text-[10px] font-semibold text-slate-400">${doc.cat}</span>
+              ` : filtered.map(({ doc, rawIdx }) => {
+                const isEditingCard = isBch && editingGuideIdx === rawIdx;
+                if (isEditingCard) {
+                  return `
+                    <form onsubmit="onSaveEditedGuideDoc(event, ${rawIdx})" class="p-4 rounded-2xl bg-amber-50/80 border-2 border-amber-300 space-y-2.5 text-xs">
+                      <div class="flex items-center justify-between">
+                        <span class="font-extrabold text-amber-900">Đang chỉnh sửa quy định</span>
+                        <button type="button" onclick="cancelEditGuideDoc()" class="text-slate-500 hover:text-slate-800 font-bold">Hủy</button>
+                      </div>
+                      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <input type="text" name="gcat" required value="${esc(doc.cat)}" placeholder="Chuyên mục" class="px-2.5 py-1.5 rounded-lg border border-amber-200 bg-white font-semibold" />
+                        <input type="text" name="gtag" required value="${esc(doc.tag)}" placeholder="Nhãn" class="px-2.5 py-1.5 rounded-lg border border-amber-200 bg-white font-semibold" />
+                        <input type="text" name="gref" value="${esc(doc.docRef || '')}" placeholder="Số hiệu công văn" class="px-2.5 py-1.5 rounded-lg border border-amber-200 bg-white font-mono" />
+                      </div>
+                      <input type="text" name="gtitle" required value="${esc(doc.title)}" placeholder="Tiêu đề quy định" class="w-full px-2.5 py-1.5 rounded-lg border border-amber-200 bg-white font-bold" />
+                      <textarea name="gitems" rows="4" required class="w-full px-2.5 py-1.5 rounded-lg border border-amber-200 bg-white">${esc((doc.items || []).join('
+'))}</textarea>
+                      <div class="flex justify-end gap-2">
+                        <button type="button" onclick="cancelEditGuideDoc()" class="px-3 py-1.5 rounded-lg bg-white border border-slate-200 font-bold">Hủy</button>
+                        <button type="submit" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 text-white font-extrabold">Lưu quy định</button>
+                      </div>
+                    </form>
+                  `;
+                }
+                return `
+                  <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-2.5">
+                    <div class="flex items-center justify-between gap-2">
+                      <div class="flex flex-wrap items-center gap-1.5">
+                        <span class="inline-block px-2.5 py-0.5 rounded-lg bg-blue-100 text-[#0056B3] text-[11px] font-bold">${esc(doc.tag)}</span>
+                        ${doc.docRef ? `<span class="inline-block px-2 py-0.5 rounded-lg bg-amber-100 text-amber-800 text-[10px] font-mono font-bold">${esc(doc.docRef)}</span>` : ''}
+                      </div>
+                      <div class="flex items-center gap-1.5 shrink-0">
+                        <span class="text-[10px] font-semibold text-slate-400">${esc(doc.cat)}</span>
+                        ${isBch ? `
+                          <button type="button" onclick="startEditGuideDoc(${rawIdx})" class="px-2 py-0.5 rounded-lg bg-white hover:bg-blue-50 text-[#0056B3] border border-slate-200 text-[10px] font-bold" title="Chỉnh sửa quy định">
+                            <i class="fa-solid fa-pen"></i> Sửa
+                          </button>
+                          <button type="button" onclick="onDeleteGuideDoc(${rawIdx})" class="px-2 py-0.5 rounded-lg bg-white hover:bg-rose-50 text-rose-600 border border-slate-200 text-[10px] font-bold" title="Xóa quy định">
+                            <i class="fa-solid fa-trash-can"></i>
+                          </button>
+                        ` : ''}
+                      </div>
+                    </div>
+                    <h4 class="font-extrabold text-sm text-slate-900">${esc(doc.title)}</h4>
+                    <ul class="text-xs text-slate-600 space-y-1.5 list-disc pl-4 leading-relaxed">
+                      ${(doc.items || []).map(it => `<li>${esc(it)}</li>`).join('')}
+                    </ul>
                   </div>
-                  <h4 class="font-extrabold text-sm text-slate-900">${doc.title}</h4>
-                  <ul class="text-xs text-slate-600 space-y-1.5 list-disc pl-4 leading-relaxed">
-                    ${doc.items.map(it => `<li>${it}</li>`).join('')}
-                  </ul>
-                </div>
-              `).join('')}
+                `;
+              }).join('')}
             </div>
           </section>
         </div>
@@ -4231,7 +4749,7 @@ function doPost(e) {
       if (!box) return;
       if (toastTimer) clearTimeout(toastTimer);
       const isErr = type === 'error';
-      const text = isErr ? message : (message && message.startsWith('Đã copy') || message && message.startsWith('Đã tải') || message && message.startsWith('Đã xuất') ? message : 'Đã thay đổi thành công');
+      const text = message || 'Đã thay đổi thành công';
       const tone = isErr
         ? 'bg-rose-600 text-white'
         : 'bg-slate-900/95 text-white border border-emerald-400/40';
@@ -4281,19 +4799,16 @@ function doPost(e) {
         mergeMemberListIntoDb(PRESET_MEMBERS);
         persistLocalOnly();
       }
+      if (db.attendance.isOpen && getQrRemainingSeconds() <= 0) {
+        db.attendance.isOpen = false;
+        persistLocalOnly();
+      }
+      startQrCountdownLoop();
+      renderApp();
+
       const importedCount = await checkClassInviteLinkOnLoad();
-      if (getActiveApiUrl()) {
-        const notice = document.getElementById('login-sync-notice');
-        const txt = document.getElementById('login-sync-text');
-        if (notice && txt) {
-          notice.classList.remove('hidden');
-          txt.textContent = 'Đang đồng bộ danh sách tài khoản Chi đoàn...';
-        }
-        await manualCloudPull(false);
-        if (txt) {
-          txt.textContent = `Đã đồng bộ ${db.users.length} tài khoản Chi đoàn ĐHSVAN26A!`;
-        }
-      } else if (importedCount > 0) {
+      if (importedCount > 0) {
+        renderApp();
         const notice = document.getElementById('login-sync-notice');
         const txt = document.getElementById('login-sync-text');
         if (notice && txt) {
@@ -4301,12 +4816,19 @@ function doPost(e) {
           txt.textContent = `Đã nạp thành công ${importedCount} tài khoản từ Link Lớp học!`;
         }
       }
-      if (db.attendance.isOpen && getQrRemainingSeconds() <= 0) {
-        db.attendance.isOpen = false;
-        persistLocalOnly();
+      if (getActiveApiUrl()) {
+        const notice = document.getElementById('login-sync-notice');
+        const txt = document.getElementById('login-sync-text');
+        if (notice && txt && !currentUser()) {
+          notice.classList.remove('hidden');
+          txt.textContent = 'Đang đồng bộ danh sách tài khoản Chi đoàn...';
+        }
+        manualCloudPull(false).then(() => {
+          if (txt && !currentUser()) {
+            txt.textContent = `Đã đồng bộ ${db.users.length} tài khoản Chi đoàn ĐHSVAN26A!`;
+          }
+        });
       }
-      startQrCountdownLoop();
-      renderApp();
     });
   </script>
 </body>
