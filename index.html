@@ -345,6 +345,20 @@
       <div id="mdrl-modal-body" class="p-4 sm:p-6 overflow-y-auto space-y-5"></div>
     </div>
   </div>
+  <!-- ==================== MODAL: XEM ẢNH MINH CHỨNG ==================== -->
+  <div id="image-preview-modal" onclick="if(event.target===this)closeModal('image-preview-modal')" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/85">
+    <div class="bg-white w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl">
+      <div class="px-5 py-3.5 bg-slate-900 text-white flex items-center justify-between gap-2">
+        <h3 id="img-preview-title" class="font-bold text-xs sm:text-sm truncate">Ảnh minh chứng hoạt động</h3>
+        <button onclick="closeModal('image-preview-modal')" class="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center shrink-0">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="p-3 bg-slate-950 flex items-center justify-center max-h-[78vh] overflow-auto">
+        <img id="img-preview-src" src="" alt="Ảnh minh chứng" class="max-w-full max-h-[72vh] rounded-2xl object-contain" />
+      </div>
+    </div>
+  </div>
   <!-- THÔNG BÁO GỌN NHẸ -->
   <div id="toast-box" class="fixed bottom-20 lg:bottom-5 right-4 z-50 pointer-events-none"></div>
   <!-- ==================== JAVASCRIPT LOGIC ==================== -->
@@ -1215,6 +1229,14 @@ function applyMutation(ss, sheet, state, action, data) {
     if (!state.evidences.some(function(x) { return x.id === data.id; })) {
       state.evidences.unshift(data);
     }
+  } else if (action === 'DELETE_EVIDENCE' && data && data.evId) {
+    state.evidences = state.evidences || [];
+    var targetEv = state.evidences.filter(function(x) { return x.id === data.evId; })[0];
+    if (targetEv && targetEv.status === 'approved') {
+      var evOwner = (state.users || []).filter(function(u) { return u.id === targetEv.userId; })[0];
+      if (evOwner) evOwner.points = Math.max(0, Number(evOwner.points || 85) - 3);
+    }
+    state.evidences = state.evidences.filter(function(x) { return x.id !== data.evId; });
   } else if (action === 'SET_EVIDENCE_STATUS' && data) {
     var ev = (state.evidences || []).filter(function(x) { return x.id === data.evId; })[0];
     if (ev) {
@@ -1801,15 +1823,18 @@ function doPost(e) {
     async function onScanQrFromImageFile(event) {
       const file = event.target.files && event.target.files[0];
       if (!file || typeof Html5Qrcode === 'undefined') return;
+      let fileScanner = null;
       try {
         await stopCameraScanner();
-        const fileScanner = new Html5Qrcode('qr-file-temp-slot', false);
+        fileScanner = new Html5Qrcode('qr-file-temp-slot', false);
         const decodedText = await fileScanner.scanFile(file, false);
-        fileScanner.clear();
         onQrCodeScannedSuccess(decodedText);
       } catch (err) {
         showToast('Không nhận diện được mã QR trong ảnh này! Hãy chọn ảnh rõ nét hơn.', 'error');
       } finally {
+        if (fileScanner) {
+          try { fileScanner.clear(); } catch (e) {}
+        }
         event.target.value = '';
       }
     }
@@ -1828,6 +1853,11 @@ function doPost(e) {
         const scannedNonce = String(parts[3] || '');
         const scannedRound = parseInt(parts[4] || '1', 10);
         const nowSec = Math.floor(Date.now() / 1000);
+        if (!openedAtSec || !durationSec || nowSec > openedAtSec + durationSec + 15) {
+          await stopCameraScanner();
+          showToast('Mã QR này đã hết thời gian hiệu lực! Hãy báo Bí Thư mở lại mã mới.', 'error');
+          return;
+        }
         if (getActiveApiUrl()) {
           const resp = await cloudGetAction('PULL', null);
           if (resp && resp.ok && resp.state && resp.state.attendance) {
@@ -1838,10 +1868,6 @@ function doPost(e) {
               return;
             }
           }
-        } else if (!openedAtSec || !durationSec || nowSec > openedAtSec + durationSec + 60) {
-          await stopCameraScanner();
-          showToast('Mã QR này đã hết thời gian hiệu lực! Hãy báo Bí Thư mở lại mã mới.', 'error');
-          return;
         }
         const wasForcedRescan = localForceRescan;
         localForceRescan = false;
@@ -3152,10 +3178,11 @@ function doPost(e) {
     function openEvidenceImagePreview(evId) {
       const ev = db.evidences.find(x => x.id === evId);
       if (!ev || !ev.photo) return;
-      const w = window.open('', '_blank');
-      if (w) {
-        w.document.write(`<title>${esc(ev.actTitle)}</title><body style="margin:0;background:#0f172a;display:flex;align-items:center;justify-content:center;min-height:100vh;"><img src="${ev.photo}" style="max-width:96vw;max-height:96vh;border-radius:12px;" /></body>`);
-      }
+      const titleEl = document.getElementById('img-preview-title');
+      const imgEl = document.getElementById('img-preview-src');
+      if (titleEl) titleEl.textContent = ev.actTitle || 'Ảnh minh chứng hoạt động';
+      if (imgEl) imgEl.src = ev.photo;
+      openModal('image-preview-modal');
     }
     function renderEvidenceBanner(evOrKind) {
       const isObj = evOrKind && typeof evOrKind === 'object';
@@ -3980,8 +4007,8 @@ function doPost(e) {
       persistLocalOnly();
       e.target.reset();
       renderMainBody();
-      showToast('Đã thay đổi thành công', 'success');
-      await sendCloudMutation('SYNC_PUSH', getSharedPayloadSnapshot(), true);
+      showToast('Đã gửi minh chứng thành công', 'success');
+      await sendCloudMutation('SUBMIT_EVIDENCE', newEv, true);
     }
     async function setEvidenceStatus(evId, status) {
       if (!canManageMembers()) return;
@@ -4011,8 +4038,8 @@ function doPost(e) {
       db.evidences = db.evidences.filter(x => x.id !== evId);
       persistLocalOnly();
       renderMainBody();
-      showToast('Đã thay đổi thành công', 'success');
-      await sendCloudMutation('SYNC_PUSH', getSharedPayloadSnapshot(), true);
+      showToast('Đã xóa minh chứng thành công', 'success');
+      await sendCloudMutation('DELETE_EVIDENCE', { evId }, false);
     }
     async function onUpdateAttendanceSession(e) {
       e.preventDefault();
@@ -4231,7 +4258,7 @@ function doPost(e) {
       if (!box) return;
       if (toastTimer) clearTimeout(toastTimer);
       const isErr = type === 'error';
-      const text = isErr ? message : (message && message.startsWith('Đã copy') || message && message.startsWith('Đã tải') || message && message.startsWith('Đã xuất') ? message : 'Đã thay đổi thành công');
+      const text = message || 'Đã thay đổi thành công';
       const tone = isErr
         ? 'bg-rose-600 text-white'
         : 'bg-slate-900/95 text-white border border-emerald-400/40';
@@ -4306,8 +4333,26 @@ function doPost(e) {
         persistLocalOnly();
       }
       startQrCountdownLoop();
+      startAutoCloudSyncLoop();
       renderApp();
     });
+    let autoSyncTicker = null;
+    let lastAutoPullAt = 0;
+    function startAutoCloudSyncLoop() {
+      if (autoSyncTicker) clearInterval(autoSyncTicker);
+      autoSyncTicker = setInterval(() => {
+        if (!currentUser() || !getActiveApiUrl()) return;
+        if (isCloudBusy || pendingCloudOps > 0 || isCameraRunning || evidenceCamStream) return;
+        const activeTag = document.activeElement && document.activeElement.tagName;
+        if (activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT') return;
+        const hasOpenModal = Array.from(document.querySelectorAll('[id$="-modal"]')).some(m => !m.classList.contains('hidden'));
+        if (hasOpenModal) return;
+        const intervalMs = db.activeTab === 'qr' ? 6000 : 20000;
+        if (Date.now() - lastAutoPullAt < intervalMs) return;
+        lastAutoPullAt = Date.now();
+        manualCloudPull(false);
+      }, 3000);
+    }
   </script>
 </body>
 </html>
