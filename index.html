@@ -362,8 +362,23 @@
     </div>
   </div>
 
-  <!-- TOAST THÔNG BÁO -->
-  <div id="toast-box" class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none max-w-xs w-full"></div>
+<!-- ==================== MODAL: CHI TIẾT ĐIỂM & ĐÁNH GIÁ ĐRL ĐOÀN VIÊN ==================== -->
+<div id="member-drl-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-4 bg-slate-900/60 overflow-y-auto">
+  <div class="bg-white w-full max-w-4xl rounded-3xl shadow-2xl border border-slate-100 overflow-hidden my-auto max-h-[92vh] flex flex-col">
+    <div class="px-5 py-4 bg-gradient-to-r from-[#004494] to-[#0284C7] text-white flex items-center justify-between shrink-0">
+      <div>
+        <h3 id="mdrl-modal-title" class="font-extrabold text-sm sm:text-base">Hồ sơ Điểm Rèn Luyện Đoàn viên</h3>
+        <p id="mdrl-modal-sub" class="text-[11px] text-blue-100">Chi đoàn ĐHSVAN26A</p>
+      </div>
+      <button onclick="closeModal('member-drl-modal')" class="w-8 h-8 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div id="mdrl-modal-body" class="p-4 sm:p-6 overflow-y-auto space-y-5"></div>
+  </div>
+</div>
+<!-- THÔNG BÁO GỌN NHẸ -->
+<div id="toast-box" class="fixed bottom-20 lg:bottom-5 right-4 z-50 pointer-events-none"></div>
 
   <!-- ==================== JAVASCRIPT LOGIC ==================== -->
   <script>
@@ -461,6 +476,51 @@ const GUIDE_DOCS = [
   }
 ];
 
+const DEFAULT_DRL_SECTIONS = [
+  {
+    id: 'sec-1',
+    code: '1',
+    title: 'Ý thức tham gia học tập & Nghiên cứu khoa học',
+    maxPoints: 25,
+    criteria: [
+      { id: 'c-1-1', code: '1.1', title: 'Đi học đầy đủ, đúng giờ, chấp hành nội quy giảng đường', maxScore: 15 },
+      { id: 'c-1-2', code: '1.2', title: 'Tham gia hội thi học thuật, nghiên cứu khoa học cấp Khoa/Trường', maxScore: 10 }
+    ]
+  },
+  {
+    id: 'sec-2',
+    code: '2',
+    title: 'Ý thức chấp hành nội quy, quy chế Chi đoàn & Nhà trường',
+    maxPoints: 30,
+    criteria: [
+      { id: 'c-2-1', code: '2.1', title: 'Tham gia đầy đủ các buổi sinh hoạt Chi đoàn, đại hội triệu tập', maxScore: 15 },
+      { id: 'c-2-2', code: '2.2', title: 'Mặc Áo Thanh niên Việt Nam & đeo thẻ sinh viên đúng quy định', maxScore: 10 },
+      { id: 'c-2-3', code: '2.3', title: 'Hoàn thành nghĩa vụ đóng Đoàn phí đúng thời hạn', maxScore: 5 }
+    ]
+  },
+  {
+    id: 'sec-3',
+    code: '3',
+    title: 'Ý thức tham gia hoạt động chính trị, xã hội, tình nguyện',
+    maxPoints: 45,
+    criteria: [
+      { id: 'c-3-1', code: '3.1', title: 'Tham gia chiến dịch tình nguyện (Mùa Hè Xanh, Xuân Tình Nguyện)', maxScore: 20 },
+      { id: 'c-3-2', code: '3.2', title: 'Tham gia Ngày Chủ Nhật Xanh, hiến máu nhân đạo, cổ vũ phong trào', maxScore: 15 },
+      { id: 'c-3-3', code: '3.3', title: 'Có nộp minh chứng hoạt động hợp lệ trên hệ thống', maxScore: 10 }
+    ]
+  }
+];
+
+const DRL_POINT_PRESETS = [
+  { delta: 10, label: '+10đ Chiến dịch tình nguyện lớn (Mùa Hè Xanh / Xuân TN)' },
+  { delta: 8, label: '+8đ Hội thi học thuật / NCKH cấp Khoa, Trường' },
+  { delta: 5, label: '+5đ Ngày Chủ Nhật Xanh / Hiến máu / Phong trào' },
+  { delta: 3, label: '+3đ Tích cực hỗ trợ công tác Chi đoàn' },
+  { delta: -5, label: '-5đ Vắng sinh hoạt Chi đoàn / Đại hội không phép' },
+  { delta: -5, label: '-5đ Không mặc Áo Thanh niên Việt Nam buổi lễ bắt buộc' },
+  { delta: -3, label: '-3đ Đăng ký hoạt động nhưng tự ý bỏ ngang' },
+  { delta: -3, label: '-3đ Trễ hạn đóng Đoàn phí theo quy định' }
+];
     const INITIAL_DB = {
       activeUserId: null,
       activeTab: 'home',
@@ -514,6 +574,14 @@ const GUIDE_DOCS = [
           status: 'approved'
         }
       ],
+  pointLogs: [],
+  drlAssessment: {
+     isOpen: true,
+     periodTitle: 'Tự đánh giá Điểm Rèn Luyện Học kỳ I - Năm học 2026 - 2027',
+     notice: 'Đoàn viên hoàn thành tự đánh giá đúng thời hạn thông báo của Bí Thư để BCH thẩm định.',
+     sections: JSON.parse(JSON.stringify(DEFAULT_DRL_SECTIONS)),
+     submissions: {}
+   },
       attendance: {
         round: 1,
         title: 'Sinh hoạt Chi đoàn định kỳ Tháng 11/2026',
@@ -685,6 +753,19 @@ const GUIDE_DOCS = [
       if (remote.feeAmount) {
         db.feeAmount = Number(remote.feeAmount);
       }
+   if (Array.isArray(remote.pointLogs)) {
+     db.pointLogs = remote.pointLogs;
+     changed = true;
+   }
+   if (remote.drlAssessment && typeof remote.drlAssessment === 'object') {
+     db.drlAssessment = {
+       ...db.drlAssessment,
+       ...remote.drlAssessment,
+       sections: Array.isArray(remote.drlAssessment.sections) ? remote.drlAssessment.sections : (db.drlAssessment.sections || []),
+       submissions: remote.drlAssessment.submissions || {}
+     };
+     changed = true;
+   }
       if (remote.attendance && typeof remote.attendance === 'object') {
         db.attendance = { ...db.attendance, ...remote.attendance };
         if (localForceRescan && db.activeUserId) {
@@ -709,7 +790,9 @@ const GUIDE_DOCS = [
         activities: db.activities,
         ledger: db.ledger,
         evidences: db.evidences,
-        attendance: db.attendance
+        attendance: db.attendance,
+     pointLogs: db.pointLogs || [],
+     drlAssessment: db.drlAssessment || { isOpen: true, periodTitle: '', notice: '', sections: DEFAULT_DRL_SECTIONS, submissions: {} }
       };
     }
 
@@ -1355,6 +1438,13 @@ function doPost(e) {
             ...parsed,
             feeAmount: Number(parsed.feeAmount || 120000),
             attendance: { round: 1, ...baseData.attendance, ...(parsed.attendance || {}) }
+            pointLogs: Array.isArray(parsed.pointLogs) ? parsed.pointLogs : [],
+         drlAssessment: {
+           ...baseData.drlAssessment,
+           ...(parsed.drlAssessment || {}),
+           sections: (parsed.drlAssessment && Array.isArray(parsed.drlAssessment.sections)) ? parsed.drlAssessment.sections : baseData.drlAssessment.sections,
+           submissions: (parsed.drlAssessment && parsed.drlAssessment.submissions) ? parsed.drlAssessment.submissions : {}
+         },
           };
           if (baseData.activeUserId && !baseData.users.some(u => u.id === baseData.activeUserId)) {
             baseData.activeUserId = null;
@@ -1380,6 +1470,11 @@ function doPost(e) {
     function isSecretary(user = currentUser()) {
       return Boolean(user && user.role === 'secretary');
     }
+     function canManageMembers(user = currentUser()) {
+  if (!user) return false;
+  if (isSecretary(user)) return true;
+  return Boolean(user.canManage);
+}
 
     function getInitials(name) {
       const parts = (name || 'ĐV').trim().split(/\s+/);
@@ -2262,9 +2357,30 @@ function doPost(e) {
       `;
     }
 
+ml() {
+  const user = currentUsefunction onSelectGuideCategory(cat) {
+  guideCategory = cat;
+  renderMainBody();
+}
+
+let drlPublicSearch = '';
+let activeInspectMemberId = null;
+
 function onSelectGuideCategory(cat) {
   guideCategory = cat;
   renderMainBody();
+}
+
+function onSearchPublicDrl(val) {
+  drlPublicSearch = val;
+  const activeEl = document.activeElement;
+  const pos = activeEl && activeEl.selectionStart ? activeEl.selectionStart : val.length;
+  renderMainBody();
+  const inp = document.querySelector('input[oninput^="onSearchPublicDrl"]');
+  if (inp) {
+    inp.focus();
+    inp.setSelectionRange(pos, pos);
+  }
 }
 
 function getDrLClassification(pts) {
@@ -2275,24 +2391,436 @@ function getDrLClassification(pts) {
   return { label: 'Yếu', color: 'text-rose-700 bg-rose-50 border-rose-200' };
 }
 
+function ensureDrlStructure() {
+  if (!db.drlAssessment || typeof db.drlAssessment !== 'object') {
+    db.drlAssessment = {
+      isOpen: true,
+      periodTitle: 'Tự đánh giá Điểm Rèn Luyện định kỳ',
+      notice: '',
+      sections: JSON.parse(JSON.stringify(DEFAULT_DRL_SECTIONS)),
+      submissions: {}
+    };
+  }
+  if (!Array.isArray(db.drlAssessment.sections)) db.drlAssessment.sections = [];
+  if (!db.drlAssessment.submissions) db.drlAssessment.submissions = {};
+  if (!Array.isArray(db.pointLogs)) db.pointLogs = [];
+}
+
+function getMemberAssessmentTotals(uid) {
+  ensureDrlStructure();
+  const sub = db.drlAssessment.submissions[uid] || { selfScores: {}, bithuScores: {} };
+  let totalMax = 0;
+  let totalSelf = 0;
+  let totalBithu = 0;
+  db.drlAssessment.sections.forEach(sec => {
+    totalMax += Number(sec.maxPoints || 0);
+    (sec.criteria || []).forEach(c => {
+      totalSelf += Number((sub.selfScores && sub.selfScores[c.id]) || 0);
+      totalBithu += Number((sub.bithuScores && sub.bithuScores[c.id]) || 0);
+    });
+  });
+  return { totalMax, totalSelf, totalBithu, hasSub: Boolean(db.drlAssessment.submissions[uid]) };
+}
+
+function buildAssessmentTableHtml(targetUserId, canEditSelf, canEditBithu, prefix = 'self') {
+  ensureDrlStructure();
+  const sub = db.drlAssessment.submissions[targetUserId] || { selfScores: {}, bithuScores: {} };
+  const totals = getMemberAssessmentTotals(targetUserId);
+
+  if (db.drlAssessment.sections.length === 0) {
+    return `<div class="py-6 text-center text-xs text-slate-400">Bí Thư chưa thiết lập tiêu chí đánh giá.</div>`;
+  }
+
+  return `
+    <div class="overflow-x-auto rounded-2xl border border-slate-200">
+      <table class="w-full text-left border-collapse text-xs">
+        <thead>
+          <tr class="bg-slate-100 border-b border-slate-200 text-[11px] font-extrabold uppercase text-slate-600">
+            <th class="py-2.5 px-3 w-16">STT</th>
+            <th class="py-2.5 px-3">Tiêu chí đánh giá</th>
+            <th class="py-2.5 px-3 w-28 text-center">Điểm đánh giá</th>
+            <th class="py-2.5 px-3 w-32 text-center">Điểm do Bí Thư đánh giá</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200">
+          ${db.drlAssessment.sections.map(sec => {
+            let secSelf = 0;
+            let secBithu = 0;
+            (sec.criteria || []).forEach(c => {
+              secSelf += Number((sub.selfScores && sub.selfScores[c.id]) || 0);
+              secBithu += Number((sub.bithuScores && sub.bithuScores[c.id]) || 0);
+            });
+            return `
+              <tr class="bg-blue-50/90 font-extrabold text-[#0056B3]">
+                <td class="py-2.5 px-3 font-mono">${esc(sec.code)}</td>
+                <td class="py-2.5 px-3">
+                  <div class="flex flex-wrap items-center justify-between gap-2">
+                    <span>${esc(sec.title)}</span>
+                    <span class="px-2 py-0.5 rounded-lg bg-white border border-blue-200 text-[11px] text-[#0056B3]">
+                      Điểm tối đa mục ${esc(sec.code)}: ${sec.maxPoints}đ
+                    </span>
+                  </div>
+                </td>
+                <td class="py-2.5 px-3 text-center font-mono">${secSelf}/${sec.maxPoints}</td>
+                <td class="py-2.5 px-3 text-center font-mono text-emerald-700">${secBithu}/${sec.maxPoints}</td>
+              </tr>
+              ${(sec.criteria || []).map(c => {
+                const sVal = (sub.selfScores && sub.selfScores[c.id] !== undefined) ? sub.selfScores[c.id] : '';
+                const bVal = (sub.bithuScores && sub.bithuScores[c.id] !== undefined) ? sub.bithuScores[c.id] : '';
+                return `
+                  <tr class="hover:bg-slate-50">
+                    <td class="py-2.5 px-3 font-mono font-bold text-slate-600">${esc(c.code)}</td>
+                    <td class="py-2.5 px-3 text-slate-800">
+                      <span>${esc(c.title)}</span>
+                      <span class="ml-1.5 text-[11px] font-semibold text-slate-400">(Tối đa: ${c.maxScore}đ)</span>
+                    </td>
+                    <td class="py-2 px-3 text-center">
+                      ${canEditSelf ? `
+                        <input type="number" step="1" min="-20" max="${c.maxScore}" data-drl-self="${c.id}" value="${sVal}" placeholder="0" class="w-20 px-2 py-1.5 rounded-xl border border-blue-200 text-center font-extrabold text-[#0056B3] focus:outline-none focus:border-[#0056B3]" />
+                      ` : `
+                        <span class="font-extrabold text-slate-800">${sVal !== '' ? sVal + 'đ' : '—'}</span>
+                      `}
+                    </td>
+                    <td class="py-2 px-3 text-center">
+                      ${canEditBithu ? `
+                        <input type="number" step="1" min="-20" max="${c.maxScore}" data-drl-bithu="${c.id}" value="${bVal}" placeholder="0" class="w-20 px-2 py-1.5 rounded-xl border border-emerald-300 bg-emerald-50/40 text-center font-extrabold text-emerald-700 focus:outline-none focus:border-emerald-600" />
+                      ` : `
+                        <span class="font-extrabold text-emerald-700">${bVal !== '' ? bVal + 'đ' : '—'}</span>
+                      `}
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
+            `;
+          }).join('')}
+          <tr class="bg-slate-900 text-white font-extrabold">
+            <td colspan="2" class="py-3 px-3 text-right">TỔNG ĐIỂM ĐÁNH GIÁ (Tối đa ${totals.totalMax}đ):</td>
+            <td class="py-3 px-3 text-center text-sky-300 text-sm">${totals.totalSelf}đ</td>
+            <td class="py-3 px-3 text-center text-emerald-300 text-sm">${totals.totalBithu}đ</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+async function onSaveSelfAssessment(e) {
+  e.preventDefault();
+  const u = currentUser();
+  ensureDrlStructure();
+  if (!u || !db.drlAssessment.isOpen) return;
+  const selfScores = {};
+  document.querySelectorAll('#self-drl-form [data-drl-self]').forEach(inp => {
+    const cid = inp.getAttribute('data-drl-self');
+    const val = inp.value === '' ? 0 : Number(inp.value);
+    selfScores[cid] = val;
+  });
+  const prev = db.drlAssessment.submissions[u.id] || { bithuScores: {} };
+  db.drlAssessment.submissions[u.id] = {
+    ...prev,
+    selfScores,
+    updatedAt: new Date().toLocaleString('vi-VN')
+  };
+  persistLocalOnly();
+  renderMainBody();
+  await sendCloudMutation('SYNC_PUSH', getSharedPayloadSnapshot(), true);
+  showToast('Đã thay đổi thành công', 'success');
+}
+
+async function onSaveDrlPeriodSettings(e) {
+  e.preventDefault();
+  if (!isSecretary()) return;
+  ensureDrlStructure();
+  db.drlAssessment.periodTitle = document.getElementById('drl-period-title').value.trim();
+  db.drlAssessment.notice = document.getElementById('drl-period-notice').value.trim();
+  db.drlAssessment.isOpen = document.getElementById('drl-period-open').value === '1';
+  persistLocalOnly();
+  renderMainBody();
+  await sendCloudMutation('SYNC_PUSH', getSharedPayloadSnapshot(), true);
+  showToast('Đã thay đổi thành công', 'success');
+}
+
+async function onAddDrlSection(e) {
+  e.preventDefault();
+  if (!isSecretary()) return;
+  ensureDrlStructure();
+  const code = document.getElementById('new-drl-sec-code').value.trim();
+  const title = document.getElementById('new-drl-sec-title').value.trim();
+  const maxPoints = Number(document.getElementById('new-drl-sec-max').value || 20);
+  if (!code || !title) return;
+  db.drlAssessment.sections.push({
+    id: 'sec-' + Date.now(),
+    code,
+    title,
+    maxPoints,
+    criteria: []
+  });
+  persistLocalOnly();
+  renderMainBody();
+  await sendCloudMutation('SYNC_PUSH', getSharedPayloadSnapshot(), true);
+  showToast('Đã thay đổi thành công', 'success');
+}
+
+async function onDeleteDrlSection(secId) {
+  if (!isSecretary()) return;
+  ensureDrlStructure();
+  db.drlAssessment.sections = db.drlAssessment.sections.filter(s => s.id !== secId);
+  persistLocalOnly();
+  renderMainBody();
+  await sendCloudMutation('SYNC_PUSH', getSharedPayloadSnapshot(), true);
+  showToast('Đã thay đổi thành công', 'success');
+}
+
+async function onAddDrlCriterion(e, secId) {
+  e.preventDefault();
+  if (!isSecretary()) return;
+  ensureDrlStructure();
+  const sec = db.drlAssessment.sections.find(s => s.id === secId);
+  if (!sec) return;
+  const code = e.target.querySelector('[name="ccode"]').value.trim();
+  const title = e.target.querySelector('[name="ctitle"]').value.trim();
+  const maxScore = Number(e.target.querySelector('[name="cmax"]').value || 5);
+  if (!code || !title) return;
+  sec.criteria = sec.criteria || [];
+  sec.criteria.push({ id: 'crit-' + Date.now(), code, title, maxScore });
+  persistLocalOnly();
+  renderMainBody();
+  await sendCloudMutation('SYNC_PUSH', getSharedPayloadSnapshot(), true);
+  showToast('Đã thay đổi thành công', 'success');
+}
+
+async function onDeleteDrlCriterion(secId, critId) {
+  if (!isSecretary()) return;
+  ensureDrlStructure();
+  const sec = db.drlAssessment.sections.find(s => s.id === secId);
+  if (!sec) return;
+  sec.criteria = (sec.criteria || []).filter(c => c.id !== critId);
+  persistLocalOnly();
+  renderMainBody();
+  await sendCloudMutation('SYNC_PUSH', getSharedPayloadSnapshot(), true);
+  showToast('Đã thay đổi thành công', 'success');
+}
+
+function openMemberDrlModal(uid) {
+  ensureDrlStructure();
+  const target = db.users.find(u => u.id === uid);
+  if (!target) return;
+  activeInspectMemberId = uid;
+  const viewer = currentUser();
+  const canEdit = canManageMembers(viewer);
+  const rank = getDrLClassification(Number(target.points || 85));
+  const approvedEvs = db.evidences.filter(e => e.userId === target.id && e.status === 'approved');
+  const memberLogs = db.pointLogs.filter(l => l.userId === target.id);
+  const sub = db.drlAssessment.submissions[target.id];
+
+  document.getElementById('mdrl-modal-title').textContent = `${target.name} (${target.mssv})`;
+  document.getElementById('mdrl-modal-sub').textContent = `${target.position} • Điểm ĐRL hiện tại: ${target.points}/100 (${rank.label})`;
+
+  document.getElementById('mdrl-modal-body').innerHTML = `
+    <!-- Tổng quan điểm -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+      <div class="p-3 rounded-2xl bg-blue-50 border border-blue-100">
+        <div class="text-slate-500 text-[11px]">Điểm ĐRL chính thức</div>
+        <div class="text-lg font-extrabold text-[#0056B3]">${target.points}/100</div>
+      </div>
+      <div class="p-3 rounded-2xl bg-emerald-50 border border-emerald-100">
+        <div class="text-slate-500 text-[11px]">Minh chứng đã duyệt</div>
+        <div class="text-lg font-extrabold text-emerald-700">${approvedEvs.length} (+${approvedEvs.length * 3}đ)</div>
+      </div>
+      <div class="p-3 rounded-2xl bg-amber-50 border border-amber-100">
+        <div class="text-slate-500 text-[11px]">Cộng/Trừ BCH</div>
+        <div class="text-lg font-extrabold text-amber-800">${memberLogs.length} lượt</div>
+      </div>
+      <div class="p-3 rounded-2xl border ${rank.color}">
+        <div class="text-[11px] opacity-80">Xếp loại</div>
+        <div class="text-lg font-extrabold">${rank.label}</div>
+      </div>
+    </div>
+
+    <!-- Form Cộng / Trừ điểm dành cho Bí Thư & BCH được cấp quyền -->
+    ${canEdit ? `
+      <div class="p-4 rounded-2xl bg-amber-50/70 border border-amber-200 space-y-3">
+        <div class="text-xs font-extrabold text-amber-900 flex items-center gap-1.5">
+          <i class="fa-solid fa-sliders"></i> Cộng / Trừ điểm theo thang Sổ Công tác Sinh viên
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-2">
+          <select id="mdrl-preset-select" onchange="onSelectDrlPreset(this.value)" class="sm:col-span-7 px-3 py-2 rounded-xl border border-amber-200 bg-white text-xs font-semibold">
+            <option value="">-- Chọn nhanh mục cộng / trừ theo quy chế --</option>
+            ${DRL_POINT_PRESETS.map((p, idx) => `<option value="${idx}">${p.label}</option>`).join('')}
+          </select>
+          <input type="number" id="mdrl-delta-input" placeholder="Điểm (+/- VD: 5 hoặc -3)" class="sm:col-span-2 px-3 py-2 rounded-xl border border-amber-200 bg-white text-xs font-extrabold text-center" />
+          <button type="button" onclick="onApplyMemberPointDelta('${target.id}')" class="sm:col-span-3 py-2 px-3 rounded-xl bg-[#0056B3] hover:bg-[#004494] text-white text-xs font-extrabold">
+            Lưu Cộng/Trừ
+          </button>
+        </div>
+        <input type="text" id="mdrl-reason-input" placeholder="Lý do cộng hoặc trừ điểm (hiển thị công khai)..." class="w-full px-3 py-2 rounded-xl border border-amber-200 bg-white text-xs" />
+      </div>
+    ` : ''}
+
+    <!-- Lịch sử chi tiết Cộng / Trừ điểm (Ai cũng xem được) -->
+    <div class="space-y-2">
+      <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-600">Chi tiết các khoản Cộng (+) và Trừ (-) điểm</h4>
+      <div class="divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-slate-50/50 px-3.5 text-xs">
+        <div class="py-2.5 flex items-center justify-between">
+          <span class="font-semibold text-slate-700">Điểm nền cơ bản đầu học kỳ</span>
+          <span class="font-extrabold text-[#0056B3]">+85đ</span>
+        </div>
+        ${approvedEvs.map(e => `
+          <div class="py-2.5 flex items-center justify-between gap-2">
+            <span class="text-slate-700"><i class="fa-solid fa-file-circle-check text-emerald-600 mr-1"></i>Minh chứng duyệt: <strong>${esc(e.actTitle)}</strong></span>
+            <span class="font-extrabold text-emerald-700 shrink-0">+3đ</span>
+          </div>
+        `).join('')}
+        ${memberLogs.map(lg => `
+          <div class="py-2.5 flex items-center justify-between gap-2">
+            <div>
+              <div class="font-bold text-slate-900">${esc(lg.reason)}</div>
+              <div class="text-[10px] text-slate-400">Bởi: ${esc(lg.byName)} • ${esc(lg.createdAt)}</div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <span class="px-2 py-0.5 rounded-lg font-extrabold ${lg.delta >= 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-700'}">
+                ${lg.delta >= 0 ? '+' + lg.delta : lg.delta}đ
+              </span>
+              ${canEdit ? `<button type="button" onclick="onDeletePointLog('${lg.id}')" class="text-rose-500 hover:text-rose-700"><i class="fa-solid fa-trash-can"></i></button>` : ''}
+            </div>
+          </div>
+        `).join('')}
+        ${(approvedEvs.length === 0 && memberLogs.length === 0) ? `<div class="py-3 text-slate-400 text-[11px]">Chưa có phát sinh cộng/trừ bổ sung.</div>` : ''}
+      </div>
+    </div>
+
+    <!-- Phiếu Tự đánh giá ĐRL & Thẩm định của Bí Thư / BCH -->
+    <div class="space-y-2.5">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-600">
+          Phiếu Tự đánh giá ĐRL (${sub ? 'Đã nộp lúc ' + esc(sub.updatedAt) : 'Đoàn viên chưa gửi'})
+        </h4>
+        ${sub && sub.gradedBy ? `<span class="text-[11px] font-bold text-emerald-700">Đã thẩm định bởi: ${esc(sub.gradedBy)}</span>` : ''}
+      </div>
+      <form id="bithu-grade-form" onsubmit="onSaveBithuGrading(event, '${target.id}')" class="space-y-3">
+        ${buildAssessmentTableHtml(target.id, false, canEdit, 'modal')}
+        ${canEdit ? `
+          <div class="flex flex-wrap items-center justify-end gap-2">
+            <label class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 mr-auto">
+              <input type="checkbox" id="sync-graded-to-official" checked class="rounded border-slate-300" />
+              Cập nhật tổng điểm Bí Thư đánh giá làm Điểm ĐRL chính thức
+            </label>
+            <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-xs">
+              <i class="fa-solid fa-check-double mr-1"></i> Lưu điểm thẩm định
+            </button>
+          </div>
+        ` : ''}
+      </form>
+    </div>
+  `;
+  openModal('member-drl-modal');
+}
+
+function onSelectDrlPreset(idxStr) {
+  if (idxStr === '') return;
+  const item = DRL_POINT_PRESETS[Number(idxStr)];
+  if (!item) return;
+  document.getElementById('mdrl-delta-input').value = item.delta;
+  document.getElementById('mdrl-reason-input').value = item.label.replace(/^[+-]\d+đ\s*/, '');
+}
+
+async function onApplyMemberPointDelta(uid) {
+  const viewer = currentUser();
+  if (!canManageMembers(viewer)) return;
+  const target = db.users.find(u => u.id === uid);
+  if (!target) return;
+  const delta = parseInt(document.getElementById('mdrl-delta-input').value, 10);
+  const reason = document.getElementById('mdrl-reason-input').value.trim();
+  if (!delta || isNaN(delta) || !reason) {
+    showToast('Nhập số điểm và lý do!', 'error');
+    return;
+  }
+  target.points = Math.max(0, Math.min(100, Number(target.points || 85) + delta));
+  db.pointLogs.unshift({
+    id: 'pl-' + Date.now(),
+    userId: target.id,
+    delta,
+    reason,
+    byName: viewer.name,
+    createdAt: new Date().toLocaleString('vi-VN')
+  });
+  persistLocalOnly();
+  openMemberDrlModal(uid);
+  renderMainBody();
+  await sendCloudMutation('SYNC_PUSH', getSharedPayloadSnapshot(), true);
+  showToast('Đã thay đổi thành công', 'success');
+}
+
+async function onDeletePointLog(logId) {
+  if (!canManageMembers()) return;
+  const lg = db.pointLogs.find(x => x.id === logId);
+  if (!lg) return;
+  const target = db.users.find(u => u.id === lg.userId);
+  if (target) {
+    target.points = Math.max(0, Math.min(100, Number(target.points || 85) - Number(lg.delta || 0)));
+  }
+  db.pointLogs = db.pointLogs.filter(x => x.id !== logId);
+  persistLocalOnly();
+  if (activeInspectMemberId) openMemberDrlModal(activeInspectMemberId);
+  renderMainBody();
+  await sendCloudMutation('SYNC_PUSH', getSharedPayloadSnapshot(), true);
+  showToast('Đã thay đổi thành công', 'success');
+}
+
+async function onSaveBithuGrading(e, uid) {
+  e.preventDefault();
+  const viewer = currentUser();
+  if (!canManageMembers(viewer)) return;
+  ensureDrlStructure();
+  const target = db.users.find(u => u.id === uid);
+  if (!target) return;
+  const bithuScores = {};
+  document.querySelectorAll('#bithu-grade-form [data-drl-bithu]').forEach(inp => {
+    const cid = inp.getAttribute('data-drl-bithu');
+    bithuScores[cid] = inp.value === '' ? 0 : Number(inp.value);
+  });
+  const prev = db.drlAssessment.submissions[uid] || { selfScores: {}, updatedAt: new Date().toLocaleString('vi-VN') };
+  db.drlAssessment.submissions[uid] = {
+    ...prev,
+    bithuScores,
+    gradedBy: viewer.name,
+    gradedAt: new Date().toLocaleString('vi-VN')
+  };
+  const syncOfficial = document.getElementById('sync-graded-to-official');
+  if (syncOfficial && syncOfficial.checked) {
+    const totals = getMemberAssessmentTotals(uid);
+    target.points = Math.max(0, Math.min(100, totals.totalBithu));
+  }
+  persistLocalOnly();
+  openMemberDrlModal(uid);
+  renderMainBody();
+  await sendCloudMutation('SYNC_PUSH', getSharedPayloadSnapshot(), true);
+  showToast('Đã thay đổi thành công', 'success');
+}
+
 function buildHandbookHtml() {
+  ensureDrlStructure();
   const user = currentUser();
+  const sec = isSecretary(user);
+  const canManage = canManageMembers(user);
   const basePoints = 85;
   const myEvidences = db.evidences.filter(e => e.userId === user.id);
   const approvedEvs = myEvidences.filter(e => e.status === 'approved');
   const pendingEvs = myEvidences.filter(e => e.status === 'pending');
-  const rejectedEvs = myEvidences.filter(e => e.status === 'rejected');
-  const joinedActs = db.activities.filter(a => a.joinedIds.includes(user.id));
-  const myAttLog = db.attendance.logs.find(l => l.userId === user.id);
-
+  const myPointLogs = db.pointLogs.filter(l => l.userId === user.id);
   const autoEarnedFromEv = approvedEvs.length * 3;
-  const manualDiff = Number(user.points || 85) - (basePoints + autoEarnedFromEv);
   const rank = getDrLClassification(Number(user.points || 85));
 
   const bchList = db.users.filter(u =>
     u.role === 'secretary' ||
     u.position === 'Phó Bí thư Chi đoàn' ||
     u.position === 'Ủy viên BCH Chi đoàn'
+  );
+
+  const visibleMembers = db.users.filter(u =>
+    u.name.toLowerCase().includes(drlPublicSearch.toLowerCase()) ||
+    u.mssv.toLowerCase().includes(drlPublicSearch.toLowerCase()) ||
+    u.position.toLowerCase().includes(drlPublicSearch.toLowerCase())
   );
 
   const categories = ['Tất cả', 'Điểm rèn luyện', 'Sinh hoạt & QR', 'Đoàn phí & Quỹ', 'Quy chế & Kỷ luật'];
@@ -2319,6 +2847,7 @@ function buildHandbookHtml() {
               <div class="flex flex-wrap items-center gap-2">
                 <h2 class="text-lg sm:text-xl font-extrabold text-slate-900">${esc(user.name)}</h2>
                 ${getPositionBadgeHtml(user)}
+                ${canManage && !sec ? `<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold">Được cấp quyền QL điểm</span>` : ''}
               </div>
               <div class="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600">
                 <span><i class="fa-solid fa-id-card text-[#0056B3] mr-1"></i>MSSV: <strong class="font-mono text-slate-900">${esc(user.mssv)}</strong></span>
@@ -2387,129 +2916,167 @@ function buildHandbookHtml() {
         </form>
       </section>
 
-      <!-- 2. TÓM TẮT ĐIỂM RÈN LUYỆN (CỘNG / TRỪ CHI TIẾT) -->
+      <!-- 2. TỰ ĐÁNH GIÁ ĐIỂM RÈN LUYỆN ĐỊNH KỲ & THIẾT LẬP MẪU CỦA BÍ THƯ -->
       <section class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-xs space-y-5">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
-              <i class="fa-solid fa-chart-simple text-[#0056B3]"></i> Tóm tắt Điểm Rèn Luyện & Chi tiết Cộng / Trừ
-            </h3>
-            <p class="text-xs text-slate-500 mt-0.5">Tổng hợp tự động từ minh chứng, hoạt động phong trào, điểm danh và đoàn phí của bạn</p>
-          </div>
-          <div class="flex items-center gap-2 px-3.5 py-2 rounded-2xl border ${rank.color}">
-            <span class="text-xs font-bold">Tổng hiện tại:</span>
-            <span class="text-base font-extrabold">${user.points}/100 (${rank.label})</span>
-          </div>
-        </div>
-
-        <!-- Thanh tiến độ ĐRL -->
-        <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
-          <div class="h-full bg-gradient-to-r from-[#0056B3] to-emerald-500 rounded-full" style="width: ${Math.min(100, Math.max(0, Number(user.points || 0)))}%"></div>
-        </div>
-
-        <!-- Bảng kê chi tiết cộng/trừ của cá nhân -->
-        <div class="divide-y divide-slate-100 rounded-2xl border border-slate-200/80 bg-slate-50/50 px-4">
-          <div class="py-3 flex items-center justify-between gap-3 text-xs">
-            <div>
-              <div class="font-bold text-slate-900">1. Điểm sàn rèn luyện cơ bản đầu học kỳ</div>
-              <div class="text-[11px] text-slate-500">Mức điểm khởi điểm của Đoàn viên Chi đoàn ĐHSVAN26A</div>
-            </div>
-            <span class="px-2.5 py-1 rounded-xl bg-blue-50 text-[#0056B3] font-extrabold shrink-0">+${basePoints} điểm</span>
-          </div>
-
-          <div class="py-3 flex items-start justify-between gap-3 text-xs">
-            <div class="space-y-1">
-              <div class="font-bold text-slate-900">2. Minh chứng hoạt động đã được Bí Thư duyệt (${approvedEvs.length} hồ sơ)</div>
-              ${approvedEvs.length > 0
-                ? approvedEvs.map(e => `<div class="text-[11px] text-emerald-700"><i class="fa-solid fa-check mr-1"></i>${esc(e.actTitle)} (+3đ)</div>`).join('')
-                : `<div class="text-[11px] text-slate-500">Chưa có minh chứng nào được duyệt (+3đ/minh chứng hợp lệ)</div>`
-              }
-              ${pendingEvs.length > 0 ? `<div class="text-[11px] text-amber-600"><i class="fa-solid fa-hourglass-half mr-1"></i>Đang chờ duyệt: ${pendingEvs.length} hồ sơ (dự kiến +${pendingEvs.length * 3}đ)</div>` : ''}
-              ${rejectedEvs.length > 0 ? `<div class="text-[11px] text-rose-600"><i class="fa-solid fa-circle-xmark mr-1"></i>Bị từ chối: ${rejectedEvs.length} hồ sơ (0đ)</div>` : ''}
-            </div>
-            <span class="px-2.5 py-1 rounded-xl ${autoEarnedFromEv > 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-600'} font-extrabold shrink-0">
-              +${autoEarnedFromEv} điểm
-            </span>
-          </div>
-
-          ${manualDiff !== 0 ? `
-            <div class="py-3 flex items-center justify-between gap-3 text-xs">
-              <div>
-                <div class="font-bold text-slate-900">3. Điểm cộng / điều chỉnh của Ban Chấp hành & Bí Thư</div>
-                <div class="text-[11px] text-slate-500">Ghi nhận thành tích công tác Đoàn hoặc điều chỉnh theo quy chế</div>
-              </div>
-              <span class="px-2.5 py-1 rounded-xl ${manualDiff > 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-600 border border-rose-200'} font-extrabold shrink-0">
-                ${manualDiff > 0 ? '+' + manualDiff : manualDiff} điểm
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold ${db.drlAssessment.isOpen ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-600 border border-rose-200'}">
+                ${db.drlAssessment.isOpen ? 'ĐANG MỞ TỰ ĐÁNH GIÁ' : 'ĐÃ ĐÓNG CỔNG TỰ ĐÁNH GIÁ'}
               </span>
+              <h3 class="text-base font-extrabold text-slate-900">${esc(db.drlAssessment.periodTitle)}</h3>
+            </div>
+            <p class="text-xs text-slate-500 mt-1">${esc(db.drlAssessment.notice)}</p>
+          </div>
+        </div>
+
+        <!-- Bảng Tự đánh giá của Đoàn viên đang đăng nhập -->
+        <form id="self-drl-form" onsubmit="onSaveSelfAssessment(event)" class="space-y-3">
+          ${buildAssessmentTableHtml(user.id, Boolean(db.drlAssessment.isOpen), sec, 'self')}
+          ${db.drlAssessment.isOpen ? `
+            <div class="flex justify-end">
+              <button type="submit" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0056B3] to-[#0284C7] text-white text-xs font-extrabold shadow-sm hover:opacity-95">
+                <i class="fa-solid fa-paper-plane mr-1.5"></i> Lưu & Gửi bản tự đánh giá
+              </button>
             </div>
           ` : ''}
+        </form>
 
-          <div class="py-3 flex items-start justify-between gap-3 text-xs">
-            <div class="space-y-1">
-              <div class="font-bold text-slate-900">Hoạt động phong trào đã đăng ký (${joinedActs.length}/${db.activities.length})</div>
-              ${joinedActs.length > 0
-                ? joinedActs.map(a => `<div class="text-[11px] text-slate-600">• ${esc(a.title)} <span class="text-[#0056B3] font-bold">(+${a.points}đ khi nộp minh chứng)</span></div>`).join('')
-                : `<div class="text-[11px] text-slate-500">Bạn chưa đăng ký hoạt động nào ở Mục 1</div>`
-              }
+        <!-- Khu vực Thiết kế & Chỉnh sửa Mẫu Tự Đánh Giá (Chỉ Bí Thư) -->
+        ${sec ? `
+          <div class="pt-5 border-t border-slate-200 space-y-4">
+            <div class="text-xs font-extrabold text-amber-800 uppercase tracking-wider flex items-center gap-1.5">
+              <i class="fa-solid fa-wand-magic-sparkles"></i> Thiết lập Thời hạn & Mẫu Tiêu chí Tự đánh giá (Bí Thư)
             </div>
-            <span class="px-2.5 py-1 rounded-xl bg-blue-50 text-[#0056B3] font-bold shrink-0">Theo dõi</span>
+
+            <form onsubmit="onSaveDrlPeriodSettings(event)" class="grid grid-cols-1 md:grid-cols-12 gap-2.5 p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200">
+              <input type="text" id="drl-period-title" required value="${esc(db.drlAssessment.periodTitle)}" placeholder="Tên đợt đánh giá..." class="md:col-span-4 px-3 py-2 rounded-xl border border-amber-200 bg-white text-xs font-bold" />
+              <input type="text" id="drl-period-notice" value="${esc(db.drlAssessment.notice)}" placeholder="Thông báo thời hạn..." class="md:col-span-5 px-3 py-2 rounded-xl border border-amber-200 bg-white text-xs" />
+              <select id="drl-period-open" class="md:col-span-2 px-2.5 py-2 rounded-xl border border-amber-200 bg-white text-xs font-bold">
+                <option value="1" ${db.drlAssessment.isOpen ? 'selected' : ''}>Mở cổng ĐG</option>
+                <option value="0" ${!db.drlAssessment.isOpen ? 'selected' : ''}>Đóng cổng ĐG</option>
+              </select>
+              <button type="submit" class="md:col-span-1 py-2 px-3 rounded-xl bg-amber-600 text-white text-xs font-extrabold">Lưu</button>
+            </form>
+
+            <!-- Thêm Mục lớn (1, 2, 3...) -->
+            <form onsubmit="onAddDrlSection(event)" class="grid grid-cols-1 sm:grid-cols-12 gap-2">
+              <input type="text" id="new-drl-sec-code" required placeholder="STT mục (VD: 4)" class="sm:col-span-2 px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono font-bold" />
+              <input type="text" id="new-drl-sec-title" required placeholder="Tên mục lớn mới..." class="sm:col-span-6 px-3 py-2 rounded-xl border border-slate-200 text-xs" />
+              <input type="number" id="new-drl-sec-max" required min="1" max="100" placeholder="Điểm tối đa" class="sm:col-span-2 px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold" />
+              <button type="submit" class="sm:col-span-2 py-2 px-3 rounded-xl bg-[#0056B3] text-white text-xs font-bold">+ Thêm mục lớn</button>
+            </form>
+
+            <!-- Quản lý từng Mục lớn & Thêm/Xóa tiêu chí 1.1, 1.2... -->
+            <div class="space-y-3">
+              ${db.drlAssessment.sections.map(s => `
+                <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5">
+                  <div class="flex items-center justify-between gap-2">
+                    <div class="text-xs font-extrabold text-slate-900">
+                      Mục ${esc(s.code)}: ${esc(s.title)} <span class="text-[#0056B3]">(Tối đa: ${s.maxPoints}đ)</span>
+                    </div>
+                    <button type="button" onclick="onDeleteDrlSection('${s.id}')" class="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-600 text-[11px] font-bold">Xóa mục</button>
+                  </div>
+                  <div class="space-y-1">
+                    ${(s.criteria || []).map(c => `
+                      <div class="flex items-center justify-between gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-100 text-xs">
+                        <span><strong class="font-mono text-[#0056B3]">${esc(c.code)}</strong> • ${esc(c.title)} <span class="text-slate-400">(${c.maxScore}đ)</span></span>
+                        <button type="button" onclick="onDeleteDrlCriterion('${s.id}', '${c.id}')" class="text-rose-500 hover:text-rose-700 text-[11px] font-bold">Xóa</button>
+                      </div>
+                    `).join('')}
+                  </div>
+                  <form onsubmit="onAddDrlCriterion(event, '${s.id}')" class="grid grid-cols-1 sm:grid-cols-12 gap-2 pt-1">
+                    <input type="text" name="ccode" required placeholder="STT (VD: ${esc(s.code)}.${(s.criteria || []).length + 1})" class="sm:col-span-2 px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-mono" />
+                    <input type="text" name="ctitle" required placeholder="Nội dung tiêu chí đánh giá..." class="sm:col-span-6 px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white text-xs" />
+                    <input type="number" name="cmax" required step="1" min="-20" max="100" placeholder="Điểm" class="sm:col-span-2 px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-bold" />
+                    <button type="submit" class="sm:col-span-2 py-1.5 px-2.5 rounded-xl bg-slate-800 text-white text-[11px] font-bold">+ Thêm tiêu chí</button>
+                  </form>
+                </div>
+              `).join('')}
+            </div>
           </div>
+        ` : ''}
+      </section>
 
-          <div class="py-3 flex items-center justify-between gap-3 text-xs">
-            <div>
-              <div class="font-bold text-slate-900">Chuyên cần Điểm danh QR (Đợt #${db.attendance.round || 1})</div>
-              <div class="text-[11px] text-slate-500">${myAttLog ? `Đã quét QR có mặt lúc ${esc(myAttLog.time)}` : 'Chưa ghi nhận điểm danh (vắng không phép bị trừ -5đ)'}</div>
-            </div>
-            <span class="px-2.5 py-1 rounded-xl font-extrabold shrink-0 ${myAttLog ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}">
-              ${myAttLog ? 'Đạt (0đ trừ)' : 'Chưa điểm danh'}
-            </span>
+      <!-- 3. BẢNG ĐIỂM RÈN LUYỆN CÔNG KHAI TOÀN CHI ĐOÀN (AI CŨNG XEM ĐƯỢC) -->
+      <section class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-xs space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-users-viewfinder text-[#0056B3]"></i> Bảng Điểm Rèn Luyện Công Khai Chi đoàn ĐHSVAN26A
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">
+              ${canManage
+                ? 'Bấm vào từng Đoàn viên để xem chi tiết, Cộng/Trừ điểm hoặc thẩm định phiếu tự đánh giá'
+                : 'Công khai minh bạch điểm cộng, điểm trừ và kết quả tự đánh giá của toàn thể Đoàn viên'}
+            </p>
           </div>
-
-          <div class="py-3 flex items-center justify-between gap-3 text-xs">
-            <div>
-              <div class="font-bold text-slate-900">Trách nhiệm đóng Đoàn phí</div>
-              <div class="text-[11px] text-slate-500">${user.feePaid ? 'Đã hoàn thành nghĩa vụ đoàn phí năm học' : 'Chưa hoàn thành (trễ hạn bị trừ -3đ rèn luyện)'}</div>
-            </div>
-            <span class="px-2.5 py-1 rounded-xl font-extrabold shrink-0 ${user.feePaid ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-600'}">
-              ${user.feePaid ? 'Đạt (0đ trừ)' : 'Cảnh báo -3đ'}
-            </span>
+          <div class="relative w-full sm:w-64">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+            <input type="text" value="${esc(drlPublicSearch)}" oninput="onSearchPublicDrl(this.value)" placeholder="Tìm tên hoặc MSSV..." class="w-full pl-9 pr-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#0056B3]" />
           </div>
         </div>
 
-        <!-- Khung quy tắc cộng / trừ nhanh -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-          <div class="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 space-y-2">
-            <div class="text-xs font-extrabold text-emerald-800 flex items-center gap-1.5">
-              <i class="fa-solid fa-circle-plus"></i> CÁC MỤC ĐƯỢC CỘNG ĐIỂM (+)
-            </div>
-            <ul class="text-xs text-emerald-950 space-y-1.5 list-disc pl-4">
-              <li><strong>+10 điểm:</strong> Tham gia Chiến dịch Tình nguyện Mùa Hè Xanh / Xuân Tình Nguyện.</li>
-              <li><strong>+8 điểm:</strong> Tham gia Hội thi Học thuật, Nghiên cứu khoa học cấp Khoa/Trường.</li>
-              <li><strong>+5 điểm:</strong> Tham gia Ngày Chủ Nhật Xanh, hiến máu nhân đạo, cổ vũ phong trào.</li>
-              <li><strong>+3 điểm:</strong> Nộp minh chứng hoạt động hợp lệ và được Bí Thư duyệt ở Mục 4.</li>
-            </ul>
-          </div>
-
-          <div class="p-4 rounded-2xl bg-rose-50/70 border border-rose-200/80 space-y-2">
-            <div class="text-xs font-extrabold text-rose-800 flex items-center gap-1.5">
-              <i class="fa-solid fa-circle-minus"></i> CÁC MỤC BỊ TRỪ ĐIỂM (-)
-            </div>
-            <ul class="text-xs text-rose-950 space-y-1.5 list-disc pl-4">
-              <li><strong>-5 điểm/lần:</strong> Vắng sinh hoạt Chi đoàn hoặc đại hội triệu tập không xin phép.</li>
-              <li><strong>-5 điểm:</strong> Không mặc Áo Thanh niên Việt Nam trong các buổi lễ bắt buộc.</li>
-              <li><strong>-3 điểm:</strong> Đăng ký tham gia hoạt động nhưng tự ý bỏ ngang không báo Bí Thư.</li>
-              <li><strong>-3 điểm:</strong> Chưa hoàn thành nghĩa vụ đóng Đoàn phí đúng thời hạn quy định.</li>
-            </ul>
-          </div>
+        <div class="overflow-x-auto max-h-[460px] overflow-y-auto rounded-2xl border border-slate-200">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead class="sticky top-0 bg-slate-100 z-10 border-b border-slate-200 text-[11px] font-extrabold uppercase text-slate-500">
+              <tr>
+                <th class="py-3 px-3">Đoàn viên</th>
+                <th class="py-3 px-3 text-center">Cộng / Trừ</th>
+                <th class="py-3 px-3 text-center">Tự ĐG / Bí Thư ĐG</th>
+                <th class="py-3 px-3 text-center">Điểm ĐRL</th>
+                <th class="py-3 px-3 text-right">Chi tiết</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              ${visibleMembers.map(m => {
+                const mRank = getDrLClassification(Number(m.points || 85));
+                const mEvCount = db.evidences.filter(e => e.userId === m.id && e.status === 'approved').length;
+                const mLogs = db.pointLogs.filter(l => l.userId === m.id);
+                const plusSum = mEvCount * 3 + mLogs.filter(l => l.delta > 0).reduce((a, b) => a + Number(b.delta), 0);
+                const minusSum = mLogs.filter(l => l.delta < 0).reduce((a, b) => a + Number(b.delta), 0);
+                const totals = getMemberAssessmentTotals(m.id);
+                return `
+                  <tr class="hover:bg-blue-50/40">
+                    <td class="py-3 px-3">
+                      <div class="font-bold text-slate-900">${esc(m.name)}</div>
+                      <div class="flex items-center gap-1.5 mt-0.5">
+                        <span class="font-mono text-[11px] text-slate-500">${esc(m.mssv)}</span>
+                        ${getPositionBadgeHtml(m, true)}
+                      </div>
+                    </td>
+                    <td class="py-3 px-3 text-center font-mono font-bold">
+                      <span class="text-emerald-600">+${plusSum}</span> / <span class="text-rose-600">${minusSum}</span>
+                    </td>
+                    <td class="py-3 px-3 text-center font-mono">
+                      ${totals.hasSub ? `<span class="font-bold text-[#0056B3]">${totals.totalSelf}đ</span> / <span class="font-bold text-emerald-700">${totals.totalBithu}đ</span>` : `<span class="text-slate-400">Chưa nộp</span>`}
+                    </td>
+                    <td class="py-3 px-3 text-center">
+                      <span class="px-2.5 py-1 rounded-xl border font-extrabold ${mRank.color}">${m.points}/100</span>
+                    </td>
+                    <td class="py-3 px-3 text-right">
+                      <button type="button" onclick="openMemberDrlModal('${m.id}')" class="px-3 py-1.5 rounded-xl text-[11px] font-extrabold transition ${
+                        canManage
+                          ? 'bg-[#0056B3] hover:bg-[#004494] text-white'
+                          : 'bg-blue-50 hover:bg-blue-100 text-[#0056B3]'
+                      }">
+                        ${canManage ? '<i class="fa-solid fa-pen-to-square mr-1"></i>Chấm & Cộng/Trừ' : '<i class="fa-solid fa-eye mr-1"></i>Xem chi tiết'}
+                      </button>
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
         </div>
       </section>
 
-      <!-- 3. SỔ TAY SINH VIÊN & CẨM NANG ĐOÀN VIÊN -->
+      <!-- 4. SỔ TAY SINH VIÊN & CẨM NANG ĐOÀN VIÊN -->
       <section class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-xs space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h3 class="text-base font-extrabold text-slate-900">Sổ tay Sinh viên & Cẩm nang Chi đoàn ĐHSVAN26A</h3>
-            <p class="text-xs text-slate-500">Tra cứu quy chế học vụ, sinh hoạt Đoàn, quyền lợi và đầu mối Ban Chấp hành</p>
+            <p class="text-xs text-slate-500">Tra cứu quy chế học vụ, sinh hoạt Đoàn, thang điểm cộng/trừ và đầu mối Ban Chấp hành</p>
           </div>
           <div class="relative w-full sm:w-64">
             <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
@@ -2517,7 +3084,6 @@ function buildHandbookHtml() {
           </div>
         </div>
 
-        <!-- Danh bạ Ban Chấp hành Chi đoàn -->
         <div class="p-4 rounded-2xl bg-gradient-to-r from-blue-50 to-sky-50 border border-blue-100 space-y-2.5">
           <div class="text-xs font-extrabold text-[#0056B3] flex items-center gap-1.5">
             <i class="fa-solid fa-address-book"></i> Đầu mối Liên hệ Ban Chấp hành Chi đoàn ĐHSVAN26A
@@ -2538,7 +3104,6 @@ function buildHandbookHtml() {
           </div>
         </div>
 
-        <!-- Bộ lọc chuyên mục -->
         <div class="flex flex-wrap gap-1.5">
           ${categories.map(cat => `
             <button type="button" onclick="onSelectGuideCategory('${cat}')" class="px-3 py-1.5 rounded-xl text-xs font-bold border transition ${
@@ -2953,16 +3518,21 @@ function buildHandbookHtml() {
                         <h4 class="font-bold text-sm text-slate-900">${esc(ev.actTitle)}</h4>
                         <p class="text-xs text-slate-600">${esc(ev.note)}</p>
                         <div class="text-[11px] text-slate-400">Nộp lúc: ${esc(ev.createdAt)}</div>
-                        ${sec ? `
-                          <div class="pt-2 flex items-center gap-2">
-                            <button onclick="setEvidenceStatus('${ev.id}', 'approved')" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">
-                              <i class="fa-solid fa-check mr-1"></i> Duyệt (+3 ĐRL)
-                            </button>
-                            <button onclick="setEvidenceStatus('${ev.id}', 'rejected')" class="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold">
-                              <i class="fa-solid fa-xmark mr-1"></i> Từ chối
-                            </button>
-                          </div>
-                        ` : ''}
+                 ${(canManageMembers(user) || ev.userId === user.id) ? `
+                       <div class="pt-2 flex flex-wrap items-center gap-2">
+                         ${canManageMembers(user) ? `
+                           <button onclick="setEvidenceStatus('${ev.id}', 'approved')" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">
+                             <i class="fa-solid fa-check mr-1"></i> Duyệt (+3 ĐRL)
+                           </button>
+                           <button onclick="setEvidenceStatus('${ev.id}', 'rejected')" class="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-bold">
+                             <i class="fa-solid fa-xmark mr-1"></i> Từ chối
+                           </button>
+                         ` : ''}
+                         <button onclick="deleteEvidence('${ev.id}')" class="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold">
+                           <i class="fa-solid fa-trash-can mr-1"></i> Xóa minh chứng
+                         </button>
+                       </div>
+                     ` : ''}
                       </div>
                     </div>
                   </div>
@@ -3424,6 +3994,7 @@ function buildHandbookHtml() {
                       <tr class="border-b border-slate-200 text-[11px] font-bold uppercase text-slate-400">
                         <th class="py-3 px-2">Đoàn viên</th>
                         <th class="py-3 px-2">Cấp chức vụ</th>
+                        <th class="py-3 px-2">Quyền QL điểm</th>
                         <th class="py-3 px-2">Mật khẩu</th>
                         <th class="py-3 px-2 text-right">Thao tác</th>
                       </tr>
@@ -3446,6 +4017,16 @@ function buildHandbookHtml() {
                               ${POSITION_OPTIONS.map(pos => `<option value="${pos}" ${m.position === pos ? 'selected' : ''}>${pos}</option>`).join('')}
                             </select>
                           </td>
+                          <td class="py-3 px-2">
+  <button type="button" onclick="toggleMemberManagePermission('${m.id}')" class="px-2.5 py-1.5 rounded-xl text-[11px] font-extrabold border transition ${
+    m.canManage
+      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+      : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-blue-50 hover:text-[#0056B3]'
+  }">
+    <i class="fa-solid ${m.canManage ? 'fa-user-check' : 'fa-user-lock'} mr-1"></i>
+    ${m.canManage ? 'Đã cấp quyền' : 'Cấp quyền QL'}
+  </button>
+</td>
                           <td class="py-3 px-2 font-mono font-semibold text-slate-700">${esc(m.password)}</td>
                           <td class="py-3 px-2 text-right">
                             <div class="inline-flex items-center gap-1.5">
@@ -3569,6 +4150,16 @@ function buildHandbookHtml() {
       const res = await sendCloudMutation('SAVE_USERS', getSharedPayloadSnapshot().users, true);
       showToast(res.ok ? `Đã cấp chức vụ "${u.position}" cho ${u.name}!` : 'Đã lưu cục bộ (chưa đồng bộ được Sheet).', res.ok ? 'success' : 'error');
     }
+    async function toggleMemberManagePermission(id) {
+  if (!isSecretary()) return;
+  const u = db.users.find(x => x.id === id);
+  if (!u) return;
+  u.canManage = !Boolean(u.canManage);
+  persistLocalOnly();
+  renderApp();
+  await sendCloudMutation('SAVE_USERS', getSharedPayloadSnapshot().users, true);
+  showToast('Đã thay đổi thành công', 'success');
+}
 
     function onSearchMembers(v) {
       memberSearchTerm = v;
@@ -3853,6 +4444,36 @@ function onFilterGuide(v) {
       await sendCloudMutation('SET_EVIDENCE_STATUS', { evId, status }, false);
       showToast(status === 'approved' ? 'Bí Thư đã duyệt minh chứng (+3 ĐRL)!' : 'Đã từ chối minh chứng.', status === 'approved' ? 'success' : 'info');
     }
+    async function deleteEvidence(evId) {
+   const u = currentUser();
+   const ev = db.evidences.find(x => x.id === evId);
+   if (!u || !ev) return;
+   if (!canManageMembers(u) && ev.userId !== u.id) return;
+   if (ev.status === 'approved') {
+     const owner = db.users.find(x => x.id === ev.userId);
+     if (owner) owner.points = Math.max(0, Number(owner.points || 85) - 3);
+   }
+   db.evidences = db.evidences.filter(x => x.id !== evId);
+   persistLocalOnly();
+   renderApp();
+   await sendCloudMutation('SYNC_PUSH', getSharedPayloadSnapshot(), true);
+   showToast('Đã thay đổi thành công', 'success');
+ }
+    async function deleteEvidence(evId) {
+   const u = currentUser();
+   const ev = db.evidences.find(x => x.id === evId);
+   if (!u || !ev) return;
+   if (!canManageMembers(u) && ev.userId !== u.id) return;
+   if (ev.status === 'approved') {
+     const owner = db.users.find(x => x.id === ev.userId);
+     if (owner) owner.points = Math.max(0, Number(owner.points || 85) - 3);
+   }
+   db.evidences = db.evidences.filter(x => x.id !== evId);
+   persistLocalOnly();
+   renderApp();
+   await sendCloudMutation('SYNC_PUSH', getSharedPayloadSnapshot(), true);
+   showToast('Đã thay đổi thành công', 'success');
+ }
 
     async function onUpdateAttendanceSession(e) {
       e.preventDefault();
