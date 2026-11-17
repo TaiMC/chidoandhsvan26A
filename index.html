@@ -1971,6 +1971,7 @@ function doPost(e) {
         return;
       }
       if (db.activeTab === 'qr' && tabId !== 'qr') stopCameraScanner();
+      if (db.activeTab === 'proofs' && tabId !== 'proofs') stopEvidenceCamera();
       db.activeTab = tabId;
       persistLocalOnly();
       renderApp();
@@ -2688,13 +2689,156 @@ function buildHandbookHtml() {
       `;
     }
 
-    function renderEvidenceBanner(kind) {
+    let tempEvidencePhoto = '';
+    let evidenceCamStream = null;
+
+    function compressDataUrlToJpeg(dataUrl, maxDim = 480, quality = 0.62) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let w = img.width;
+          let h = img.height;
+          if (w > h && w > maxDim) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          } else if (h >= w && h > maxDim) {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+          canvas.width = w;
+          canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = () => resolve('');
+        img.src = dataUrl;
+      });
+    }
+
+    function updateEvidencePhotoPreviewUi() {
+      const wrap = document.getElementById('ev-photo-preview-wrap');
+      const img = document.getElementById('ev-photo-preview-img');
+      if (!wrap || !img) return;
+      if (tempEvidencePhoto) {
+        img.src = tempEvidencePhoto;
+        wrap.classList.remove('hidden');
+      } else {
+        img.src = '';
+        wrap.classList.add('hidden');
+      }
+    }
+
+    function clearEvidencePhoto() {
+      tempEvidencePhoto = '';
+      updateEvidencePhotoPreviewUi();
+    }
+
+    function onEvidencePhotoSelected(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async (ev) => {
+        const compressed = await compressDataUrlToJpeg(ev.target.result, 480, 0.62);
+        if (compressed) {
+          tempEvidencePhoto = compressed;
+          updateEvidencePhotoPreviewUi();
+          showToast('Đã đính kèm ảnh minh chứng!', 'success');
+        } else {
+          showToast('Không đọc được file ảnh này, hãy thử ảnh khác!', 'error');
+        }
+      };
+      reader.readAsDataURL(file);
+      event.target.value = '';
+    }
+
+    async function startEvidenceLiveCamera() {
+      const box = document.getElementById('ev-live-cam-box');
+      const video = document.getElementById('ev-live-video');
+      if (!box || !video) return;
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        showToast('Trình duyệt không hỗ trợ mở camera trực tiếp, hãy dùng nút "Chụp bằng máy ảnh"!', 'error');
+        return;
+      }
+      try {
+        stopEvidenceCamera();
+        try {
+          evidenceCamStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: 'environment' } },
+            audio: false
+          });
+        } catch (err1) {
+          evidenceCamStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        }
+        video.srcObject = evidenceCamStream;
+        box.classList.remove('hidden');
+      } catch (err) {
+        showToast('Không mở được camera! Hãy cấp quyền Camera hoặc dùng nút "Chụp bằng máy ảnh".', 'error');
+      }
+    }
+
+    function snapEvidenceLivePhoto() {
+      const video = document.getElementById('ev-live-video');
+      if (!video || !video.videoWidth) {
+        showToast('Camera chưa sẵn sàng, vui lòng đợi 1 giây!', 'info');
+        return;
+      }
+      const canvas = document.createElement('canvas');
+      const maxDim = 480;
+      let w = video.videoWidth;
+      let h = video.videoHeight;
+      if (w > h && w > maxDim) {
+        h = Math.round((h * maxDim) / w);
+        w = maxDim;
+      } else if (h >= w && h > maxDim) {
+        w = Math.round((w * maxDim) / h);
+        h = maxDim;
+      }
+      canvas.width = w;
+      canvas.height = h;
+      canvas.getContext('2d').drawImage(video, 0, 0, w, h);
+      tempEvidencePhoto = canvas.toDataURL('image/jpeg', 0.62);
+      stopEvidenceCamera();
+      updateEvidencePhotoPreviewUi();
+      showToast('Đã chụp ảnh minh chứng thành công!', 'success');
+    }
+
+    function stopEvidenceCamera() {
+      if (evidenceCamStream) {
+        evidenceCamStream.getTracks().forEach(t => t.stop());
+        evidenceCamStream = null;
+      }
+      const box = document.getElementById('ev-live-cam-box');
+      if (box) box.classList.add('hidden');
+    }
+
+    function openEvidenceImagePreview(evId) {
+      const ev = db.evidences.find(x => x.id === evId);
+      if (!ev || !ev.photo) return;
+      const w = window.open('', '_blank');
+      if (w) {
+        w.document.write(`<title>${esc(ev.actTitle)}</title><body style="margin:0;background:#0f172a;display:flex;align-items:center;justify-content:center;min-height:100vh;"><img src="${ev.photo}" style="max-width:96vw;max-height:96vh;border-radius:12px;" /></body>`);
+      }
+    }
+
+    function renderEvidenceBanner(evOrKind) {
+      const isObj = evOrKind && typeof evOrKind === 'object';
+      if (isObj && evOrKind.photo) {
+        return `
+          <div onclick="openEvidenceImagePreview('${evOrKind.id}')" title="Bấm để xem ảnh lớn" class="cursor-pointer group relative w-full h-32 rounded-2xl overflow-hidden border border-slate-200 bg-slate-100">
+            <img src="${evOrKind.photo}" alt="Ảnh minh chứng" class="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+            <span class="absolute bottom-1.5 right-1.5 px-2 py-0.5 rounded-lg bg-slate-900/75 text-white text-[10px] font-bold">
+              <i class="fa-solid fa-magnifying-glass-plus mr-1"></i>Xem ảnh
+            </span>
+          </div>
+        `;
+      }
+      const kind = isObj ? evOrKind.bannerKind : evOrKind;
       const cfg = {
         volunteer: { bg: 'from-blue-500 to-sky-600', icon: 'fa-hands-holding-heart', text: 'Minh chứng Tình nguyện' },
         green: { bg: 'from-emerald-500 to-teal-600', icon: 'fa-seedling', text: 'Minh chứng Chủ Nhật Xanh' },
         study: { bg: 'from-amber-500 to-orange-600', icon: 'fa-book-open-reader', text: 'Minh chứng Hội thi / Sinh hoạt' }
       }[kind] || { bg: 'from-blue-500 to-sky-600', icon: 'fa-hands-holding-heart', text: 'Minh chứng Hoạt động' };
-
       return `
         <div class="w-full h-24 rounded-2xl bg-gradient-to-br ${cfg.bg} text-white flex flex-col items-center justify-center p-3 text-center">
           <i class="fa-solid ${cfg.icon} text-xl mb-1"></i>
@@ -2706,7 +2850,6 @@ function buildHandbookHtml() {
     function buildProofsHtml() {
       const user = currentUser();
       const sec = isSecretary(user);
-
       return `
         <div class="space-y-5">
           <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
@@ -2714,8 +2857,7 @@ function buildHandbookHtml() {
               <h2 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
                 <i class="fa-solid fa-cloud-arrow-up text-[#0056B3]"></i> Nộp Minh chứng Hoạt động
               </h2>
-              <p class="text-xs text-slate-500 mt-1 mb-4">Gửi minh chứng tham gia phong trào để Bí Thư duyệt cộng điểm rèn luyện.</p>
-
+              <p class="text-xs text-slate-500 mt-1 mb-4">Chụp ảnh trực tiếp hoặc tải ảnh check-in để Bí Thư duyệt cộng điểm rèn luyện.</p>
               <form onsubmit="onSubmitEvidence(event)" class="space-y-3.5">
                 <div>
                   <label class="block text-xs font-bold text-slate-700 mb-1">Người nộp</label>
@@ -2735,6 +2877,46 @@ function buildHandbookHtml() {
                     <option value="study">Ảnh tham dự Hội thi / Sinh hoạt</option>
                   </select>
                 </div>
+
+                <!-- KHU VỰC CHỤP / TẢI ẢNH MINH CHỨNG -->
+                <div class="space-y-2">
+                  <label class="block text-xs font-bold text-slate-700">Ảnh chụp minh chứng *</label>
+                  <div class="grid grid-cols-2 gap-2">
+                    <label class="cursor-pointer py-2.5 px-3 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0056B3] border border-blue-200 text-xs font-bold flex items-center justify-center gap-1.5 transition">
+                      <i class="fa-solid fa-camera"></i> Chụp bằng máy ảnh
+                      <input type="file" accept="image/*" capture="environment" onchange="onEvidencePhotoSelected(event)" class="hidden" />
+                    </label>
+                    <label class="cursor-pointer py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 text-xs font-bold flex items-center justify-center gap-1.5 transition">
+                      <i class="fa-solid fa-image text-emerald-600"></i> Chọn từ thư viện
+                      <input type="file" accept="image/*" onchange="onEvidencePhotoSelected(event)" class="hidden" />
+                    </label>
+                  </div>
+                  <button type="button" onclick="startEvidenceLiveCamera()" class="w-full py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition">
+                    <i class="fa-solid fa-video text-amber-400"></i> Bật Camera chụp trực tiếp trên web
+                  </button>
+
+                  <!-- Khung Camera trực tiếp trên web -->
+                  <div id="ev-live-cam-box" class="hidden rounded-2xl overflow-hidden bg-slate-950 border-2 border-[#0056B3] p-2 space-y-2">
+                    <video id="ev-live-video" autoplay playsinline muted class="w-full max-h-56 object-cover rounded-xl bg-black"></video>
+                    <div class="flex gap-2">
+                      <button type="button" onclick="snapEvidenceLivePhoto()" class="flex-1 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold">
+                        <i class="fa-solid fa-camera mr-1"></i> Chụp hình
+                      </button>
+                      <button type="button" onclick="stopEvidenceCamera()" class="px-3 py-2 rounded-xl bg-rose-600 text-white text-xs font-bold">
+                        Đóng
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Xem trước ảnh đã chụp/chọn -->
+                  <div id="ev-photo-preview-wrap" class="${tempEvidencePhoto ? '' : 'hidden'} relative rounded-2xl overflow-hidden border border-emerald-200 bg-emerald-50/40 p-2">
+                    <img id="ev-photo-preview-img" src="${tempEvidencePhoto}" alt="Xem trước minh chứng" class="w-full max-h-48 object-cover rounded-xl" />
+                    <button type="button" onclick="clearEvidencePhoto()" class="mt-2 w-full py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold">
+                      <i class="fa-solid fa-trash-can mr-1"></i> Xóa ảnh để chụp lại
+                    </button>
+                  </div>
+                </div>
+
                 <div>
                   <label class="block text-xs font-bold text-slate-700 mb-1">Mô tả chi tiết *</label>
                   <textarea id="ev-note" required rows="3" placeholder="VD: Tham gia đầy đủ buổi ra quân..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs"></textarea>
@@ -2744,7 +2926,6 @@ function buildHandbookHtml() {
                 </button>
               </form>
             </div>
-
             <div class="lg:col-span-7 space-y-3.5">
               <div class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200/80 shadow-xs flex items-center justify-between">
                 <div>
@@ -2753,7 +2934,6 @@ function buildHandbookHtml() {
                 </div>
                 <span class="px-3 py-1 rounded-full bg-blue-50 text-[#0056B3] text-xs font-bold">${db.evidences.length} hồ sơ</span>
               </div>
-
               ${db.evidences.map(ev => {
                 const author = db.users.find(u => u.id === ev.userId) || { name: ev.userId, mssv: '' };
                 const badge = ev.status === 'approved'
@@ -2761,11 +2941,10 @@ function buildHandbookHtml() {
                   : ev.status === 'rejected'
                   ? '<span class="px-2.5 py-1 rounded-xl bg-rose-50 text-rose-600 border border-rose-200 text-[11px] font-bold"><i class="fa-solid fa-circle-xmark mr-1"></i>Từ chối</span>'
                   : '<span class="px-2.5 py-1 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 text-[11px] font-bold"><i class="fa-solid fa-hourglass-half mr-1"></i>Chờ Bí Thư duyệt</span>';
-
                 return `
                   <div class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200/80 shadow-xs">
                     <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
-                      <div class="sm:col-span-4">${renderEvidenceBanner(ev.bannerKind)}</div>
+                      <div class="sm:col-span-4">${renderEvidenceBanner(ev)}</div>
                       <div class="sm:col-span-8 space-y-2">
                         <div class="flex items-center justify-between gap-2">
                           <span class="text-xs font-extrabold text-[#0056B3]">${esc(author.name)} (${esc(author.mssv)})</span>
@@ -2774,7 +2953,6 @@ function buildHandbookHtml() {
                         <h4 class="font-bold text-sm text-slate-900">${esc(ev.actTitle)}</h4>
                         <p class="text-xs text-slate-600">${esc(ev.note)}</p>
                         <div class="text-[11px] text-slate-400">Nộp lúc: ${esc(ev.createdAt)}</div>
-
                         ${sec ? `
                           <div class="pt-2 flex items-center gap-2">
                             <button onclick="setEvidenceStatus('${ev.id}', 'approved')" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">
@@ -3633,26 +3811,32 @@ function onFilterGuide(v) {
 
     // ==================== MINH CHỨNG & ĐIỂM DANH ====================
     async function onSubmitEvidence(e) {
-      e.preventDefault();
-      const u = currentUser();
-      if (!u) return;
-      const now = new Date();
-      const newEv = {
-        id: 'ev-' + Date.now(),
-        userId: u.id,
-        actTitle: document.getElementById('ev-act').value,
-        bannerKind: document.getElementById('ev-kind').value,
-        note: document.getElementById('ev-note').value.trim(),
-        createdAt: `${now.toLocaleDateString('vi-VN')} ${now.toTimeString().slice(0, 5)}`,
-        status: 'pending'
-      };
-      db.evidences.unshift(newEv);
-      persistLocalOnly();
-      renderApp();
-      const res = await sendCloudMutation('SUBMIT_EVIDENCE', newEv, false);
-      showToast(res.ok ? 'Đã gửi minh chứng lên hệ thống Bí Thư!' : 'Đã lưu trên máy (chưa gửi được lên Sheet).', res.ok ? 'success' : 'error');
-    }
-
+   e.preventDefault();
+   const u = currentUser();
+   if (!u) return;
+   if (!tempEvidencePhoto) {
+     showToast('Vui lòng chụp ảnh hoặc chọn ảnh minh chứng trước khi gửi!', 'error');
+     return;
+   }
+   const now = new Date();
+   const newEv = {
+     id: 'ev-' + Date.now(),
+     userId: u.id,
+     actTitle: document.getElementById('ev-act').value,
+     bannerKind: document.getElementById('ev-kind').value,
+     photo: tempEvidencePhoto,
+     note: document.getElementById('ev-note').value.trim(),
+     createdAt: `${now.toLocaleDateString('vi-VN')} ${now.toTimeString().slice(0, 5)}`,
+     status: 'pending'
+   };
+   tempEvidencePhoto = '';
+   stopEvidenceCamera();
+   db.evidences.unshift(newEv);
+   persistLocalOnly();
+   renderApp();
+   const res = await sendCloudMutation('SUBMIT_EVIDENCE', newEv, true);
+   showToast(res.ok ? 'Đã gửi ảnh minh chứng lên hệ thống Bí Thư!' : 'Đã lưu trên máy (chưa gửi được lên Sheet).', res.ok ? 'success' : 'error');
+ }
     async function setEvidenceStatus(evId, status) {
       const ev = db.evidences.find(x => x.id === evId);
       if (!ev) return;
