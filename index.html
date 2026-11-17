@@ -732,28 +732,74 @@
       }
     }
 
-    async function sendCloudMutation(actionName, dataObj, usePost = false) {
-      const apiUrl = getActiveApiUrl();
-      if (!apiUrl) return { ok: false, reason: 'NO_URL' };
+let localMutationSeq = 0;
+    let pendingCloudOps = 0;
+    let cloudTaskQueue = Promise.resolve();
+    let coalescedSyncTimer = null;
+    let coalescedActionName = null;
+    let coalescedPayload = null;
+    let coalescedResolvers = [];
 
-      lastLocalMutationAt = Date.now();
-      let resp = usePost
-        ? await cloudPostAction(actionName, dataObj)
-        : await cloudGetAction(actionName, dataObj);
+    function executeQueuedCloudCall(actionName, dataObj, usePost, reqSeq) {
+      cloudTaskQueue = cloudTaskQueue.then(async () => {
+        lastLocalMutationAt = Date.now();
+        let resp = usePost
+          ? await cloudPostAction(actionName, dataObj)
+          : await cloudGetAction(actionName, dataObj);
 
-      if (resp && resp.ok && resp.scriptVersion !== 'v6' && actionName !== 'SYNC_PUSH') {
-        resp = await cloudPostAction('SYNC_PUSH', getSharedPayloadSnapshot());
-      }
-
-      lastLocalMutationAt = Date.now();
-      if (resp && resp.ok) {
-        if (resp.state) {
-          applyRemoteSharedState(resp.state);
-          renderApp();
+        if (resp && resp.ok && resp.scriptVersion !== 'v6' && actionName !== 'SYNC_PUSH') {
+          resp = await cloudPostAction('SYNC_PUSH', getSharedPayloadSnapshot());
         }
-        return { ok: true, state: resp.state };
+
+        lastLocalMutationAt = Date.now();
+        pendingCloudOps = Math.max(0, pendingCloudOps - 1);
+
+        if (resp && resp.ok) {
+          if (resp.state && pendingCloudOps === 0 && reqSeq === localMutationSeq) {
+            applyRemoteSharedState(resp.state);
+          }
+          return { ok: true, state: resp.state };
+        }
+        return { ok: false, reason: 'NETWORK_ERROR' };
+      });
+      return cloudTaskQueue;
+    }
+
+    function sendCloudMutation(actionName, dataObj, usePost = false) {
+      const apiUrl = getActiveApiUrl();
+      if (!apiUrl) return Promise.resolve({ ok: false, reason: 'NO_URL' });
+
+      localMutationSeq++;
+      const reqSeq = localMutationSeq;
+      lastLocalMutationAt = Date.now();
+
+      // Gom nhóm các thao tác bấm liên tiếp (đóng/hoàn tác quỹ, cập nhật danh sách) thành 1 lần gửi duy nhất
+      if (usePost && (actionName === 'SAVE_FINANCE' || actionName === 'SAVE_USERS' || actionName === 'SAVE_ACTIVITIES')) {
+        if (!coalescedSyncTimer) pendingCloudOps++;
+        coalescedActionName = actionName;
+        coalescedPayload = dataObj;
+
+        return new Promise((resolve) => {
+          coalescedResolvers.push(resolve);
+          clearTimeout(coalescedSyncTimer);
+          coalescedSyncTimer = setTimeout(() => {
+            const finalAction = coalescedActionName;
+            const finalPayload = coalescedPayload;
+            const resolvers = coalescedResolvers.slice();
+            coalescedSyncTimer = null;
+            coalescedActionName = null;
+            coalescedPayload = null;
+            coalescedResolvers = [];
+
+            executeQueuedCloudCall(finalAction, finalPayload, true, localMutationSeq).then((res) => {
+              resolvers.forEach((r) => r(res));
+            });
+          }, 550);
+        });
       }
-      return { ok: false, reason: 'NETWORK_ERROR' };
+
+      pendingCloudOps++;
+      return executeQueuedCloudCall(actionName, dataObj, usePost, reqSeq);
     }
 
     async function manualCloudPull(showNotice = false) {
@@ -762,12 +808,13 @@
         if (showNotice) showToast('Chưa cấu hình link Google Sheet! Vào mục 6 để dán link.', 'info');
         return;
       }
-      if (isCloudBusy) return;
+      if (isCloudBusy || pendingCloudOps > 0) return;
       isCloudBusy = true;
       const pullStartedAt = Date.now();
+      const pullSeq = localMutationSeq;
       try {
         const resp = await cloudGetAction('PULL', null);
-        if (lastLocalMutationAt > pullStartedAt) return;
+        if (lastLocalMutationAt > pullStartedAt || pendingCloudOps > 0 || pullSeq !== localMutationSeq) return;
 
         if (resp && resp.ok && resp.state) {
           applyRemoteSharedState(resp.state);
