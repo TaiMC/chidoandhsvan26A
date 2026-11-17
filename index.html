@@ -537,6 +537,7 @@ const GUIDE_DOCS = [
     let lastLocalMutationAt = 0;
     let localForceRescan = false;
     let tempInlineAvatar = null;
+    let guideFilter = '';
     let guideCategory = 'Tất cả';
     let memberSearchTerm = '';
 
@@ -3493,10 +3494,17 @@ function buildHandbookHtml() {
       openModal('reg-list-modal');
     }
 
-    function onFilterGuide(v) {
-      guideFilter = v;
-      renderMainBody();
-    }
+function onFilterGuide(v) {
+  guideFilter = v;
+  const activeEl = document.activeElement;
+  const pos = activeEl && activeEl.selectionStart ? activeEl.selectionStart : v.length;
+  renderMainBody();
+  const inp = document.querySelector('input[oninput^="onFilterGuide"]');
+  if (inp) {
+    inp.focus();
+    inp.setSelectionRange(pos, pos);
+  }
+}
 
     // ==================== ĐOÀN PHÍ & TÀI CHÍNH ====================
     function getFinanceSyncPayload() {
