@@ -363,8 +363,9 @@
   <div id="toast-box" class="fixed bottom-20 lg:bottom-5 right-4 z-50 pointer-events-none"></div>
   <!-- ==================== JAVASCRIPT LOGIC ==================== -->
   <script>
-    const DB_KEY = 'dhsvan26a_bithu_system_v6';
-    const PRESET_API_URL = 'https://script.google.com/macros/s/AKfycbxRTMmAsEpGxBBWGcRO9n0cw8r7criwKg-NZIdo2JhZgR4NWAL4EbaflEsdanmXaFk/exec';
+    const DB_KEY = 'dhsvan26a_bithu_system_v8';
+    const SESSION_TOKEN_KEY = 'dhsvan26a_session_token_v8';
+    const PRESET_API_URL = 'https://script.google.com/macros/s/AKfycbxY-TjDX5iwkHHpfP5MxiQRGuHHJmysLUFjeB2BANjEwxz6XpnL-QAKWczvoTO6KcDt/exec';
     const PRESET_MEMBERS = [];
     const POSITION_OPTIONS = [
       'Đoàn viên',
@@ -375,7 +376,6 @@
       {
         id: 'BITHU_VINH',
         username: 'Võ Quang Vinh',
-        password: '123456',
         mssv: '0026410310',
         name: 'Võ Quang Vinh',
         position: 'Bí Thư Chi đoàn',
@@ -648,17 +648,17 @@
               ${isSecretary() ? `<button onclick="switchTab('accounts')" class="px-3 py-1.5 rounded-xl bg-amber-600 text-white font-bold shrink-0">Cài đặt ngay</button>` : ''}
             </div>
           `;
-        } else if (remoteScriptVersion && remoteScriptVersion !== 'v6' && isSecretary()) {
+        } else if (remoteScriptVersion && remoteScriptVersion !== 'v8-secure' && isSecretary()) {
           alertBox.classList.remove('hidden');
           alertBox.innerHTML = `
             <div class="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div class="flex items-start gap-2">
                 <i class="fa-solid fa-circle-exclamation text-rose-600 text-sm mt-0.5"></i>
                 <div>
-                  <strong>Apps Script đang chạy bản cũ!</strong> Hãy vào Google Apps Script dán mã <strong>v6</strong> mới nhất và chọn <strong>Quản lý các bản triển khai -> Sửa -> Phiên bản mới -> Triển khai</strong>.
+                  <strong>Apps Script đang chạy bản cũ!</strong> Hãy vào Google Apps Script dán mã <strong>v8-secure</strong> mới nhất và chọn <strong>Quản lý các bản triển khai -> Sửa -> Phiên bản mới -> Triển khai</strong>.
                 </div>
               </div>
-              <button onclick="copyAppsScriptSource()" class="px-3 py-1.5 rounded-xl bg-rose-600 text-white font-bold shrink-0">Copy mã v6</button>
+              <button onclick="copyAppsScriptSource()" class="px-3 py-1.5 rounded-xl bg-rose-600 text-white font-bold shrink-0">Copy mã v8-secure</button>
             </div>
           `;
         } else {
@@ -737,9 +737,25 @@
       if (changed) persistLocalOnly();
       return changed;
     }
+    async function sha256HexClient(text) {
+      const data = new TextEncoder().encode(String(text || ''));
+      const hashBuf = await crypto.subtle.digest('SHA-256', data);
+      return Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+    function isSafeDataImageUrl(url) {
+      return /^data:image\/(jpeg|jpg|png|webp|gif);base64,[A-Za-z0-9+/=]+$/i.test(String(url || ''));
+    }
+    function getSessionToken() {
+      return localStorage.getItem(SESSION_TOKEN_KEY) || '';
+    }
+    function setSessionToken(tok) {
+      if (tok) localStorage.setItem(SESSION_TOKEN_KEY, tok);
+      else localStorage.removeItem(SESSION_TOKEN_KEY);
+    }
     function getSharedPayloadSnapshot() {
       const safeUsers = db.users.map(u => {
         const copy = { ...u };
+        delete copy.password;
         if (copy.avatar && copy.avatar.length > 1500) copy.avatar = '';
         return copy;
       });
@@ -755,28 +771,7 @@
       };
     }
     async function cloudGetAction(actionName, dataObjOrNull) {
-      const apiUrl = getActiveApiUrl();
-      if (!apiUrl) return null;
-      cloudSyncStatus = 'syncing';
-      updateSyncStatusBadge();
-      try {
-        const sep = apiUrl.includes('?') ? '&' : '?';
-        let queryUrl = `${apiUrl}${sep}action=${encodeURIComponent(actionName)}&t=${Date.now()}`;
-        if (dataObjOrNull !== null && dataObjOrNull !== undefined) {
-          queryUrl += `&data=${encodeURIComponent(JSON.stringify(dataObjOrNull))}`;
-        }
-        const res = await fetch(queryUrl, { method: 'GET', redirect: 'follow' });
-        const json = await res.json();
-        if (json && json.scriptVersion) remoteScriptVersion = json.scriptVersion;
-        cloudSyncStatus = 'online';
-        lastSyncedTimeStr = new Date().toTimeString().slice(0, 5);
-        updateSyncStatusBadge();
-        return json;
-      } catch (err) {
-        cloudSyncStatus = 'error';
-        updateSyncStatusBadge();
-        return null;
-      }
+      return cloudPostAction(actionName, dataObjOrNull);
     }
     async function cloudPostAction(actionName, dataObj) {
       const apiUrl = getActiveApiUrl();
@@ -790,6 +785,7 @@
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({
             action: actionName,
+            token: getSessionToken(),
             data: dataObj,
             state: getSharedPayloadSnapshot(),
             fallbackState: getSharedPayloadSnapshot()
@@ -797,6 +793,15 @@
         });
         const json = await res.json();
         if (json && json.scriptVersion) remoteScriptVersion = json.scriptVersion;
+        if (json && json.error === 'UNAUTHORIZED' && actionName !== 'LOGIN' && actionName !== 'LOGOUT') {
+          setSessionToken('');
+          db.activeUserId = null;
+          db.users = JSON.parse(JSON.stringify(SEED_USERS));
+          persistLocalOnly();
+          renderApp();
+          showToast('Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!', 'error');
+          return json;
+        }
         cloudSyncStatus = 'online';
         lastSyncedTimeStr = new Date().toTimeString().slice(0, 5);
         updateSyncStatusBadge();
@@ -817,12 +822,7 @@
     function executeQueuedCloudCall(actionName, dataObj, usePost, reqSeq) {
       cloudTaskQueue = cloudTaskQueue.then(async () => {
         lastLocalMutationAt = Date.now();
-        let resp = usePost
-          ? await cloudPostAction(actionName, dataObj)
-          : await cloudGetAction(actionName, dataObj);
-        if (resp && resp.ok && resp.scriptVersion !== 'v6' && actionName !== 'SYNC_PUSH') {
-          resp = await cloudPostAction('SYNC_PUSH', getSharedPayloadSnapshot());
-        }
+        const resp = await cloudPostAction(actionName, dataObj);
         lastLocalMutationAt = Date.now();
         pendingCloudOps = Math.max(0, pendingCloudOps - 1);
         if (resp && resp.ok) {
@@ -831,7 +831,7 @@
           }
           return { ok: true, state: resp.state };
         }
-        return { ok: false, reason: 'NETWORK_ERROR' };
+        return { ok: false, error: (resp && resp.error) || 'NETWORK_ERROR' };
       });
       return cloudTaskQueue;
     }
@@ -863,7 +863,7 @@
         });
       }
       pendingCloudOps++;
-      return executeQueuedCloudCall(actionName, dataObj, usePost, reqSeq);
+      return executeQueuedCloudCall(actionName, dataObj, true, reqSeq);
     }
     async function manualCloudPull(showNotice = false) {
       const apiUrl = getActiveApiUrl();
@@ -871,20 +871,21 @@
         if (showNotice) showToast('Chưa cấu hình link Google Sheet! Vào mục 6 để dán link.', 'info');
         return;
       }
+      if (!getSessionToken()) return;
       if (isCloudBusy || pendingCloudOps > 0) return;
       isCloudBusy = true;
       const pullStartedAt = Date.now();
       const pullSeq = localMutationSeq;
       try {
-        const resp = await cloudGetAction('PULL', null);
+        const resp = await cloudPostAction('PULL', null);
         if (lastLocalMutationAt > pullStartedAt || pendingCloudOps > 0 || pullSeq !== localMutationSeq) return;
         if (resp && resp.ok && resp.state) {
           applyRemoteSharedState(resp.state);
           if (!isCameraRunning) renderApp();
-          if (showNotice) showToast('Đã thay đổi thành công', 'success');
+          if (showNotice) showToast('Đã đồng bộ dữ liệu bảo mật!', 'success');
         } else if (resp && resp.ok && !resp.state && isSecretary()) {
           await sendCloudMutation('SYNC_FULL', getSharedPayloadSnapshot(), true);
-          if (showNotice) showToast('Đã thay đổi thành công', 'success');
+          if (showNotice) showToast('Đã khởi tạo dữ liệu lên Google Sheet!', 'success');
         } else if (showNotice) {
           showToast('Không tải được dữ liệu từ Google Sheet. Kiểm tra lại quyền Web App!', 'error');
         }
@@ -898,15 +899,15 @@
         showToast('Bạn chưa dán link Google Apps Script (/exec)!', 'error');
         return;
       }
-      const resp = await cloudGetAction('PULL', null);
-      if (!resp || !resp.ok) {
+      const resp = await cloudPostAction('PULL', null);
+      if (!resp) {
         showToast('Kết nối THẤT BẠI! Kiểm tra lại link /exec hoặc quyền truy cập "Bất kỳ ai".', 'error');
         return;
       }
-      if (resp.scriptVersion === 'v6') {
-        showToast('Đã thay đổi thành công', 'success');
+      if (resp.scriptVersion === 'v8-secure') {
+        showToast('Kết nối bảo mật v8-secure thành công!', 'success');
       } else {
-        showToast('Đã nối Sheet nhưng Apps Script đang chạy bản cũ! Hãy dán mã v6 và triển khai Phiên bản mới.', 'error');
+        showToast('Đã nối Sheet nhưng Apps Script đang chạy bản cũ! Hãy dán mã v8-secure và triển khai Phiên bản mới.', 'error');
       }
       renderMainBody();
     }
@@ -963,7 +964,7 @@
         let posCode = '';
         if (m.position === 'Phó Bí thư Chi đoàn') posCode = '1';
         else if (m.position === 'Ủy viên BCH Chi đoàn') posCode = '2';
-        const passCode = (m.password && m.password !== m.mssv) ? m.password.replace(/[\n\r~]/g, '') : '';
+        const passCode = '';
         const ptsCode = Number(m.points) !== 85 ? String(m.points) : '';
         const feeCode = m.feePaid ? '1' : '';
         const row = [suffix, name, posCode, passCode, ptsCode, feeCode];
@@ -1117,7 +1118,7 @@
     }
     function copyGithubPresetCode() {
       const members = db.users.filter(u => u.role === 'member');
-      const compact = members.map(m => [m.mssv, m.name, m.position, m.password, m.points, m.feePaid ? 1 : 0]);
+      const compact = members.map(m => [m.mssv, m.name, m.position, '', m.points, m.feePaid ? 1 : 0]);
       const codeBlock = `const PRESET_API_URL = ${JSON.stringify(getActiveApiUrl())};\n    const PRESET_MEMBERS = ${JSON.stringify(compact)};`;
       copyTextSafely(codeBlock);
       showToast('Đã copy mã cố định!', 'success');
@@ -1142,192 +1143,9 @@
       renderMainBody();
     }
     function copyAppsScriptSource() {
-      const scriptCode = `var SCRIPT_VERSION = 'v6';
-function saveStateToSheet(sheet, state) {
-  var json = JSON.stringify(state);
-  var chunkSize = 45000;
-  var totalChunks = Math.max(1, Math.ceil(json.length / chunkSize));
-  for (var i = 0; i < totalChunks; i++) {
-    sheet.getRange(i + 1, 1).setValue(json.substr(i * chunkSize, chunkSize));
-  }
-  var lastRow = sheet.getLastRow();
-  if (lastRow > totalChunks) {
-    sheet.getRange(totalChunks + 1, 1, lastRow - totalChunks, 1).clearContent();
-  }
-  sheet.getRange('B1').setValue(new Date().toLocaleString('vi-VN'));
-}
-function loadStateFromSheet(sheet) {
-  var lastRow = sheet.getLastRow();
-  if (lastRow < 1) return null;
-  var values = sheet.getRange(1, 1, lastRow, 1).getValues();
-  var raw = '';
-  for (var i = 0; i < values.length; i++) {
-    if (values[i][0]) raw += String(values[i][0]);
-  }
-  return raw ? JSON.parse(raw) : null;
-}
-function applyMutation(ss, sheet, state, action, data) {
-  if (action === 'SYNC_FULL' || action === 'SYNC_PUSH') {
-    if (data) state = data;
-  } else if (action === 'QR_CONTROL' && data) {
-    state.attendance = state.attendance || { logs: [] };
-    state.attendance.isOpen = Boolean(data.isOpen);
-    state.attendance.durationSec = Number(data.durationSec || 120);
-    state.attendance.openedAtSec = Number(data.openedAtSec || 0);
-    state.attendance.qrNonce = String(data.qrNonce || '');
-    if (data.title) state.attendance.title = data.title;
-    if (data.location) state.attendance.location = data.location;
-  } else if (action === 'RESET_ATTENDANCE' && data) {
-    state.attendance = state.attendance || {};
-    state.attendance.round = Number(data.round || 1);
-    state.attendance.qrNonce = String(data.qrNonce || '');
-    state.attendance.openedAtSec = Number(data.openedAtSec || 0);
-    state.attendance.isOpen = Boolean(data.isOpen);
-    state.attendance.logs = data.logs || [];
-  } else if (action === 'SCAN_QR' && data) {
-    state.attendance = state.attendance || { logs: [] };
-    state.attendance.logs = state.attendance.logs || [];
-    var targetRound = Number(data.round || 1);
-    var existingIdx = -1;
-    for (var i = 0; i < state.attendance.logs.length; i++) {
-      if (state.attendance.logs[i].userId === data.userId) {
-        existingIdx = i;
-        break;
-      }
-    }
-    if (existingIdx > -1) {
-      state.attendance.logs[existingIdx] = data;
-    } else {
-      state.attendance.logs.push(data);
-    }
-    var logSheet = ss.getSheetByName('DIEM_DANH_LOG') || ss.insertSheet('DIEM_DANH_LOG');
-    if (logSheet.getLastRow() === 0) {
-      logSheet.appendRow(['Thoi gian', 'MSSV / ID', 'Ho va ten', 'Phuong thuc', 'Dot']);
-    }
-    logSheet.appendRow([data.time, data.mssv || data.userId, data.name || '', data.method || 'QR', targetRound]);
-  } else if (action === 'TOGGLE_ACTIVITY' && data) {
-    state.activities = state.activities || [];
-    for (var j = 0; j < state.activities.length; j++) {
-      if (state.activities[j].id === data.actId) {
-        var act = state.activities[j];
-        act.joinedIds = act.joinedIds || [];
-        var idx = act.joinedIds.indexOf(data.userId);
-        if (idx > -1) act.joinedIds.splice(idx, 1);
-        else act.joinedIds.push(data.userId);
-        break;
-      }
-    }
-  } else if (action === 'SAVE_ACTIVITIES' && Array.isArray(data)) {
-    var oldMap = {};
-    (state.activities || []).forEach(function(a) { oldMap[a.id] = a.joinedIds || []; });
-    data.forEach(function(a) {
-      if (oldMap[a.id]) a.joinedIds = oldMap[a.id];
-    });
-    state.activities = data;
-  } else if (action === 'SUBMIT_EVIDENCE' && data) {
-    state.evidences = state.evidences || [];
-    if (!state.evidences.some(function(x) { return x.id === data.id; })) {
-      state.evidences.unshift(data);
-    }
-  } else if (action === 'DELETE_EVIDENCE' && data && data.evId) {
-    state.evidences = state.evidences || [];
-    var targetEv = state.evidences.filter(function(x) { return x.id === data.evId; })[0];
-    if (targetEv && targetEv.status === 'approved') {
-      var evOwner = (state.users || []).filter(function(u) { return u.id === targetEv.userId; })[0];
-      if (evOwner) evOwner.points = Math.max(0, Number(evOwner.points || 85) - 3);
-    }
-    state.evidences = state.evidences.filter(function(x) { return x.id !== data.evId; });
-  } else if (action === 'SET_EVIDENCE_STATUS' && data) {
-    var ev = (state.evidences || []).filter(function(x) { return x.id === data.evId; })[0];
-    if (ev) {
-      var wasOk = ev.status === 'approved';
-      ev.status = data.status;
-      var owner = (state.users || []).filter(function(u) { return u.id === ev.userId; })[0];
-      if (owner) {
-        if (data.status === 'approved' && !wasOk) owner.points = Math.min(100, Number(owner.points || 85) + 3);
-        else if (data.status !== 'approved' && wasOk) owner.points = Math.max(0, Number(owner.points || 85) - 3);
-      }
-    }
-  } else if (action === 'SAVE_FINANCE' && data) {
-    if (data.feeAmount) state.feeAmount = Number(data.feeAmount);
-    if (Array.isArray(data.ledger)) state.ledger = data.ledger;
-    if (data.feeMap && Array.isArray(state.users)) {
-      state.users.forEach(function(u) {
-        if (data.feeMap.hasOwnProperty(u.id)) u.feePaid = Boolean(data.feeMap[u.id]);
-      });
-    }
-  } else if (action === 'SAVE_USERS' && Array.isArray(data)) {
-    var prevMap = {};
-    (state.users || []).forEach(function(u) { prevMap[u.id] = u; });
-    state.users = data.map(function(nu) {
-      var old = prevMap[nu.id];
-      if (old) {
-        if (!nu.phone && old.phone) nu.phone = old.phone;
-        if (!nu.email && old.email) nu.email = old.email;
-      }
-      return nu;
-    });
-  } else if (action === 'UPDATE_USER' && data) {
-    var u = (state.users || []).filter(function(x) { return x.id === data.id; })[0];
-    if (u) {
-      for (var k in data) {
-        if (k !== 'avatar' || (data[k] && data[k].length < 1500)) {
-          u[k] = data[k];
-        }
-      }
-    }
-  }
-  saveStateToSheet(sheet, state);
-  return state;
-}
-function doGet(e) {
-  var params = (e && e.parameter) ? e.parameter : {};
-  var action = params.action || '';
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName('DB_STATE') || ss.insertSheet('DB_STATE');
-  if (!action || action === 'PULL') {
-    var currentState = loadStateFromSheet(sheet);
-    return ContentService.createTextOutput(JSON.stringify({
-      ok: true,
-      scriptVersion: SCRIPT_VERSION,
-      state: currentState
-    })).setMimeType(ContentService.MimeType.JSON);
-  }
-  var lock = LockService.getScriptLock();
-  lock.waitLock(15000);
-  try {
-    var state = loadStateFromSheet(sheet) || {};
-    var data = params.data ? JSON.parse(params.data) : null;
-    state = applyMutation(ss, sheet, state, action, data);
-    return ContentService.createTextOutput(JSON.stringify({
-      ok: true,
-      scriptVersion: SCRIPT_VERSION,
-      state: state
-    })).setMimeType(ContentService.MimeType.JSON);
-  } finally {
-    lock.releaseLock();
-  }
-}
-function doPost(e) {
-  var lock = LockService.getScriptLock();
-  lock.waitLock(15000);
-  try {
-    var req = JSON.parse(e.postData.contents);
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sheet = ss.getSheetByName('DB_STATE') || ss.insertSheet('DB_STATE');
-    var state = loadStateFromSheet(sheet) || req.fallbackState || {};
-    state = applyMutation(ss, sheet, state, req.action, req.data || req.state);
-    return ContentService.createTextOutput(JSON.stringify({
-      ok: true,
-      scriptVersion: SCRIPT_VERSION,
-      state: state
-    })).setMimeType(ContentService.MimeType.JSON);
-  } finally {
-    lock.releaseLock();
-  }
-}`;
+      const scriptCode = "var SCRIPT_VERSION = 'v8-secure';\n\nfunction getServerPepper() {\n  var props = PropertiesService.getScriptProperties();\n  var pepper = props.getProperty('SERVER_PEPPER');\n  if (!pepper) {\n    pepper = Utilities.getUuid() + '-' + Utilities.getUuid();\n    props.setProperty('SERVER_PEPPER', pepper);\n  }\n  return pepper;\n}\n\nfunction sha256HexServer(str) {\n  var rawHash = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, String(str || ''), Utilities.Charset.UTF_8);\n  var out = '';\n  for (var i = 0; i < rawHash.length; i++) {\n    var b = rawHash[i];\n    if (b < 0) b += 256;\n    var hex = b.toString(16);\n    if (hex.length === 1) hex = '0' + hex;\n    out += hex;\n  }\n  return out;\n}\n\nfunction hashClientDigestWithPepper(clientSha256Hex) {\n  return sha256HexServer(String(clientSha256Hex || '').toLowerCase() + ':' + getServerPepper());\n}\n\nfunction migrateLegacyPasswords(state) {\n  if (!state || !Array.isArray(state.users)) return false;\n  var changed = false;\n  for (var i = 0; i < state.users.length; i++) {\n    var u = state.users[i];\n    if (u.password) {\n      var clientHash = sha256HexServer(u.password);\n      u.passwordHash = hashClientDigestWithPepper(clientHash);\n      delete u.password;\n      changed = true;\n    } else if (!u.passwordHash) {\n      var defPass = u.id === 'BITHU_VINH' ? '123456' : (u.mssv || '123456');\n      u.passwordHash = hashClientDigestWithPepper(sha256HexServer(defPass));\n      changed = true;\n    }\n  }\n  return changed;\n}\n\nfunction sanitizeStateForActor(state, actor) {\n  if (!state || typeof state !== 'object' || !actor) return null;\n  var isSec = actor.role === 'secretary';\n  var copy = JSON.parse(JSON.stringify(state));\n\n  if (Array.isArray(copy.users)) {\n    copy.users = copy.users.map(function(u) {\n      var isSelf = u.id === actor.id;\n      var safe = {\n        id: u.id,\n        mssv: u.mssv,\n        name: u.name,\n        position: u.position,\n        role: u.role,\n        canManage: Boolean(u.canManage),\n        avatar: u.avatar || '',\n        points: Number(u.points || 85),\n        feePaid: Boolean(u.feePaid)\n      };\n      if (isSec || isSelf) {\n        safe.username = u.username || u.mssv;\n        safe.phone = u.phone || '';\n        safe.email = u.email || '';\n      }\n      return safe;\n    });\n  }\n\n  if (copy.attendance && typeof copy.attendance === 'object') {\n    delete copy.attendance.qrNonce;\n    delete copy.attendance.prevQrNonce;\n    delete copy.attendance.prevQrNonceUntil;\n  }\n  return copy;\n}\n\nfunction createSessionToken(userId) {\n  var token = Utilities.getUuid() + '-' + Utilities.getUuid();\n  var cache = CacheService.getScriptCache();\n  cache.put('SESS_' + token, String(userId), 21600);\n  return token;\n}\n\nfunction getActorFromToken(state, token) {\n  if (!token || !state || !Array.isArray(state.users)) return null;\n  var userId = CacheService.getScriptCache().get('SESS_' + String(token));\n  if (!userId) return null;\n  for (var i = 0; i < state.users.length; i++) {\n    if (state.users[i].id === userId) return state.users[i];\n  }\n  return null;\n}\n\nfunction normStrServer(s) {\n  return String(s || '').trim().toLowerCase();\n}\n\nfunction isSafeImageStr(val) {\n  if (!val) return true;\n  return /^data:image\\/(jpeg|jpg|png|webp|gif);base64,[A-Za-z0-9+/=]+$/i.test(String(val));\n}\n\nfunction saveStateToSheet(sheet, state) {\n  var json = JSON.stringify(state);\n  var chunkSize = 45000;\n  var totalChunks = Math.max(1, Math.ceil(json.length / chunkSize));\n  for (var i = 0; i < totalChunks; i++) {\n    sheet.getRange(i + 1, 1).setValue(json.substr(i * chunkSize, chunkSize));\n  }\n  var lastRow = sheet.getLastRow();\n  if (lastRow > totalChunks) {\n    sheet.getRange(totalChunks + 1, 1, lastRow - totalChunks, 1).clearContent();\n  }\n  sheet.getRange('B1').setValue(new Date().toLocaleString('vi-VN'));\n}\n\nfunction loadStateFromSheet(sheet) {\n  var lastRow = sheet.getLastRow();\n  if (lastRow < 1) return null;\n  var values = sheet.getRange(1, 1, lastRow, 1).getValues();\n  var raw = '';\n  for (var i = 0; i < values.length; i++) {\n    if (values[i][0]) raw += String(values[i][0]);\n  }\n  if (!raw) return null;\n  var parsed = JSON.parse(raw);\n  if (migrateLegacyPasswords(parsed)) {\n    saveStateToSheet(sheet, parsed);\n  }\n  return parsed;\n}\n\nfunction applyAuthorizedMutation(ss, sheet, state, actor, action, data) {\n  var isSec = actor.role === 'secretary';\n  var isMgr = isSec || Boolean(actor.canManage);\n\n  if (action === 'SYNC_FULL') {\n    if (!isSec || !data) throw new Error('FORBIDDEN');\n    migrateLegacyPasswords(data);\n    state = data;\n  } else if (action === 'SYNC_PUSH') {\n    if (!isMgr || !data) throw new Error('FORBIDDEN');\n    if (isSec) {\n      var hashMap = {};\n      (state.users || []).forEach(function(u) { hashMap[u.id] = u.passwordHash; });\n      if (Array.isArray(data.users)) {\n        data.users.forEach(function(nu) {\n          if (nu.newPasswordClientHash) {\n            nu.passwordHash = hashClientDigestWithPepper(nu.newPasswordClientHash);\n            delete nu.newPasswordClientHash;\n          } else if (hashMap[nu.id]) {\n            nu.passwordHash = hashMap[nu.id];\n          }\n          delete nu.password;\n        });\n      }\n      state = data;\n    } else {\n      if (Array.isArray(data.pointLogs)) state.pointLogs = data.pointLogs;\n      if (data.drlAssessment && data.drlAssessment.submissions && state.drlAssessment) {\n        state.drlAssessment.submissions = data.drlAssessment.submissions;\n      }\n      if (Array.isArray(data.users) && Array.isArray(state.users)) {\n        var ptsMap = {};\n        data.users.forEach(function(u) { ptsMap[u.id] = Number(u.points || 85); });\n        state.users.forEach(function(u) {\n          if (ptsMap.hasOwnProperty(u.id)) u.points = Math.max(0, Math.min(100, ptsMap[u.id]));\n        });\n      }\n    }\n  } else if (action === 'QR_CONTROL' && data) {\n    if (!isSec) throw new Error('FORBIDDEN');\n    state.attendance = state.attendance || { logs: [] };\n    state.attendance.isOpen = Boolean(data.isOpen);\n    state.attendance.durationSec = Number(data.durationSec || 120);\n    state.attendance.openedAtSec = Number(data.openedAtSec || 0);\n    state.attendance.qrNonce = String(data.qrNonce || '');\n    if (data.title) state.attendance.title = String(data.title);\n    if (data.location) state.attendance.location = String(data.location);\n  } else if (action === 'RESET_ATTENDANCE' && data) {\n    if (!isSec) throw new Error('FORBIDDEN');\n    state.attendance = state.attendance || {};\n    state.attendance.round = Number(data.round || 1);\n    state.attendance.qrNonce = String(data.qrNonce || '');\n    state.attendance.openedAtSec = Number(data.openedAtSec || 0);\n    state.attendance.isOpen = Boolean(data.isOpen);\n    state.attendance.logs = Array.isArray(data.logs) ? data.logs : [];\n  } else if (action === 'SCAN_QR' && data) {\n    state.attendance = state.attendance || { logs: [] };\n    state.attendance.logs = state.attendance.logs || [];\n    var nowSec = Math.floor(Date.now() / 1000);\n    var targetUserId = isSec ? (data.userId || actor.id) : actor.id;\n    var targetUser = (state.users || []).filter(function(u) { return u.id === targetUserId; })[0];\n    if (!targetUser) throw new Error('USER_NOT_FOUND');\n\n    if (!isSec) {\n      if (!state.attendance.isOpen) throw new Error('QR_CLOSED');\n      var expSec = Number(state.attendance.openedAtSec || 0) + Number(state.attendance.durationSec || 120) + 15;\n      if (nowSec > expSec) throw new Error('QR_EXPIRED');\n      if (String(data.qrNonce || '') !== String(state.attendance.qrNonce || '')) throw new Error('INVALID_QR');\n    }\n\n    var targetRound = Number(state.attendance.round || data.round || 1);\n    var cleanLog = {\n      userId: targetUser.id,\n      mssv: targetUser.mssv,\n      name: targetUser.name,\n      time: String(data.time || new Date().toLocaleString('vi-VN')),\n      method: isSec ? String(data.method || 'Bí Thư điểm danh hộ') : 'Quét QR',\n      round: targetRound\n    };\n    var existingIdx = -1;\n    for (var i = 0; i < state.attendance.logs.length; i++) {\n      if (state.attendance.logs[i].userId === targetUser.id) { existingIdx = i; break; }\n    }\n    if (existingIdx > -1) state.attendance.logs[existingIdx] = cleanLog;\n    else state.attendance.logs.push(cleanLog);\n  } else if (action === 'TOGGLE_ACTIVITY' && data) {\n    state.activities = state.activities || [];\n    for (var j = 0; j < state.activities.length; j++) {\n      if (state.activities[j].id === data.actId) {\n        var act = state.activities[j];\n        act.joinedIds = act.joinedIds || [];\n        var idx = act.joinedIds.indexOf(actor.id);\n        if (idx > -1) act.joinedIds.splice(idx, 1);\n        else act.joinedIds.push(actor.id);\n        break;\n      }\n    }\n  } else if (action === 'SAVE_ACTIVITIES' && Array.isArray(data)) {\n    if (!isSec) throw new Error('FORBIDDEN');\n    var oldMap = {};\n    (state.activities || []).forEach(function(a) { oldMap[a.id] = a.joinedIds || []; });\n    data.forEach(function(a) { if (oldMap[a.id]) a.joinedIds = oldMap[a.id]; });\n    state.activities = data;\n  } else if (action === 'SUBMIT_EVIDENCE' && data) {\n    if (!isSafeImageStr(data.photo)) throw new Error('INVALID_IMAGE');\n    state.evidences = state.evidences || [];\n    var cleanEv = {\n      id: String(data.id || ('ev-' + Date.now())),\n      userId: actor.id,\n      actTitle: String(data.actTitle || ''),\n      note: String(data.note || ''),\n      bannerKind: String(data.bannerKind || 'volunteer'),\n      photo: data.photo || '',\n      createdAt: String(data.createdAt || new Date().toLocaleString('vi-VN')),\n      status: 'pending'\n    };\n    if (!state.evidences.some(function(x) { return x.id === cleanEv.id; })) {\n      state.evidences.unshift(cleanEv);\n    }\n  } else if (action === 'DELETE_EVIDENCE' && data && data.evId) {\n    state.evidences = state.evidences || [];\n    var targetEv = state.evidences.filter(function(x) { return x.id === data.evId; })[0];\n    if (!targetEv) return state;\n    if (!isMgr && targetEv.userId !== actor.id) throw new Error('FORBIDDEN');\n    if (targetEv.status === 'approved') {\n      var evOwner = (state.users || []).filter(function(u) { return u.id === targetEv.userId; })[0];\n      if (evOwner) evOwner.points = Math.max(0, Number(evOwner.points || 85) - 3);\n    }\n    state.evidences = state.evidences.filter(function(x) { return x.id !== data.evId; });\n  } else if (action === 'SET_EVIDENCE_STATUS' && data) {\n    if (!isMgr) throw new Error('FORBIDDEN');\n    var ev = (state.evidences || []).filter(function(x) { return x.id === data.evId; })[0];\n    if (ev) {\n      var wasOk = ev.status === 'approved';\n      ev.status = data.status === 'approved' ? 'approved' : 'rejected';\n      var owner = (state.users || []).filter(function(u) { return u.id === ev.userId; })[0];\n      if (owner) {\n        if (ev.status === 'approved' && !wasOk) owner.points = Math.min(100, Number(owner.points || 85) + 3);\n        else if (ev.status !== 'approved' && wasOk) owner.points = Math.max(0, Number(owner.points || 85) - 3);\n      }\n    }\n  } else if (action === 'SAVE_FINANCE' && data) {\n    if (!isSec) throw new Error('FORBIDDEN');\n    if (data.feeAmount) state.feeAmount = Number(data.feeAmount);\n    if (Array.isArray(data.ledger)) state.ledger = data.ledger;\n    if (data.feeMap && Array.isArray(state.users)) {\n      state.users.forEach(function(u) {\n        if (data.feeMap.hasOwnProperty(u.id)) u.feePaid = Boolean(data.feeMap[u.id]);\n      });\n    }\n  } else if (action === 'SAVE_USERS' && Array.isArray(data)) {\n    if (!isSec) throw new Error('FORBIDDEN');\n    var prevMap = {};\n    (state.users || []).forEach(function(u) { prevMap[u.id] = u; });\n    state.users = data.map(function(nu) {\n      var old = prevMap[nu.id];\n      if (old) {\n        if (!nu.phone && old.phone) nu.phone = old.phone;\n        if (!nu.email && old.email) nu.email = old.email;\n        nu.passwordHash = nu.newPasswordClientHash\n          ? hashClientDigestWithPepper(nu.newPasswordClientHash)\n          : old.passwordHash;\n      } else {\n        var initClientHash = nu.newPasswordClientHash || sha256HexServer(nu.mssv || '123456');\n        nu.passwordHash = hashClientDigestWithPepper(initClientHash);\n      }\n      delete nu.newPasswordClientHash;\n      delete nu.password;\n      return nu;\n    });\n  } else if (action === 'UPDATE_USER' && data) {\n    var targetId = isSec ? (data.id || actor.id) : actor.id;\n    var u = (state.users || []).filter(function(x) { return x.id === targetId; })[0];\n    if (u) {\n      var allowedFields = ['name', 'mssv', 'username', 'phone', 'email', 'avatar'];\n      for (var k in data) {\n        if (allowedFields.indexOf(k) === -1) continue;\n        if (k === 'avatar') {\n          if (data.avatar && data.avatar.length < 1500 && isSafeImageStr(data.avatar)) u.avatar = data.avatar;\n          else if (data.avatar === '') u.avatar = '';\n        } else {\n          u[k] = String(data[k] || '');\n        }\n      }\n    }\n  } else if (action === 'CHANGE_PASSWORD' && data) {\n    if (!data.oldPassClientHash || !data.newPassClientHash) throw new Error('INVALID_PASSWORD');\n    if (actor.passwordHash !== hashClientDigestWithPepper(data.oldPassClientHash)) {\n      throw new Error('WRONG_OLD_PASSWORD');\n    }\n    actor.passwordHash = hashClientDigestWithPepper(data.newPassClientHash);\n  } else {\n    throw new Error('FORBIDDEN_ACTION');\n  }\n\n  saveStateToSheet(sheet, state);\n  return state;\n}\n\nfunction doGet(e) {\n  return ContentService.createTextOutput(JSON.stringify({\n    ok: false,\n    scriptVersion: SCRIPT_VERSION,\n    error: 'PUBLIC_GET_DISABLED'\n  })).setMimeType(ContentService.MimeType.JSON);\n}\n\nfunction doPost(e) {\n  var lock = LockService.getScriptLock();\n  lock.waitLock(15000);\n  try {\n    var req = JSON.parse(e.postData.contents);\n    var action = req.action || '';\n    var ss = SpreadsheetApp.getActiveSpreadsheet();\n    var sheet = ss.getSheetByName('DB_STATE') || ss.insertSheet('DB_STATE');\n    var state = loadStateFromSheet(sheet) || { users: [] };\n    migrateLegacyPasswords(state);\n\n    if (action === 'LOGIN') {\n      var d = req.data || {};\n      var uInp = normStrServer(d.userInp);\n      var pClientHash = String(d.passHash || '');\n      var cache = CacheService.getScriptCache();\n      var failKey = 'FAIL_' + sha256HexServer(uInp);\n      var failCount = Number(cache.get(failKey) || 0);\n\n      if (failCount >= 5) {\n        return ContentService.createTextOutput(JSON.stringify({\n          ok: false,\n          scriptVersion: SCRIPT_VERSION,\n          error: 'TOO_MANY_ATTEMPTS'\n        })).setMimeType(ContentService.MimeType.JSON);\n      }\n\n      var expectedHash = hashClientDigestWithPepper(pClientHash);\n      var matched = null;\n      for (var i = 0; i < (state.users || []).length; i++) {\n        var u = state.users[i];\n        var matchUser = normStrServer(u.username) === uInp || normStrServer(u.mssv) === uInp || normStrServer(u.name) === uInp;\n        if (matchUser && u.passwordHash === expectedHash) {\n          matched = u;\n          break;\n        }\n      }\n\n      if (!matched) {\n        cache.put(failKey, String(failCount + 1), 900);\n        return ContentService.createTextOutput(JSON.stringify({\n          ok: false,\n          scriptVersion: SCRIPT_VERSION,\n          error: 'INVALID_CREDENTIALS'\n        })).setMimeType(ContentService.MimeType.JSON);\n      }\n\n      cache.remove(failKey);\n      var token = createSessionToken(matched.id);\n      var filteredState = sanitizeStateForActor(state, matched);\n      var selfUser = filteredState.users.filter(function(x) { return x.id === matched.id; })[0];\n\n      return ContentService.createTextOutput(JSON.stringify({\n        ok: true,\n        scriptVersion: SCRIPT_VERSION,\n        token: token,\n        user: selfUser,\n        state: filteredState\n      })).setMimeType(ContentService.MimeType.JSON);\n    }\n\n    if (action === 'LOGOUT') {\n      if (req.token) {\n        CacheService.getScriptCache().remove('SESS_' + String(req.token));\n      }\n      return ContentService.createTextOutput(JSON.stringify({\n        ok: true,\n        scriptVersion: SCRIPT_VERSION\n      })).setMimeType(ContentService.MimeType.JSON);\n    }\n\n    var actor = getActorFromToken(state, req.token);\n    if (!actor) {\n      return ContentService.createTextOutput(JSON.stringify({\n        ok: false,\n        scriptVersion: SCRIPT_VERSION,\n        error: 'UNAUTHORIZED'\n      })).setMimeType(ContentService.MimeType.JSON);\n    }\n\n    if (action === 'PULL') {\n      return ContentService.createTextOutput(JSON.stringify({\n        ok: true,\n        scriptVersion: SCRIPT_VERSION,\n        state: sanitizeStateForActor(state, actor)\n      })).setMimeType(ContentService.MimeType.JSON);\n    }\n\n    state = applyAuthorizedMutation(ss, sheet, state, actor, action, req.data || req.state);\n    return ContentService.createTextOutput(JSON.stringify({\n      ok: true,\n      scriptVersion: SCRIPT_VERSION,\n      state: sanitizeStateForActor(state, actor)\n    })).setMimeType(ContentService.MimeType.JSON);\n  } catch (err) {\n    return ContentService.createTextOutput(JSON.stringify({\n      ok: false,\n      scriptVersion: SCRIPT_VERSION,\n      error: String(err.message || err)\n    })).setMimeType(ContentService.MimeType.JSON);\n  } finally {\n    lock.releaseLock();\n  }\n}";
       copyTextSafely(scriptCode);
-      showToast('Đã copy mã Google Apps Script v6!', 'success');
+      showToast('Đã copy mã Google Apps Script v8-secure!', 'success');
     }
     // ==================== LƯU TRỮ LOCAL ====================
     function loadDatabase() {
@@ -1384,7 +1202,7 @@ function doPost(e) {
       return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     }
     function renderAvatarContent(user) {
-      if (user && user.avatar) {
+      if (user && user.avatar && isSafeDataImageUrl(user.avatar)) {
         return `<img src="${user.avatar}" alt="${esc(user.name)}" class="w-full h-full object-cover" />`;
       }
       return `<span>${getInitials(user ? user.name : 'ĐV')}</span>`;
@@ -1406,37 +1224,53 @@ function doPost(e) {
       inp.type = inp.type === 'password' ? 'text' : 'password';
       eye.className = inp.type === 'password' ? 'fa-solid fa-eye text-xs' : 'fa-solid fa-eye-slash text-xs';
     }
-    function findMatchingAccount(userInp, passInp) {
-      const norm = normalizeInput(userInp);
-      return db.users.find(u => {
-        const direct = u.username.toLowerCase() === userInp.toLowerCase() || u.mssv.toLowerCase() === userInp.toLowerCase();
-        const fuzzy = normalizeInput(u.username) === norm || normalizeInput(u.mssv) === norm || normalizeInput(u.name) === norm;
-        return (direct || fuzzy) && u.password === passInp;
-      });
-    }
     async function onLoginSubmit(e) {
       e.preventDefault();
       const userInp = document.getElementById('auth-user').value.trim();
       const passInp = document.getElementById('auth-pass').value.trim();
-      let matched = findMatchingAccount(userInp, passInp);
-      if (!matched && getActiveApiUrl()) {
-        await manualCloudPull(false);
-        matched = findMatchingAccount(userInp, passInp);
+      if (!userInp || !passInp) {
+        showToast('Vui lòng nhập đầy đủ tài khoản và mật khẩu!', 'error');
+        return;
       }
-      if (!matched) {
+      if (!getActiveApiUrl()) {
+        showToast('Chưa cấu hình link Google Sheet bảo mật!', 'error');
+        return;
+      }
+      const passHash = await sha256HexClient(passInp);
+      const resp = await cloudPostAction('LOGIN', { userInp, passHash });
+      if (resp && resp.ok && resp.user && resp.token) {
+        setSessionToken(resp.token);
+        if (resp.state) applyRemoteSharedState(resp.state);
+        db.activeUserId = resp.user.id;
+        db.activeTab = 'home';
+        localForceRescan = false;
+        persistLocalOnly();
+        renderApp();
+        if (passInp === '123456' || passInp.toUpperCase() === (resp.user.mssv || '').toUpperCase()) {
+          showToast('Đăng nhập thành công! Bạn nên đổi mật khẩu mặc định để bảo mật.', 'info');
+        }
+        return;
+      }
+      if (resp && resp.error === 'TOO_MANY_ATTEMPTS') {
+        showToast('Nhập sai quá 5 lần! Tài khoản tạm khóa 15 phút để chống dò mật khẩu.', 'error');
+        return;
+      }
+      if (resp && resp.error === 'INVALID_CREDENTIALS') {
         showToast('Tài khoản hoặc mật khẩu không đúng!', 'error');
         return;
       }
-      db.activeUserId = matched.id;
-      db.activeTab = 'home';
-      localForceRescan = false;
-      persistLocalOnly();
-      renderApp();
+      showToast('Không kết nối được máy chủ! Kiểm tra mạng hoặc link Google Apps Script.', 'error');
     }
     function onLogout() {
       stopCameraScanner();
+      const tok = getSessionToken();
+      if (tok && getActiveApiUrl()) {
+        cloudPostAction('LOGOUT', {});
+      }
+      setSessionToken('');
       db.activeUserId = null;
       db.activeTab = 'home';
+      db.users = JSON.parse(JSON.stringify(SEED_USERS));
       localForceRescan = false;
       persistLocalOnly();
       document.getElementById('auth-pass').value = '';
@@ -1554,16 +1388,16 @@ function doPost(e) {
       e.preventDefault();
       const u = currentUser();
       if (!u) return;
-      if (document.getElementById('cp-old').value.trim() !== u.password) {
-        showToast('Mật khẩu hiện tại không đúng!', 'error');
+      const oldPassClientHash = await sha256HexClient(document.getElementById('cp-old').value.trim());
+      const newPassClientHash = await sha256HexClient(document.getElementById('cp-new').value.trim());
+      const resp = await sendCloudMutation('CHANGE_PASSWORD', { oldPassClientHash, newPassClientHash }, true);
+      if (!resp || !resp.ok) {
+        showToast(resp && resp.error === 'WRONG_OLD_PASSWORD' ? 'Mật khẩu hiện tại không đúng!' : 'Đổi mật khẩu thất bại!', 'error');
         return;
       }
-      u.password = document.getElementById('cp-new').value.trim();
-      persistLocalOnly();
       e.target.reset();
       closeModal('pass-modal');
-      await sendCloudMutation('UPDATE_USER', { id: u.id, password: u.password }, false);
-      showToast('Đã thay đổi thành công', 'success');
+      showToast('Đã đổi mật khẩu bảo mật thành công!', 'success');
     }
     // ==================== HỆ THỐNG QR CODE & ĐIỂM DANH ====================
     let qrTickerHandle = null;
@@ -1858,22 +1692,11 @@ function doPost(e) {
           showToast('Mã QR này đã hết thời gian hiệu lực! Hãy báo Bí Thư mở lại mã mới.', 'error');
           return;
         }
-        if (getActiveApiUrl()) {
-          const resp = await cloudGetAction('PULL', null);
-          if (resp && resp.ok && resp.state && resp.state.attendance) {
-            const remoteAtt = resp.state.attendance;
-            if (!remoteAtt.isOpen || (remoteAtt.qrNonce && remoteAtt.qrNonce !== scannedNonce)) {
-              await stopCameraScanner();
-              showToast('Mã QR này đã bị Bí Thư đóng hoặc đã chuyển sang đợt mới!', 'error');
-              return;
-            }
-          }
-        }
         const wasForcedRescan = localForceRescan;
         localForceRescan = false;
         await stopCameraScanner();
         playSuccessBeep();
-        await commitAttendance(db.activeUserId, 'Quét QR Bí Thư', scannedRound, wasForcedRescan);
+        await commitAttendance(db.activeUserId, 'Quét QR Bí Thư', scannedRound, wasForcedRescan, scannedNonce);
       } finally {
         isProcessingQrScan = false;
       }
@@ -3177,7 +3000,7 @@ function doPost(e) {
     }
     function openEvidenceImagePreview(evId) {
       const ev = db.evidences.find(x => x.id === evId);
-      if (!ev || !ev.photo) return;
+      if (!ev || !ev.photo || !isSafeDataImageUrl(ev.photo)) return;
       const titleEl = document.getElementById('img-preview-title');
       const imgEl = document.getElementById('img-preview-src');
       if (titleEl) titleEl.textContent = ev.actTitle || 'Ảnh minh chứng hoạt động';
@@ -3186,7 +3009,7 @@ function doPost(e) {
     }
     function renderEvidenceBanner(evOrKind) {
       const isObj = evOrKind && typeof evOrKind === 'object';
-      if (isObj && evOrKind.photo) {
+      if (isObj && evOrKind.photo && isSafeDataImageUrl(evOrKind.photo)) {
         return `
           <div onclick="openEvidenceImagePreview('${evOrKind.id}')" title="Bấm để xem ảnh lớn" class="cursor-pointer group relative w-full h-32 rounded-2xl overflow-hidden border border-slate-200 bg-slate-100">
             <img src="${evOrKind.photo}" alt="Ảnh minh chứng" class="w-full h-full object-cover group-hover:scale-105 transition-transform" />
@@ -3627,7 +3450,7 @@ function doPost(e) {
                   <i class="fa-solid fa-heart-pulse"></i> Kiểm tra kết nối
                 </button>
                 <button type="button" onclick="copyAppsScriptSource()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-xs transition inline-flex items-center gap-1.5">
-                  <i class="fa-solid fa-copy"></i> Copy mã Apps Script v6
+                  <i class="fa-solid fa-copy"></i> Copy mã Apps Script v8-secure
                 </button>
               </div>
             </div>
@@ -3770,7 +3593,7 @@ function doPost(e) {
                             ${hasMgrPerm ? 'Được QL điểm' : 'Cấp quyền QL'}
                           </button>
                         </td>
-                        <td class="py-3 px-2 font-mono text-slate-700">${esc(m.password)}</td>
+                        <td class="py-3 px-2"><span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 text-slate-600 text-[11px] font-semibold"><i class="fa-solid fa-lock text-emerald-600"></i> Đã mã hóa</span></td>
                         <td class="py-3 px-2 text-right space-x-1 whitespace-nowrap">
                           <button onclick="resetMemberPassword('${m.id}')" title="Reset mật khẩu về MSSV" class="px-2 py-1 rounded-lg bg-blue-50 text-[#0056B3] font-bold hover:bg-blue-100">Reset MK</button>
                           ${isSecRow ? '' : `<button onclick="deleteMemberAccount('${m.id}')" title="Xóa tài khoản" class="px-2 py-1 rounded-lg bg-rose-50 text-rose-600 font-bold hover:bg-rose-100">Xóa</button>`}
@@ -4062,7 +3885,7 @@ function doPost(e) {
       if (!isSecretary()) return;
       await commitAttendance(uid, 'Bí Thư điểm danh hộ', Number(db.attendance.round || 1), true);
     }
-    async function commitAttendance(uid, methodLabel, roundNum = Number(db.attendance.round || 1), allowOverwrite = false) {
+    async function commitAttendance(uid, methodLabel, roundNum = Number(db.attendance.round || 1), allowOverwrite = false, scannedNonce = '') {
       const target = db.users.find(u => u.id === uid);
       if (!target) return;
       const now = new Date();
@@ -4073,13 +3896,15 @@ function doPost(e) {
         name: target.name,
         time: timeStr,
         method: methodLabel,
-        round: roundNum
+        round: roundNum,
+        qrNonce: scannedNonce
       };
+      const prevLogs = JSON.parse(JSON.stringify(db.attendance.logs || []));
       const existingIdx = db.attendance.logs.findIndex(l => l.userId === target.id);
       if (existingIdx > -1) {
         if (!allowOverwrite && Number(db.attendance.logs[existingIdx].round || 1) === roundNum) {
           renderApp();
-          showToast('Đã thay đổi thành công', 'success');
+          showToast('Đã ghi nhận điểm danh!', 'success');
           return;
         }
         db.attendance.logs[existingIdx] = logEntry;
@@ -4088,8 +3913,15 @@ function doPost(e) {
       }
       persistLocalOnly();
       renderApp();
-      showToast('Đã thay đổi thành công', 'success');
-      await sendCloudMutation('SCAN_QR', logEntry, false);
+      const resp = await sendCloudMutation('SCAN_QR', logEntry, true);
+      if (resp && !resp.ok && resp.reason !== 'NO_URL') {
+        db.attendance.logs = prevLogs;
+        persistLocalOnly();
+        renderApp();
+        showToast('Mã QR đã đóng, hết hạn hoặc không hợp lệ!', 'error');
+        return;
+      }
+      showToast('Điểm danh thành công!', 'success');
     }
     function exportAttendanceCsv() {
       const roundNum = Number(db.attendance.round || 1);
@@ -4107,7 +3939,12 @@ function doPost(e) {
           log ? log.method : ''
         ]);
       });
-      const csv = '\uFEFF' + rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+      const sanitizeCsvCell = (v) => {
+        let s = String(v ?? '').replace(/"/g, '""');
+        if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+        return `"${s}"`;
+      };
+      const csv = '\uFEFF' + rows.map(r => r.map(sanitizeCsvCell).join(',')).join('\n');
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -4140,10 +3977,11 @@ function doPost(e) {
         showToast(`MSSV ${mssv} đã tồn tại trên hệ thống!`, 'error');
         return;
       }
+      const newPasswordClientHash = await sha256HexClient(pass);
       db.users.push({
         id: 'MEM_' + mssv,
         username: mssv,
-        password: pass,
+        newPasswordClientHash,
         mssv,
         name,
         position,
@@ -4159,26 +3997,29 @@ function doPost(e) {
       persistLocalOnly();
       e.target.reset();
       renderMainBody();
-      showToast('Đã thay đổi thành công', 'success');
+      showToast('Đã tạo tài khoản bảo mật thành công!', 'success');
       await sendCloudMutation('SAVE_USERS', db.users, true);
+      db.users.forEach(u => { delete u.newPasswordClientHash; });
+      persistLocalOnly();
     }
     async function onBulkCreateMembers(e) {
       e.preventDefault();
       if (!isSecretary()) return;
       const lines = document.getElementById('bulk-mem-text').value.split('\n');
       let added = 0;
-      lines.forEach(line => {
+      for (const line of lines) {
         const clean = line.trim();
-        if (!clean) return;
+        if (!clean) continue;
         const parts = clean.split(/[-–|,;\t]+/).map(s => s.trim()).filter(Boolean);
         const mssv = (parts[0] || '').toUpperCase();
         const name = parts[1] || `Đoàn viên ${mssv}`;
         const position = normalizePositionName(parts[2]);
-        if (!mssv || db.users.some(u => u.mssv.toUpperCase() === mssv)) return;
+        if (!mssv || db.users.some(u => u.mssv.toUpperCase() === mssv)) continue;
+        const newPasswordClientHash = await sha256HexClient(mssv);
         db.users.push({
           id: 'MEM_' + mssv,
           username: mssv,
-          password: mssv,
+          newPasswordClientHash,
           mssv,
           name,
           position,
@@ -4191,7 +4032,7 @@ function doPost(e) {
           feePaid: false
         });
         added++;
-      });
+      }
       if (added === 0) {
         showToast('Không có MSSV mới nào được thêm (có thể đã trùng)!', 'error');
         return;
@@ -4200,8 +4041,10 @@ function doPost(e) {
       persistLocalOnly();
       e.target.reset();
       renderMainBody();
-      showToast('Đã thay đổi thành công', 'success');
+      showToast(`Đã tạo ${added} tài khoản bảo mật thành công!`, 'success');
       await sendCloudMutation('SAVE_USERS', db.users, true);
+      db.users.forEach(u => { delete u.newPasswordClientHash; });
+      persistLocalOnly();
     }
     async function onToggleMemberManagePerm(uid) {
       if (!isSecretary()) return;
@@ -4232,12 +4075,14 @@ function doPost(e) {
       if (!isSecretary()) return;
       const m = db.users.find(u => u.id === uid);
       if (!m) return;
-      m.password = m.mssv;
+      m.newPasswordClientHash = await sha256HexClient(m.mssv);
       latestCompactLinkCache = '';
       persistLocalOnly();
       renderMainBody();
-      showToast('Đã thay đổi thành công', 'success');
+      showToast('Đã đặt lại mật khẩu về MSSV!', 'success');
       await sendCloudMutation('SAVE_USERS', db.users, true);
+      delete m.newPasswordClientHash;
+      persistLocalOnly();
     }
     async function deleteMemberAccount(uid) {
       if (!isSecretary()) return;
@@ -4314,11 +4159,10 @@ function doPost(e) {
         const txt = document.getElementById('login-sync-text');
         if (notice && txt) {
           notice.classList.remove('hidden');
-          txt.textContent = 'Đang đồng bộ danh sách tài khoản Chi đoàn...';
+          txt.textContent = 'Đã kết nối máy chủ bảo mật Chi đoàn ĐHSVAN26A!';
         }
-        await manualCloudPull(false);
-        if (txt) {
-          txt.textContent = `Đã đồng bộ ${db.users.length} tài khoản Chi đoàn ĐHSVAN26A!`;
+        if (getSessionToken()) {
+          await manualCloudPull(false);
         }
       } else if (importedCount > 0) {
         const notice = document.getElementById('login-sync-notice');
